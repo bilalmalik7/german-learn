@@ -13,9 +13,14 @@ An animated, beginner-friendly website that takes you from your first „Hallo�
 | 🧩 **Exercises** | 532 hand-written exercises plus auto-generated ones: multiple choice, gap-fill, sentence building, translation, dictation, der/die/das, matching. Instant feedback with explanations; mistakes come back once. |
 | 🎤 **Speaking** | Speech recognition scores your pronunciation word by word (Chrome/Edge). Free speaking tasks with model answers. Record-yourself fallback in other browsers. |
 | ✍️ **Writing** | A writing task every day with a grammar checklist and model answer (saved in your browser). |
+| 🏋️ **Grammar Trainer** | Unlimited generated drills: conjugation of 45 key verbs (Präsens, Perfekt, Präteritum), articles in every case (der/den/dem, ein/einen/einem, kein, mein) and adjective endings – each answer shows the full table. |
+| 📖 **Stories** | 4 graded listening & reading stories (A1 → B1) read aloud sentence by sentence, with comprehension questions. |
+| 💬 **Talk** | A speaking drill with 36 everyday questions and model answers. On claude.ai: **AI conversation partner** – role-play 8 situations with the characters while every message you send is corrected and explained. |
+| ✨ **AI tutor (claude.ai only)** | Bruno corrects your writing tasks and free-speaking answers (score, mistakes with rules, corrected version) and answers questions about any grammar topic. Hidden automatically elsewhere. |
+| ❗ **Mistake notebook** | Every exercise you get wrong is saved; practise them until the list is empty. |
 | 🔁 **Review** | Spaced-repetition flashcards (Leitner boxes), mixed grammar quiz, searchable word list. |
 | 🗣️ **Pronunciation** | Alphabet, every German sound with examples, and a minimal-pairs listening game. |
-| ⭐ **Motivation** | XP, day streak, 30-day activity chart, confetti. Light & dark mode. Works on phones. |
+| ⭐ **Motivation** | Bruno reacts to every answer, streak combos, sound effects, keyboard shortcuts (1–4, Enter), XP, day streak, activity chart, a certificate after Day 30. Light & dark mode. Works on phones. |
 
 ## How to run it
 
@@ -47,10 +52,13 @@ js/core.js            helpers, progress store, text-to-speech, speech recognitio
 js/characters.js      animated SVG characters
 js/exercises.js       exercise engine
 js/dialogue.js        dialogue scenes & role-play
+js/trainer.js         grammar drills & stories
+js/tutor.js           AI tutor (claude.ai) & Talk page
 js/app.js             router and all pages
 js/data/grammar*.js   grammar topics (Weeks 1–2, 3–4, reference)
 js/data/week1-4.js    the 30 daily lessons
 js/data/sounds.js     pronunciation guide
+js/data/practice.js   verb tables, drill nouns, conversation questions, scenarios, stories
 ```
 
 ### Adding or editing content

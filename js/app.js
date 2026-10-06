@@ -80,7 +80,7 @@
     GL._anchor = anchor || '';
     const parts = path.split('/');
     const [page, a, b] = parts;
-    $$('.nav a').forEach((l) => l.classList.toggle('active', l.dataset.nav === (page || 'home') || (page === 'day' && l.dataset.nav === 'plan')));
+    $$('[data-nav]').forEach((l) => l.classList.toggle('active', l.dataset.nav === (page || 'home') || (page === 'day' && l.dataset.nav === 'plan')));
     let html;
     try {
       switch (page) {
@@ -89,6 +89,8 @@
         case 'day': html = viewDay(+a || 1, b || 'intro'); break;
         case 'grammar': html = a ? viewTopic(decodeURIComponent(a)) : viewGrammar(); break;
         case 'review': html = viewReview(a || 'cards'); break;
+        case 'trainer': html = GL.viewTrainer(a, b); break;
+        case 'talk': html = GL.viewTalk(a); break;
         case 'sounds': html = viewSounds(); break;
         case 'settings': html = viewSettings(); break;
         default: html = viewHome();
@@ -152,6 +154,17 @@
         <div class="stat"><span class="s-ico">⭐</span><div><b>${st.xp}</b><span>XP earned</span></div></div>
         <div class="stat"><span class="s-ico">✅</span><div><b>${done}/${GL.days.length}</b><span>days completed</span></div></div>
         <div class="stat"><span class="s-ico">📚</span><div><b>${words}</b><span>words learned</span></div></div>
+      </div>
+
+      <div class="card">
+        <h3>☀️ Your practice today</h3>
+        <div class="today">
+          <a href="#/day/${next}"><span class="t-ico">📅</span><div><b>Day ${next}</b><small>today’s lesson</small></div></a>
+          <a href="#/review/cards"><span class="t-ico">🃏</span><div><b>${Store.dueCards()} due</b><small>flashcards to review</small></div></a>
+          <a href="#/review/mistakes"><span class="t-ico">❗</span><div><b>${Object.keys(st.mistakes || {}).length}</b><small>mistakes to fix</small></div></a>
+          <a href="#/trainer"><span class="t-ico">🏋️</span><div><b>Trainer</b><small>verbs · cases · endings</small></div></a>
+          <a href="#/talk"><span class="t-ico">💬</span><div><b>Talk</b><small>answer questions aloud</small></div></a>
+        </div>
       </div>
 
       ${day ? `<div class="card">
@@ -371,8 +384,9 @@
           return `<section class="gram-topic gram"><h2>${esc(t.title)} <span class="level ${t.level}">${t.level}</span></h2>
             ${t.de ? `<p class="muted" style="margin-top:-6px">${esc(t.de)}</p>` : ''}
             ${rich(t.html)}
-            <p style="margin-top:14px"><a href="#/grammar/${encodeURIComponent(id)}">📘 Open in Grammar A–Z</a></p></section>`;
-        }).join('') + `<div class="tip" style="margin-top:20px"><b>Study tip:</b> click every example to hear it, then say it aloud. Copy the tables into a notebook – writing by hand helps grammar stick.</div>`,
+            <p style="margin-top:14px"><a href="#/grammar/${encodeURIComponent(id)}">📘 Open in Grammar A–Z</a></p><div class="ask-slot" data-topic="${attr(id)}"></div></section>`;
+        }).join('') + `<div class="tip" style="margin-top:20px"><b>Study tip:</b> click every example to hear it, then say it aloud. Copy the tables into a notebook – writing by hand helps grammar stick. Then drill it in the <a href="#/trainer">Grammar Trainer</a>.</div>`,
+        mount() { $$('.ask-slot').forEach((el) => GL.Tutor.mountAsk(el, GL.grammar[el.dataset.topic])); },
       };
     },
 
@@ -411,6 +425,7 @@
             reshuffle: build,
             nextLabel: 'Speaking practice ➜',
             onNext: () => (location.hash = `#/day/${n}/speaking`),
+            day: n,
             onFinish: (pct) => { const d = Store.day(n); d.best = Math.max(d.best || 0, pct); Store.save(); },
           });
         },
@@ -441,6 +456,8 @@
             <p>Speak for 1–2 minutes. Use today’s grammar! ${Rec.supported ? 'Press 🎤 to see a transcript of what you said.' : ''}</p>
             <div class="row">${Rec.supported ? '<button class="btn rec" id="freeRec">🎤 Speak freely</button>' : ''}<button class="btn ghost" id="showModel">👀 Show a model answer</button></div>
             <div id="freeRes"></div>
+            <textarea class="txt-in" id="freeText" rows="3" style="margin-top:10px" placeholder="${Rec.supported ? 'Your transcript appears here – you can also type your answer.' : 'Type what you said to check it.'}"></textarea>
+            <div id="freeAi" style="margin-top:10px"></div>
             <div id="modelAns" class="hidden" style="margin-top:12px">${GL.charBubble('bruno', esc(day.speakTask.model), '', {})}</div>
           </div>` : ''}`,
         mount() {
@@ -466,10 +483,12 @@
           const fr = $('#freeRec');
           if (fr) fr.onclick = async () => {
             fr.classList.add('listening'); fr.textContent = '👂 Listening…';
-            try { const alts = await Rec.listen(); $('#freeRes').innerHTML = `<div class="heard"><b>You said:</b> ${esc(alts[0])}</div><p class="muted">Compare with the model answer. Did you use the verb in position 2? The right articles?</p>`; Store.addXP(5); }
+            try { const alts = await Rec.listen(); const ft = $('#freeText'); ft.value = (ft.value ? ft.value + ' ' : '') + alts[0]; $('#freeRes').innerHTML = `<p class="muted">Compare with the model answer. Did you use the verb in position 2? The right articles?</p>`; Store.addXP(5); }
             catch (err) { $('#freeRes').innerHTML = `<p class="muted">${GL.Dialogue.micError(err)}</p>`; }
             fr.classList.remove('listening'); fr.textContent = '🎤 Speak again';
           };
+          const fa = $('#freeAi');
+          if (fa) GL.Tutor.mountCorrector(fa, () => $('#freeText').value, { task: day.speakTask.q, taskEn: day.speakTask.en, level: GL.Tutor.levelOfDay(n) });
           const sm = $('#showModel');
           if (sm) sm.onclick = () => $('#modelAns').classList.toggle('hidden');
         },
@@ -486,6 +505,7 @@
         <textarea class="write" id="wText" placeholder="Schreib hier … (your text is saved automatically on this device)">${esc(saved)}</textarea>
         <div class="row" style="margin:8px 0 16px"><span class="muted" id="wCount"></span><span class="spacer"></span>
           <button class="btn ghost small" id="wRead">🔊 Read my text aloud</button></div>
+        <div id="wAi" style="margin-bottom:16px"></div>
         <h3>✅ Grammar checklist</h3>
         <ul class="checklist">${w.check.map((c, i) => `<li><label><input type="checkbox" data-c="${i}"> <span>${c}</span></label></li>`).join('')}</ul>
         <div class="row" style="margin-top:16px"><button class="btn purple" id="wModel">👀 Show model answer</button></div>
@@ -504,6 +524,7 @@
           t.addEventListener('input', upd); upd();
           $('#wRead').onclick = () => Speech.speak(t.value || 'Du hast noch nichts geschrieben.');
           $('#wModel').onclick = () => $('#wModelBox').classList.toggle('hidden');
+          GL.Tutor.mountCorrector($('#wAi'), () => t.value, { task: w.task, taskEn: w.en, level: GL.Tutor.levelOfDay(n) });
         },
       };
     },
@@ -532,6 +553,11 @@
             ${nextDay ? `<a class="btn ${ds.done ? 'green big' : 'ghost'}" href="#/day/${n + 1}" id="nextDayBtn" ${ds.done ? '' : 'style="display:none"'}>Day ${n + 1}: ${esc(nextDay.title)} →</a>` : `<a class="btn gold big" href="#/review">🏆 Course finished – keep reviewing!</a>`}
             <a class="btn ghost" href="#/review">🔁 Review words</a>
           </div>
+          ${n === GL.days.length ? `<div class="card cert-wrap" id="certCard" style="margin-top:20px;${ds.done ? '' : 'display:none'}">
+            <h3>🎓 Your certificate</h3>
+            <div class="row" style="justify-content:center"><input class="txt-in" id="certName" placeholder="Your name" value="${attr(Store.state.settings.name || '')}" style="max-width:280px"><button class="btn gold" id="certSave">⬇ Save certificate</button></div>
+            <canvas id="certCanvas" width="1400" height="990" aria-label="Course certificate"></canvas>
+          </div>` : ''}
         </div>`,
         mount() {
           const f = $('#finishDay');
@@ -546,11 +572,46 @@
             if (nb) { nb.style.display = ''; nb.classList.remove('ghost'); nb.classList.add('green', 'big'); }
             $('.done-wrap h2').textContent = `🎉 Tag ${n} geschafft!`;
             toast('+100 XP – Day complete! 🎉', 'ok');
+            GL.sfx('done');
+            const cc = $('#certCard');
+            if (cc) { cc.style.display = ''; drawCertificate(); }
           };
+          if ($('#certCanvas')) {
+            drawCertificate();
+            $('#certName').oninput = (e) => { Store.state.settings.name = e.target.value; Store.save(); drawCertificate(); };
+            $('#certSave').onclick = () => $('#certCanvas').toBlob((b) => GL.saveFile('Deutsch-in-30-Tagen-Zertifikat.png', b, 'image/png'));
+          }
         },
       };
     },
   };
+
+  /* Course certificate drawn on a canvas. */
+  function drawCertificate() {
+    const c = $('#certCanvas');
+    if (!c) return;
+    const x = c.getContext('2d'), W = c.width, H = c.height;
+    const name = (Store.state.settings.name || '').trim() || 'Your Name';
+    x.fillStyle = '#fffaf0'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#1f2a48'; x.lineWidth = 14; x.strokeRect(30, 30, W - 60, H - 60);
+    x.strokeStyle = '#ffc23c'; x.lineWidth = 4; x.strokeRect(58, 58, W - 116, H - 116);
+    [['#222', 0], ['#dd0000', 1], ['#ffce00', 2]].forEach(([col, i]) => { x.fillStyle = col; x.fillRect(W / 2 - 90, 110 + i * 22, 180, 22); });
+    x.textAlign = 'center'; x.fillStyle = '#1f2a48';
+    x.font = '600 74px Fredoka, Nunito, sans-serif'; x.fillText('Zertifikat', W / 2, 290);
+    x.font = '600 30px Nunito, sans-serif'; x.fillStyle = '#5a6480'; x.fillText('Deutsch in 30 Tagen – this certifies that', W / 2, 360);
+    x.font = '700 84px Fredoka, Nunito, sans-serif'; x.fillStyle = '#e63946'; x.fillText(name, W / 2, 480);
+    x.fillStyle = '#1f2a48'; x.font = '600 32px Nunito, sans-serif';
+    x.fillText('has completed all 30 days of the German course:', W / 2, 560);
+    x.font = '400 28px Nunito, sans-serif'; x.fillStyle = '#5a6480';
+    x.fillText(`${GL.days.reduce((a, d) => a + d.vocab.length, 0)} words · ${Object.keys(GL.grammar).length} grammar topics · ${Store.state.xp} XP earned`, W / 2, 610);
+    x.fillText('from „Hallo“ to Konjunktiv II, relative clauses and the passive', W / 2, 655);
+    x.font = '600 30px Nunito, sans-serif'; x.fillStyle = '#1f2a48';
+    x.fillText(new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }), W / 2 - 330, 840);
+    x.fillText('Bruno, Kursleiter', W / 2 + 330, 840);
+    x.strokeStyle = '#1f2a48'; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(W / 2 - 480, 800); x.lineTo(W / 2 - 180, 800); x.moveTo(W / 2 + 180, 800); x.lineTo(W / 2 + 480, 800); x.stroke();
+    x.font = '90px serif'; x.fillText('🐻', W / 2, 860);
+  }
 
   /* Record-yourself fallback (MediaRecorder) when speech recognition is unavailable. */
   async function recordSelf(btn, out) {
@@ -676,8 +737,20 @@
         <h1>${esc(t.title)} <span class="level ${t.level}">${t.level}</span></h1>
         ${t.de ? `<p class="muted">${esc(t.de)}${t.day ? ` · taught on <a href="#/day/${t.day}/grammar">Day ${t.day}</a>` : ''}</p>` : ''}
         ${rich(t.html)}
+        ${t.day ? `<div class="row" style="margin-top:18px"><button class="btn green" id="tPractice">🧩 Practise this (Day ${t.day} exercises)</button><a class="btn ghost" href="#/trainer">🏋️ Grammar Trainer</a></div><div id="tPracticeRoot" style="margin-top:16px"></div>` : ''}
+        <div class="ask-slot" id="topicAsk"></div>
       </div>
       <div class="step-nav">${prev ? `<a class="btn ghost" href="#/grammar/${encodeURIComponent(prev.id)}">← ${esc(prev.title)}</a>` : '<span></span>'}${next ? `<a class="btn ghost" href="#/grammar/${encodeURIComponent(next.id)}">${esc(next.title)} →</a>` : ''}</div>`,
+      mount() {
+        GL.Tutor.mountAsk($('#topicAsk'), t);
+        const b = $('#tPractice');
+        if (b) b.onclick = () => {
+          const d = GL.days[t.day - 1];
+          const r = $('#tPracticeRoot');
+          GL.Exercises.run(r, shuffle(d.exercises).slice(0, 12), { day: t.day, reshuffle: () => shuffle(d.exercises).slice(0, 12) });
+          r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+      },
     };
   }
 
@@ -691,7 +764,7 @@
     return ds.length ? ds : GL.days.slice(0, 1);
   }
   function viewReview(tab) {
-    const tabs = [['cards', '🃏 Flashcards'], ['quiz', '🧩 Mixed quiz'], ['words', '📖 Word list']];
+    const tabs = [['cards', '🃏 Flashcards'], ['mistakes', `❗ My mistakes (${Object.keys(Store.state.mistakes || {}).length})`], ['quiz', '🧩 Mixed quiz'], ['words', '📖 Word list']];
     const days = poolDays();
     return {
       html: `<h1>🔁 Wiederholen – Review</h1>
@@ -702,6 +775,7 @@
         const root = $('#revRoot');
         if (tab === 'quiz') reviewQuiz(root, days);
         else if (tab === 'words') reviewWords(root, days);
+        else if (tab === 'mistakes') reviewMistakes(root);
         else reviewCards(root, days);
       },
     };
@@ -775,6 +849,21 @@
     };
     document.addEventListener('keydown', key);
     draw();
+  }
+  function reviewMistakes(root) {
+    const list = Store.mistakeList();
+    if (!list.length) {
+      root.innerHTML = `<div class="card center">${GL.charSVG('bruno', 'happy waving')}<h2>No mistakes saved ✨</h2><p class="muted">Every exercise you answer wrong is collected here automatically. Answer it right once and it disappears.</p><a class="btn" href="#/day/${Store.nextDay()}/practice">🧩 Practise today’s exercises</a></div>`;
+      return;
+    }
+    const q2txt = (q) => GL.stripTags(q.q || q.en || q.a || q.w || '').slice(0, 90);
+    root.innerHTML = `<div class="card"><div class="row"><div style="flex:1;min-width:0"><h2 style="margin:0">❗ ${list.length} mistake${list.length > 1 ? 's' : ''} to fix</h2>
+      <p class="muted" style="margin:0">The ones you got wrong most often come first. Practise them until the list is empty.</p></div>
+      <button class="btn green big" id="mStart">Practise ${Math.min(15, list.length)} ➜</button></div>
+      <div class="gtable-wrap" style="margin-top:14px"><table class="gtable"><thead><tr><th>Exercise</th><th>Type</th><th>Wrong</th><th>Day</th></tr></thead><tbody>
+      ${list.slice(0, 40).map((m) => `<tr><td>${esc(q2txt(m.q))}</td><td>${esc(GL.Exercises.KIND[m.q.t] || '')}</td><td>${m.n}×</td><td>${m.day ? `<a href="#/day/${m.day}/grammar">${m.day}</a>` : '–'}</td></tr>`).join('')}
+      </tbody></table></div></div>`;
+    $('#mStart').onclick = () => GL.Exercises.run(root, list.slice(0, 15).map((m) => m.q), { mistakeMode: true, noMistakes: false, onFinish: () => {} });
   }
   function reviewQuiz(root, days) {
     const build = () => {
@@ -862,6 +951,7 @@
         <h2>🎓 Learning</h2>
         <div class="set-row"><label><b>Unlock all days</b><small>Normally each day unlocks after the previous one.</small></label><label class="switch"><input type="checkbox" id="sUnlock" ${s.unlockAll ? 'checked' : ''}><span></span></label></div>
         <div class="set-row"><label><b>Show English translations in dialogues</b><small>Turn off to challenge yourself (hover to peek).</small></label><label class="switch"><input type="checkbox" id="sEn" ${s.showEn ? 'checked' : ''}><span></span></label></div>
+        <div class="set-row"><label><b>Sound effects</b><small>Short sounds for right and wrong answers.</small></label><label class="switch"><input type="checkbox" id="sSfx" ${s.sfx ? 'checked' : ''}><span></span></label></div>
         <div class="set-row"><label><b>Theme</b></label><select id="sTheme">${[['auto', 'Automatic'], ['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<option value="${v}" ${s.theme === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       </div>
       <div class="card">
@@ -890,18 +980,18 @@
         $('#sUnlock').onchange = (e) => { s.unlockAll = e.target.checked; Store.save(); toast(s.unlockAll ? '🔓 All days unlocked' : '🔒 Step-by-step mode'); };
         $('#sEn').onchange = (e) => { s.showEn = e.target.checked; Store.save(); };
         $('#sTheme').onchange = (e) => { s.theme = e.target.value; Store.save(); applyTheme(); };
-        $('#sExport').onclick = () => {
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(new Blob([JSON.stringify(Store.state, null, 2)], { type: 'application/json' }));
-          a.download = `deutsch30-progress-${GL.todayStr()}.json`;
-          a.click();
-        };
+        $('#sSfx').onchange = (e) => { s.sfx = e.target.checked; Store.save(); GL.sfx('ok'); };
+        $('#sExport').onclick = () => GL.saveFile(`deutsch30-progress-${GL.todayStr()}.json`, JSON.stringify(Store.state, null, 2), 'application/json');
         $('#sImport').onchange = (e) => {
           const f = e.target.files[0];
           if (!f) return;
           f.text().then((t) => { Store.importJSON(JSON.parse(t)); toast('✅ Progress imported', 'ok'); route(); }).catch(() => toast('❌ Invalid file', 'bad'));
         };
-        $('#sReset').onclick = () => { if (confirm('Really delete all progress? This cannot be undone.')) { Store.reset(); applyTheme(); toast('Progress reset'); route(); } };
+        const rb = $('#sReset');
+        rb.onclick = () => {
+          if (!rb.dataset.armed) { rb.dataset.armed = '1'; rb.textContent = '⚠️ Click again to delete all progress'; setTimeout(() => { if (rb.isConnected) { delete rb.dataset.armed; rb.textContent = '🗑 Reset everything'; } }, 4000); return; }
+          Store.reset(); applyTheme(); toast('Progress reset'); route();
+        };
       },
     };
   }

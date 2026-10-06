@@ -87,7 +87,9 @@ GL.grammar = GL.grammar || {};
     activity: {},
     srs: {},
     writing: {},
-    settings: { rate: 0.9, voice: '', unlockAll: false, showEn: true, theme: 'auto', recLang: 'de-DE' },
+    mistakes: {},
+    trainer: {},
+    settings: { rate: 0.9, voice: '', unlockAll: false, showEn: true, theme: 'auto', recLang: 'de-DE', sfx: true, name: '' },
     created: todayStr(),
   });
   let state = defaults();
@@ -144,6 +146,22 @@ GL.grammar = GL.grammar || {};
       return GL.days.length;
     },
     reset() { state = defaults(); Store.save(); },
+    /* Mistake notebook: exercises answered wrong are kept until answered right in a review. */
+    addMistake(q, day) {
+      const k = JSON.stringify(q);
+      const m = state.mistakes[k] || { q, day: day || null, n: 0 };
+      m.n++; m.last = Date.now();
+      state.mistakes[k] = m;
+      const keys = Object.keys(state.mistakes);
+      if (keys.length > 300) keys.sort((a, b) => state.mistakes[a].last - state.mistakes[b].last).slice(0, keys.length - 300).forEach((x) => delete state.mistakes[x]);
+      Store.save();
+    },
+    clearMistake(q) { const k = JSON.stringify(q); if (state.mistakes[k]) { delete state.mistakes[k]; Store.save(); } },
+    mistakeList() { return Object.values(state.mistakes).sort((a, b) => b.n - a.n || b.last - a.last); },
+    dueCards() {
+      const now = Date.now();
+      return Object.values(state.srs).filter((c) => c.due <= now).length;
+    },
     importJSON(obj) { state = Object.assign(defaults(), obj); state.settings = Object.assign(defaults().settings, obj.settings || {}); Store.save(); },
   };
 
@@ -308,6 +326,60 @@ GL.grammar = GL.grammar || {};
     return m ? m[1].toLowerCase() : null;
   }
 
+  /* ---------- Sound effects (Web Audio, no files needed) ---------- */
+  let actx = null;
+  function sfx(kind) {
+    if (!state.settings.sfx) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const notes = { ok: [[660, 0], [880, 0.09]], bad: [[220, 0], [180, 0.12]], done: [[523, 0], [659, 0.1], [784, 0.2], [1047, 0.3]], pop: [[900, 0]] }[kind] || [];
+      notes.forEach(([f, t]) => {
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.type = kind === 'bad' ? 'triangle' : 'sine';
+        o.frequency.value = f;
+        const t0 = actx.currentTime + t;
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + (kind === 'pop' ? 0.08 : 0.22));
+        o.connect(g).connect(actx.destination);
+        o.start(t0); o.stop(t0 + 0.25);
+      });
+    } catch (e) { /* audio not available */ }
+  }
+
+  /* ---------- Claude runtime capabilities (only inside the claude.ai viewer) ---------- */
+  const useCap = (name) => (window.claude && typeof window.claude.use === 'function' ? window.claude.use(name).catch(() => null) : Promise.resolve(null));
+  const AI = {
+    disabled: false,
+    ready: useCap('sample'),
+    async get() { if (AI.disabled) return null; return AI.ready; },
+    /* Hide AI features for the rest of the view on permanent errors. */
+    errorText(e) {
+      const c = e && e.code;
+      if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(c)) { AI.disabled = true; return 'The AI tutor is not available here (permission declined or disabled). Everything else still works.'; }
+      if (c === 'rate_limited') return 'Too many requests right now – wait a minute and try again.';
+      if (c === 'session_expired') return 'Please sign in to claude.ai again, then retry.';
+      if (c === 'refused') return 'Bruno could not answer that. Try rephrasing.';
+      if (c === 'invalid_json' || c === 'empty_completion') return 'The answer came back incomplete – please press the button again.';
+      if (c === 'cancelled') return '';
+      return 'Connection problem – please try again.';
+    },
+  };
+  const downloadsCap = useCap('downloads');
+  /* Save a file: through the viewer's download capability when present, else a normal browser download. */
+  async function saveFile(filename, data, mime) {
+    const dl = await downloadsCap;
+    if (dl) {
+      try { await dl.save({ filename, data }); toast('✅ Saved ' + esc(filename), 'ok'); } catch (e) { if (e && e.code !== 'declined') toast('Could not save the file here.', 'bad'); }
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type: mime || 'application/octet-stream' }));
+    a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  Object.assign(GL, { sfx, AI, saveFile });
   Object.assign(GL, { $, $$, esc, attr, shuffle, sample, sleep, norm, fold, checkAnswer, speechScore, todayStr, Store, Speech, Rec, toast, confetti, rich, stripTags, genderOf });
 
   Speech.init();

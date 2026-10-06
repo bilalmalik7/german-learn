@@ -13,6 +13,17 @@
     match: '🔗 Match the pairs',
   };
 
+  /* Number keys 1–9 pick options while this card is on screen. */
+  function hotkeys(card, fn) {
+    const h = (e) => {
+      if (!card.isConnected) { document.removeEventListener('keydown', h); return; }
+      if (e.target.matches && e.target.matches('input, textarea, select')) return;
+      const k = parseInt(e.key, 10);
+      if (k >= 1 && k <= 9) { e.preventDefault(); fn(k - 1); }
+    };
+    document.addEventListener('keydown', h);
+  }
+
   const umlautBar = () => `<div class="umlauts" aria-label="Special characters">${['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'].map((c) => `<button type="button" data-ch="${c}" tabindex="-1">${c}</button>`).join('')}</div>`;
   const splitWords = (s) => String(s).replace(/[.!?]$/, '').split(/\s+/).filter(Boolean);
 
@@ -40,12 +51,39 @@
       return `<div class="ex-top"><span class="pill">✅ ${firstTry}</span><div class="progress"><i style="width:${pct}%"></i></div><span class="pill">${Math.min(answered + 1, total)}/${total}</span></div>`;
     }
 
+    let combo = 0;
+    const PRAISE = ['Super!', 'Genau!', 'Toll!', 'Richtig!', 'Prima!', 'Klasse!'];
+    const COMFORT = ['Fast!', 'Kein Problem!', 'Weiter so!', 'Nochmal!'];
+    function coachReact(ok) {
+      const svg = $('.coach svg', root), say = $('#coachSay', root);
+      if (!svg || !say) return;
+      svg.classList.remove('happy', 'sad');
+      void svg.getBoundingClientRect();
+      svg.classList.add(ok ? 'happy' : 'sad');
+      say.textContent = ok ? (combo >= 3 ? `🔥 ${combo} in a row!` : GL.sample(PRAISE, 1)[0]) : GL.sample(COMFORT, 1)[0];
+      say.className = 'coach-say show ' + (ok ? 'ok' : 'bad');
+      clearTimeout(coachReact.t);
+      coachReact.t = setTimeout(() => { svg.classList.remove('happy', 'sad'); say.className = 'coach-say'; }, 1600);
+    }
+
     function next() {
       if (pos >= queue.length) return finish();
       const item = queue[pos];
-      root.innerHTML = `<div class="ex-shell">${header()}<div class="ex-card" id="exCard"></div></div>`;
+      if (!$('.ex-shell .coach', root)) {
+        root.innerHTML = `<div class="ex-shell"><div class="ex-head"><div class="coach">${GL.charSVG('bruno', 'idle')}<span class="coach-say" id="coachSay"></span></div>${header()}</div><div class="ex-card" id="exCard"></div></div>`;
+      } else {
+        const old = $('#exCard', root);
+        const fresh = document.createElement('div');
+        fresh.className = 'ex-card'; fresh.id = 'exCard';
+        old.replaceWith(fresh);
+      }
       const card = $('#exCard', root);
       render(card, item.q, (correct) => {
+        combo = correct ? combo + 1 : 0;
+        GL.sfx(correct ? 'ok' : 'bad');
+        coachReact(correct);
+        if (!correct && !opts.noMistakes) Store.addMistake(item.q, opts.day);
+        if (correct && opts.mistakeMode) Store.clearMistake(item.q);
         if (!item.retry) {
           answered++;
           if (correct) { firstTry++; xp += 5; }
@@ -70,7 +108,7 @@
           <button class="btn ghost" id="exRetry">🔁 Try again</button>
           ${opts.nextLabel ? `<button class="btn green" id="exNext">${opts.nextLabel}</button>` : ''}
         </div></div></div>`;
-      if (pct >= 70) GL.confetti(90);
+      if (pct >= 70) { GL.confetti(90); GL.sfx('done'); }
       $('#exRetry', root).onclick = () => run(root, opts.reshuffle ? opts.reshuffle() : list, opts);
       const n = $('#exNext', root);
       if (n) n.onclick = () => opts.onNext && opts.onNext();
@@ -93,7 +131,7 @@
       case 'mc': {
         const order = shuffle(q.o.map((o, i) => i));
         body = `<div class="ex-q">${rich(q.q)}</div>${q.hint ? `<p class="ex-hint">${q.hint}</p>` : ''}
-          <div class="opts">${order.map((i) => `<button class="opt" data-i="${i}">${esc(q.o[i])}</button>`).join('')}</div>`;
+          <div class="opts">${order.map((i, k) => `<button class="opt" data-i="${i}"><span class="kbd-hint">${k + 1}</span>${esc(q.o[i])}</button>`).join('')}</div>`;
         let sel = null;
         card.innerHTML = frame(body);
         $$('.opt', card).forEach((b) => (b.onclick = () => {
@@ -102,6 +140,7 @@
           b.classList.add('sel'); sel = +b.dataset.i;
           enableCheck();
         }));
+        hotkeys(card, (k) => { const b = $$('.opt', card)[k]; if (!b) return; if (b.classList.contains('sel') && !checked) doCheck(); else b.click(); });
         getAnswer = () => sel;
         evaluate = () => {
           const ok = sel === q.a;
@@ -117,6 +156,7 @@
         card.innerHTML = frame(body);
         let sel = null;
         $$('.opt', card).forEach((b) => (b.onclick = () => { if (checked) return; sel = b.dataset.g; doCheck(); }));
+        hotkeys(card, (k) => { const b = $$('.opt', card)[k]; b && b.click(); });
         getAnswer = () => sel;
         evaluate = () => {
           $$('.opt', card).forEach((b) => { if (b.dataset.g === q.a) b.classList.add('right'); else if (b.dataset.g === sel) b.classList.add('wrong'); });
@@ -276,6 +316,15 @@
 
     const chk = $('#exCheck', card);
     if (chk) chk.onclick = doCheck;
+    // Enter anywhere on the page checks / continues (focused controls handle their own Enter).
+    const enter = (e) => {
+      if (!card.isConnected) { document.removeEventListener('keydown', enter); return; }
+      if (e.key !== 'Enter' || (e.target.matches && e.target.matches('button, input, textarea, select, a'))) return;
+      e.preventDefault();
+      if (!checked) { const b = $('#exCheck', card); if (b && !b.disabled) doCheck(); }
+      else { const c = $('#exCont', card); c && c.click(); }
+    };
+    document.addEventListener('keydown', enter);
     card.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
       if (!checked) { e.preventDefault(); const b = $('#exCheck', card); if (b && !b.disabled) doCheck(); }
