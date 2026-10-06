@@ -91,6 +91,9 @@
         case 'review': html = viewReview(a || 'cards'); break;
         case 'trainer': html = GL.viewTrainer(a, b); break;
         case 'talk': html = GL.viewTalk(a); break;
+        case 'scenes': html = GL.viewScenes(a); break;
+        case 'teacher': html = GL.viewTeacher(); break;
+        case 'admin': html = GL.viewAdmin(); break;
         case 'sounds': html = viewSounds(); break;
         case 'settings': html = viewSettings(); break;
         default: html = viewHome();
@@ -154,6 +157,7 @@
         <div class="stat"><span class="s-ico">⭐</span><div><b>${st.xp}</b><span>XP earned</span></div></div>
         <div class="stat"><span class="s-ico">✅</span><div><b>${done}/${GL.days.length}</b><span>days completed</span></div></div>
         <div class="stat"><span class="s-ico">📚</span><div><b>${words}</b><span>words learned</span></div></div>
+        <div class="stat"><span class="s-ico">⏱️</span><div><b>${GL.minutesOn(GL.todayStr())} min</b><span>studied today</span></div></div>
       </div>
 
       <div class="card">
@@ -164,6 +168,7 @@
           <a href="#/review/mistakes"><span class="t-ico">❗</span><div><b>${Object.keys(st.mistakes || {}).length}</b><small>mistakes to fix</small></div></a>
           <a href="#/trainer"><span class="t-ico">🏋️</span><div><b>Trainer</b><small>verbs · cases · endings</small></div></a>
           <a href="#/talk"><span class="t-ico">💬</span><div><b>Talk</b><small>answer questions aloud</small></div></a>
+          <a href="#/scenes"><span class="t-ico">🎬</span><div><b>Real life</b><small>airport · office · Amt · restaurant</small></div></a>
         </div>
       </div>
 
@@ -505,7 +510,8 @@
         <textarea class="write" id="wText" placeholder="Schreib hier … (your text is saved automatically on this device)">${esc(saved)}</textarea>
         <div class="row" style="margin:8px 0 16px"><span class="muted" id="wCount"></span><span class="spacer"></span>
           <button class="btn ghost small" id="wRead">🔊 Read my text aloud</button></div>
-        <div id="wAi" style="margin-bottom:16px"></div>
+        <div id="wAi" style="margin-bottom:10px"></div>
+        <div id="wTeacher" style="margin-bottom:16px"></div>
         <h3>✅ Grammar checklist</h3>
         <ul class="checklist">${w.check.map((c, i) => `<li><label><input type="checkbox" data-c="${i}"> <span>${c}</span></label></li>`).join('')}</ul>
         <div class="row" style="margin-top:16px"><button class="btn purple" id="wModel">👀 Show model answer</button></div>
@@ -525,6 +531,7 @@
           $('#wRead').onclick = () => Speech.speak(t.value || 'Du hast noch nichts geschrieben.');
           $('#wModel').onclick = () => $('#wModelBox').classList.toggle('hidden');
           GL.Tutor.mountCorrector($('#wAi'), () => t.value, { task: w.task, taskEn: w.en, level: GL.Tutor.levelOfDay(n) });
+          GL.sendToTeacherButton($('#wTeacher'), () => t.value, `Day ${n} – writing: ${w.task}`);
         },
       };
     },
@@ -739,10 +746,12 @@
         ${rich(t.html)}
         ${t.day ? `<div class="row" style="margin-top:18px"><button class="btn green" id="tPractice">🧩 Practise this (Day ${t.day} exercises)</button><a class="btn ghost" href="#/trainer">🏋️ Grammar Trainer</a></div><div id="tPracticeRoot" style="margin-top:16px"></div>` : ''}
         <div class="ask-slot" id="topicAsk"></div>
+        <p class="hidden" id="askTeacher" style="margin-top:12px"><a class="btn ghost small" href="#/teacher">📨 Ask my teacher about this topic</a></p>
       </div>
       <div class="step-nav">${prev ? `<a class="btn ghost" href="#/grammar/${encodeURIComponent(prev.id)}">← ${esc(prev.title)}</a>` : '<span></span>'}${next ? `<a class="btn ghost" href="#/grammar/${encodeURIComponent(next.id)}">${esc(next.title)} →</a>` : ''}</div>`,
       mount() {
         GL.Tutor.mountAsk($('#topicAsk'), t);
+        GL.Cloud.init.then(() => { const p = $('#askTeacher'); if (p && GL.Cloud.ready && !GL.Cloud.owner) { p.classList.remove('hidden'); $('a', p).onclick = () => { GL.teacherDraft = { type: 'question', context: 'Grammar: ' + t.title }; }; } });
         const b = $('#tPractice');
         if (b) b.onclick = () => {
           const d = GL.days[t.day - 1];

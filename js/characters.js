@@ -10,6 +10,14 @@
     weber: { name: 'Frau Weber', role: 'Neighbour & landlady', gender: 'f', pitch: 0.9, rate: 0.92, color: '#9b5de5' },
     yilmaz: { name: 'Herr Yılmaz', role: 'Owns the café “Sonnenschein”', gender: 'm', pitch: 0.85, rate: 0.95, color: '#2a9d8f' },
     braun: { name: 'Dr. Braun', role: 'Family doctor', gender: 'm', pitch: 0.7, rate: 0.9, color: '#577590' },
+    alex: { name: 'Alex (you)', role: 'That’s you in the real-life scenes', pitch: 1.0, rate: 1, color: '#ff8c42' },
+    schmidt: { name: 'Frau Schmidt', role: 'Airline staff', gender: 'f', pitch: 1.05, rate: 1, color: '#1d3557' },
+    wolf: { name: 'Herr Wolf', role: 'Airport security', gender: 'm', pitch: 0.8, rate: 0.95, color: '#34495e' },
+    novak: { name: 'Herr Novak', role: 'Baggage service in Vienna', gender: 'm', pitch: 0.9, rate: 0.95, color: '#5c677d' },
+    becker: { name: 'Frau Becker', role: 'Team leader at TechNord', gender: 'f', pitch: 0.95, rate: 0.95, color: '#6c757d' },
+    jonas: { name: 'Jonas', role: 'Colleague at TechNord', gender: 'm', pitch: 1.1, rate: 1.05, color: '#43aa8b' },
+    hoffmann: { name: 'Herr Hoffmann', role: 'Clerk at the Bürgeramt', gender: 'm', pitch: 0.75, rate: 0.9, color: '#8d6e63' },
+    mia: { name: 'Mia', role: 'Waitress at „Zur Linde“', gender: 'f', pitch: 1.2, rate: 1.05, color: '#c1121f' },
   };
 
   const looks = {
@@ -19,6 +27,14 @@
     weber: { skin: '#f3d3be', shade: '#dcb39a', hair: '#b9b9c3', brow: '#8c8c99', hairStyle: 'bun', shirt: '#9b5de5', collar: '#6a32b8', glasses: true },
     yilmaz: { skin: '#d6a27c', shade: '#bd875f', hair: '#1f1a17', brow: '#14110f', hairStyle: 'short', shirt: '#2a9d8f', collar: '#fff', mustache: true, apron: true },
     braun: { skin: '#f0cdb2', shade: '#d8ad8f', hair: '#8a8a8a', brow: '#666', hairStyle: 'side', shirt: '#ffffff', collar: '#577590', glasses: true, coat: true },
+    alex: { skin: '#c99272', shade: '#ad7a5c', hair: '#2b1d16', brow: '#1d1410', hairStyle: 'side', shirt: '#ff8c42', collar: '#e06d1f', hood: true },
+    schmidt: { skin: '#f3d0b8', shade: '#dcb39a', hair: '#d9a648', brow: '#a8782a', hairStyle: 'bun', shirt: '#1d3557', collar: '#14243d', scarf: '#e63946' },
+    wolf: { skin: '#e9c2a0', shade: '#d1a582', hair: '#4a3426', brow: '#33241a', hairStyle: 'short', shirt: '#34495e', collar: '#22313f', cap: '#22313f' },
+    novak: { skin: '#e2b593', shade: '#c99b78', hair: '#3b2a20', brow: '#2a1d16', hairStyle: 'side', shirt: '#5c677d', collar: '#3e4656', beard: true },
+    becker: { skin: '#f1cfb4', shade: '#d9b296', hair: '#6b4a3a', brow: '#4a3328', hairStyle: 'long', shirt: '#495057', collar: '#ffffff', glasses: true },
+    jonas: { skin: '#f0c8a8', shade: '#d6aa88', hair: '#b07a34', brow: '#7c5422', hairStyle: 'curly', shirt: '#43aa8b', collar: '#2d7d65' },
+    hoffmann: { skin: '#efcfb5', shade: '#d6b196', hair: '#9a9a9a', brow: '#777', hairStyle: 'bald', shirt: '#8d6e63', collar: '#ffffff', glasses: true, tie: '#1d3557' },
+    mia: { skin: '#f5d5c0', shade: '#dfb9a1', hair: '#7a2e1f', brow: '#5a2014', hairStyle: 'long', shirt: '#222222', collar: '#444', apron: true },
   };
 
   function hair(o, layer) {
@@ -38,6 +54,9 @@
         return layer === 'back'
           ? `<circle cx="100" cy="40" r="20" fill="${c}"/>`
           : `<path d="M56 100 C52 60 80 46 102 48 C126 48 150 62 145 100 C138 78 120 66 100 66 C82 66 64 78 56 100 Z" fill="${c}"/>`;
+      case 'bald':
+        return layer === 'back' ? '' :
+          `<path d="M56 108 C54 92 58 80 64 74 L68 104 Z M144 108 C146 92 142 80 136 74 L132 104 Z" fill="${c}"/>`;
       case 'curly': {
         if (layer === 'back') return `<path d="M50 110 C40 60 70 34 102 36 C136 36 164 62 150 112 L150 150 C130 158 70 158 50 150 Z" fill="${c}"/>`;
         let s = '';
@@ -56,6 +75,9 @@
         <path d="M36 222 C36 178 62 160 100 160 C138 160 164 178 164 222 Z" fill="${o.shirt}"/>
         ${o.coat ? `<path d="M100 162 L86 222 M100 162 L114 222" stroke="#d7dde3" stroke-width="3"/><path d="M84 160 L100 184 L116 160" fill="${o.collar}"/>` : `<path d="M84 160 Q100 178 116 160" fill="none" stroke="${o.collar}" stroke-width="6" stroke-linecap="round"/>`}
         ${o.apron ? `<path d="M70 178 H130 V222 H70 Z" fill="#f4f1de" opacity=".95"/><path d="M78 178 L72 162 M122 178 L128 162" stroke="#f4f1de" stroke-width="4"/>` : ''}
+        ${o.tie ? `<path d="M100 166 L94 176 L100 214 L106 176 Z" fill="${o.tie}"/>` : ''}
+        ${o.scarf ? `<path d="M82 160 Q100 176 118 160 L114 172 Q100 182 86 172 Z" fill="${o.scarf}"/><path d="M108 170 l10 18 l8 -4 l-8 -16z" fill="${o.scarf}"/>` : ''}
+        ${o.hood ? `<path d="M66 168 Q100 196 134 168" fill="none" stroke="${o.collar}" stroke-width="8" stroke-linecap="round"/><path d="M94 180 v16 M106 180 v16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>` : ''}
       </g>
       <path d="M86 138 h28 v26 a14 9 0 0 1 -28 0 z" fill="${o.shade}"/>
       <g class="head">
@@ -73,6 +95,8 @@
         ${o.glasses ? `<g fill="none" stroke="#333" stroke-width="2.4"><circle cx="83" cy="103" r="12"/><circle cx="117" cy="103" r="12"/><path d="M95 103 h10 M71 101 l-12 -3 M129 101 l12 -3"/></g>` : ''}
         <circle cx="70" cy="120" r="7" fill="#ff7b9c" opacity=".3"/><circle cx="130" cy="120" r="7" fill="#ff7b9c" opacity=".3"/>
         <path d="M100 106 q-5 10 2 12" stroke="${o.shade}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        ${o.beard ? `<path d="M62 112 C64 150 84 152 100 152 C116 152 136 150 138 112 C132 132 120 140 100 140 C80 140 68 132 62 112 Z" fill="${o.hair}"/>` : ''}
+        ${o.cap ? `<path d="M52 82 C56 46 144 46 148 82 Z" fill="${o.cap}"/><path d="M50 82 H160 Q158 90 148 90 H50 Z" fill="${o.cap}"/><circle cx="100" cy="64" r="7" fill="#ffce00"/>` : ''}
         ${o.mustache ? `<path d="M84 124 q8 -8 16 -2 q8 -6 16 2 q-8 4 -16 0 q-8 4 -16 0z" fill="${o.hair}"/>` : ''}
         <g class="mouth">
           <path class="m-closed" d="M88 128 q12 10 24 0" stroke="#8a3b46" stroke-width="3" fill="none" stroke-linecap="round"/>

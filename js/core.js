@@ -379,7 +379,7 @@ GL.grammar = GL.grammar || {};
     document.body.appendChild(a); a.click(); a.remove();
   }
 
-  Object.assign(GL, { sfx, AI, saveFile });
+  Object.assign(GL, { sfx, AI, saveFile, useCap });
   Object.assign(GL, { $, $$, esc, attr, shuffle, sample, sleep, norm, fold, checkAnswer, speechScore, todayStr, Store, Speech, Rec, toast, confetti, rich, stripTags, genderOf });
 
   Speech.init();

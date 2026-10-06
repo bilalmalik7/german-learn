@@ -17,6 +17,9 @@ An animated, beginner-friendly website that takes you from your first „Hallo�
 | 📖 **Stories** | 4 graded listening & reading stories (A1 → B1) read aloud sentence by sentence, with comprehension questions. |
 | 💬 **Talk** | A speaking drill with 36 everyday questions and model answers. On claude.ai: **AI conversation partner** – role-play 8 situations with the characters while every message you send is corrected and explained. |
 | ✨ **AI tutor (claude.ai only)** | Bruno corrects your writing tasks and free-speaking answers (score, mistakes with rules, corrected version) and answers questions about any grammar topic. Hidden automatically elsewhere. |
+| 🎬 **Real-life scenes** | 4 animated 10-minute situations – at the airport (check-in → security → gate → plane → lost luggage), first day at the office, registering at the Bürgeramt, at the restaurant. Learn the phrases first, then speak at 42 “your turn” moments. |
+| 📊 **Teacher dashboard (claude.ai)** | The course owner sees every learner’s progress: current day, completed days, scores, XP, streak, study time (today / 7 days / total, chart per day), trainer accuracy, scenes and stories – plus an inbox to answer questions and correct texts (with an optional AI draft). |
+| 📨 **My teacher (claude.ai)** | Learners send questions or texts for correction (also straight from each writing task) and get the answers with an unread badge. Learners need **Contributor** access (or Editor by email) to save data. |
 | ❗ **Mistake notebook** | Every exercise you get wrong is saved; practise them until the list is empty. |
 | 🔁 **Review** | Spaced-repetition flashcards (Leitner boxes), mixed grammar quiz, searchable word list. |
 | 🗣️ **Pronunciation** | Alphabet, every German sound with examples, and a minimal-pairs listening game. |
@@ -54,11 +57,14 @@ js/exercises.js       exercise engine
 js/dialogue.js        dialogue scenes & role-play
 js/trainer.js         grammar drills & stories
 js/tutor.js           AI tutor (claude.ai) & Talk page
+js/scenarios.js       real-life scene player & animated backgrounds
+js/cloud.js           study-time tracking, teacher inbox, admin dashboard (claude.ai db)
 js/app.js             router and all pages
 js/data/grammar*.js   grammar topics (Weeks 1–2, 3–4, reference)
 js/data/week1-4.js    the 30 daily lessons
 js/data/sounds.js     pronunciation guide
 js/data/practice.js   verb tables, drill nouns, conversation questions, scenarios, stories
+js/data/scenarios.js  the 4 real-life scenes
 ```
 
 ### Adding or editing content
