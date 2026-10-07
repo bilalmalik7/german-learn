@@ -22,6 +22,15 @@
   const emit = () => { listeners.forEach((fn) => { try { fn(); } catch (e) { console.error(e); } }); updateNav(); };
   GL.Cloud = Cloud;
 
+  function studioSummary(sd) {
+    const h = ((sd || {}).history || []).filter((x) => x.score != null);
+    if (!h.length) return null;
+    const cats = {};
+    h.forEach((x) => Object.entries(x.cats || {}).forEach(([k, n]) => (cats[k] = (cats[k] || 0) + n)));
+    const last = h.slice(-10);
+    return { texts: h.length, words: h.reduce((a, x) => a + (x.words || 0), 0), avg: Math.round(last.reduce((a, x) => a + x.score, 0) / last.length), last: h.slice(-12).map((x) => [x.date, x.score, x.title.slice(0, 40)]), cats };
+  }
+
   function summary() {
     const st = Store.state;
     const best = {}, done = [];
@@ -38,6 +47,7 @@
       time, totalMin: Math.round(total / 60), mistakes: Object.keys(st.mistakes || {}).length, trainer: tr,
       stories: (st.trainer || {}).stories || {}, scenes: Object.fromEntries(Object.entries(st.scenes || {}).map(([k, v]) => [k, v.best || 0])),
       writing: Object.values(st.writing || {}).filter((w) => w && w.trim()).length, lastActive: GL.todayStr(),
+      studio: studioSummary(st.studio),
     };
   }
 
@@ -238,7 +248,7 @@
                 <div class="grid grid-3" style="margin-top:14px">
                   <div><h4>🏋️ Trainer accuracy</h4>${['verbs', 'articles', 'adjectives'].map((k) => { const t = (sel.trainer || {})[k]; return `<div class="kv"><span>${{ verbs: 'Verbs', articles: 'Articles & cases', adjectives: 'Adjective endings' }[k]}</span><b>${t && t.total ? Math.round((t.right / t.total) * 100) + '% of ' + t.total : '–'}</b></div>`; }).join('')}</div>
                   <div><h4>🎬 Scenes & 📖 stories</h4>${GL.scenarios.map((s) => `<div class="kv"><span>${s.icon} ${esc(s.title)}</span><b>${(sel.scenes || {})[s.id] != null ? sel.scenes[s.id] + '%' : '–'}</b></div>`).join('')}${GL.stories.map((s) => `<div class="kv"><span>📖 ${esc(s.title)}</span><b>${(sel.stories || {})[s.id] != null ? sel.stories[s.id] + '%' : '–'}</b></div>`).join('')}</div>
-                  <div><h4>✍️ Activity</h4><div class="kv"><span>Lesson steps opened</span><b>${sel.steps || 0}</b></div><div class="kv"><span>Writing tasks written</span><b>${sel.writing || 0}</b></div><div class="kv"><span>Mistakes in notebook</span><b>${sel.mistakes || 0}</b></div><div class="kv"><span>Messages sent</span><b>${Object.keys(sel.messages || {}).length}</b></div></div>
+                  <div><h4>✍️ Activity</h4><div class="kv"><span>Lesson steps opened</span><b>${sel.steps || 0}</b></div><div class="kv"><span>Writing tasks written</span><b>${sel.writing || 0}</b></div><div class="kv"><span>Writing studio texts</span><b>${sel.studio ? sel.studio.texts + ' · ' + sel.studio.words + ' words' : '–'}</b></div><div class="kv"><span>Avg. writing score (last 10)</span><b>${sel.studio ? sel.studio.avg + '/100' : '–'}</b></div>${sel.studio && Object.keys(sel.studio.cats || {}).length ? `<div class="kv"><span>Most frequent mistakes</span><b>${Object.entries(sel.studio.cats).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k, n]) => esc({ grammar: 'grammar', case: 'cases', verb: 'verbs', word_order: 'word order', spelling: 'spelling', vocabulary: 'word choice', punctuation: 'commas', style: 'style' }[k] || k) + ' (' + n + ')').join(', ')}</b></div>` : ''}<div class="kv"><span>Mistakes in notebook</span><b>${sel.mistakes || 0}</b></div><div class="kv"><span>Messages sent</span><b>${Object.keys(sel.messages || {}).length}</b></div></div>
                 </div></div>` : ''}
               <div class="card"><div class="row"><h3 style="margin:0">📨 Inbox</h3><span class="spacer"></span>
                 <div class="chips" id="admFilter">${[['open', 'Open'], ['answered', 'Answered'], ['all', 'All']].map(([k, l]) => `<button class="chip ${inboxFilter === k ? 'on' : ''}" data-f="${k}">${l}</button>`).join('')}</div></div>

@@ -206,11 +206,16 @@ GL.grammar = GL.grammar || {};
       const parts = clean.length > 160 ? (clean.match(/[^.!?\n]+[.!?]*/g) || [clean]).map((p) => p.trim()).filter(Boolean) : [clean];
       speechSynthesis.cancel();
       return (async () => {
-        for (let i = 0; i < parts.length && my === this._tok; i++) await this._utter(parts[i], opts, i === 0);
+        let off = 0;
+        for (let i = 0; i < parts.length && my === this._tok; i++) {
+          const at = clean.indexOf(parts[i], off); off = at < 0 ? off : at;
+          await this._utter(parts[i], opts, i === 0, off);
+          off += parts[i].length;
+        }
         opts.onend && opts.onend();
       })();
     },
-    _utter(text, opts, first) {
+    _utter(text, opts, first, offset = 0) {
       return new Promise((resolve) => {
         const u = new SpeechSynthesisUtterance(text);
         const c = opts.char && GL.chars && GL.chars[opts.char];
@@ -224,6 +229,7 @@ GL.grammar = GL.grammar || {};
         let done = false;
         const finish = () => { if (done) return; done = true; clearTimeout(guard); resolve(); };
         if (first) u.onstart = () => opts.onstart && opts.onstart();
+        if (opts.onboundary) u.onboundary = (e) => opts.onboundary(offset + (e.charIndex || 0));
         u.onend = finish;
         u.onerror = finish;
         // Safety net: some browsers never fire onend.
@@ -332,7 +338,7 @@ GL.grammar = GL.grammar || {};
     if (!state.settings.sfx) return;
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-      const notes = { ok: [[660, 0], [880, 0.09]], bad: [[220, 0], [180, 0.12]], done: [[523, 0], [659, 0.1], [784, 0.2], [1047, 0.3]], pop: [[900, 0]] }[kind] || [];
+      const notes = { ok: [[660, 0], [880, 0.09]], bad: [[220, 0], [180, 0.12]], done: [[523, 0], [659, 0.1], [784, 0.2], [1047, 0.3]], pop: [[900, 0]], chime: [[784, 0], [622, 0.45], [523, 0.9]] }[kind] || [];
       notes.forEach(([f, t]) => {
         const o = actx.createOscillator(), g = actx.createGain();
         o.type = kind === 'bad' ? 'triangle' : 'sine';
@@ -340,9 +346,10 @@ GL.grammar = GL.grammar || {};
         const t0 = actx.currentTime + t;
         g.gain.setValueAtTime(0.0001, t0);
         g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t0 + (kind === 'pop' ? 0.08 : 0.22));
+        const len = kind === 'pop' ? 0.08 : kind === 'chime' ? 0.9 : 0.22;
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
         o.connect(g).connect(actx.destination);
-        o.start(t0); o.stop(t0 + 0.25);
+        o.start(t0); o.stop(t0 + len + 0.03);
       });
     } catch (e) { /* audio not available */ }
   }

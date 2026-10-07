@@ -92,6 +92,7 @@
         case 'trainer': html = GL.viewTrainer(a, b); break;
         case 'talk': html = GL.viewTalk(a); break;
         case 'scenes': html = GL.viewScenes(a); break;
+        case 'writing': html = GL.viewWriting(a, b); break;
         case 'teacher': html = GL.viewTeacher(); break;
         case 'admin': html = GL.viewAdmin(); break;
         case 'sounds': html = viewSounds(); break;
@@ -110,6 +111,8 @@
     app.focus({ preventScroll: true });
     GL.updateTopStats();
   }
+
+  GL.render = route;
 
   /* ======================================================
      HOME
@@ -168,7 +171,8 @@
           <a href="#/review/mistakes"><span class="t-ico">❗</span><div><b>${Object.keys(st.mistakes || {}).length}</b><small>mistakes to fix</small></div></a>
           <a href="#/trainer"><span class="t-ico">🏋️</span><div><b>Trainer</b><small>verbs · cases · endings</small></div></a>
           <a href="#/talk"><span class="t-ico">💬</span><div><b>Talk</b><small>answer questions aloud</small></div></a>
-          <a href="#/scenes"><span class="t-ico">🎬</span><div><b>Real life</b><small>airport · office · Amt · restaurant</small></div></a>
+          <a href="#/scenes"><span class="t-ico">🎬</span><div><b>Real life</b><small>${GL.scenarios.length} scenes: airport, doctor, bank …</small></div></a>
+          <a href="#/writing"><span class="t-ico">✍️</span><div><b>Writing</b><small>AI marks every mistake</small></div></a>
         </div>
       </div>
 
@@ -211,7 +215,7 @@
       </div>
 
       <div class="section-title"><span class="badge-ico">👋</span><h2 style="margin:0">Meet the characters</h2></div>
-      <div class="grid grid-4">${Object.entries(GL.chars).map(([id, c]) => `
+      <div class="grid grid-4">${['bruno', 'lena', 'max', 'sofia', 'weber', 'yilmaz', 'braun'].map((id) => [id, GL.chars[id]]).map(([id, c]) => `
         <button class="card center meet" data-id="${id}" style="cursor:pointer;margin:0">
           ${GL.charSVG(id, 'idle')}
           <b style="display:block;margin-top:6px">${esc(c.name)}</b><small class="muted">${esc(c.role)}</small>

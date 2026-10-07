@@ -4,7 +4,13 @@
   const { $, $$, esc, attr, shuffle, Store, Speech, Rec, speechScore } = GL;
 
   /* ---------- illustrated, animated backgrounds (viewBox 800×400) ---------- */
-  const floor = (c1, c2) => `<rect y="300" width="800" height="100" fill="${c1}"/><rect y="300" width="800" height="6" fill="${c2}"/>`;
+  // floor with perspective tiles converging towards the back wall
+  const floor = (c1, c2) => `<rect y="300" width="800" height="100" fill="${c1}"/>
+    <g stroke="${c2}" stroke-width="1.4" opacity=".5">${[-500, -340, -180, -20, 140, 300, 460, 620, 780, 940, 1100, 1260].map((x) => `<line x1="${400 + (x - 400) * 0.45}" y1="300" x2="${x}" y2="400"/>`).join('')}${[311, 328, 352, 386].map((y) => `<line x1="0" y1="${y}" x2="800" y2="${y}"/>`).join('')}</g>
+    <rect y="300" width="800" height="6" fill="${c2}"/><rect y="306" width="800" height="26" fill="#000" opacity=".05"/>`;
+  // distant passers-by (silhouettes walking across the back of the scene)
+  const person = (c, k) => `<g transform="scale(${k})"><circle cx="0" cy="-66" r="9.5" fill="${c}"/><path d="M-12 -54 q12 -5 24 0 l3 32 h-6 l-1.5 22 h-6 l-1.5 -17 l-1.5 17 h-6 l-1.5 -22 h-6 z" fill="${c}"/><rect class="bag" x="10" y="-30" width="9" height="13" rx="2" fill="${c}" opacity=".8"/></g>`;
+  const crowd = (y, n = 3, cols = ['#7d8a99', '#93a1b0', '#6b7887'], speed = 1) => Array.from({ length: n }, (_, i) => `<g class="walker ${i % 2 ? 'rev' : ''}" style="animation-duration:${(16 + i * 5) / speed}s;animation-delay:-${(i * 6.7) % 20}s"><g transform="translate(0,${y + (i % 2) * 6})"><g class="wbob">${person(cols[i % cols.length], 0.78 + (i % 3) * 0.07)}</g></g></g>`).join('');
   const sign = (x, y, w, txt, bg = '#1d3557', fg = '#fff') => `<g><rect x="${x}" y="${y}" width="${w}" height="34" rx="6" fill="${bg}"/><text x="${x + w / 2}" y="${y + 23}" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-size="18" font-weight="600" fill="${fg}">${txt}</text></g>`;
   const plant = (x) => `<g><rect x="${x}" y="262" width="34" height="40" rx="4" fill="#b5651d"/><circle cx="${x + 10}" cy="250" r="18" fill="#2a9d8f"/><circle cx="${x + 26}" cy="244" r="16" fill="#3fb5a3"/><circle cx="${x + 17}" cy="230" r="15" fill="#2a9d8f"/></g>`;
   const clock = (x, y) => `<g><circle cx="${x}" cy="${y}" r="22" fill="#fff" stroke="#333" stroke-width="3"/><line x1="${x}" y1="${y}" x2="${x}" y2="${y - 13}" stroke="#333" stroke-width="3" stroke-linecap="round"/><line class="tick" x1="${x}" y1="${y}" x2="${x + 15}" y2="${y}" stroke="#e63946" stroke-width="2" stroke-linecap="round" style="transform-origin:${x}px ${y}px"/></g>`;
@@ -19,13 +25,13 @@
       ${windowSky(300, 30, 470, 170)}<g class="fly-across"><g transform="translate(0,90)">${planeShape(0.8)}</g></g>
       <path d="M300 30 V200 M417 30 V200 M535 30 V200 M652 30 V200 M770 30 V200" stroke="#6c7a89" stroke-width="6"/>
       ${board(30, 30, ['LH2340 WIEN     09:40 B12', 'EW8044 KÖLN     10:05 A04', 'LH0170 FRANKF.  10:30 B03'])}
-      ${floor('#c9ced6', '#aab1bc')}
+      ${floor('#c9ced6', '#aab1bc')}${crowd(300, 3)}
       <rect x="430" y="215" width="330" height="100" rx="6" fill="#457b9d"/><rect x="420" y="205" width="350" height="16" rx="4" fill="#a8dadc"/>
       ${sign(520, 228, 150, 'Check-in', '#1d3557')}
       <g class="belt-slide"><rect x="330" y="268" width="60" height="44" rx="8" fill="#e63946"/><rect x="350" y="258" width="20" height="12" rx="3" fill="none" stroke="#333" stroke-width="3"/></g>`,
     security: () => `<rect width="800" height="300" fill="#eef2f3"/>
       ${sign(290, 26, 220, 'Sicherheitskontrolle', '#2b2d42')}
-      ${floor('#cfd5da', '#b4bcc3')}
+      ${floor('#cfd5da', '#b4bcc3')}${crowd(300, 2)}
       <rect x="80" y="232" width="380" height="26" rx="6" fill="#495057"/><rect x="80" y="258" width="380" height="50" fill="#6c757d"/>
       <g class="belt-move"><rect x="90" y="206" width="70" height="28" rx="4" fill="#adb5bd"/><rect x="100" y="196" width="40" height="14" rx="3" fill="#264653"/></g>
       <g class="belt-move d2"><rect x="90" y="206" width="70" height="28" rx="4" fill="#adb5bd"/><rect x="104" y="192" width="30" height="20" rx="3" fill="#e9c46a"/></g>
@@ -35,7 +41,7 @@
     gate: () => `<rect width="800" height="300" fill="#e6ebf0"/>
       ${windowSky(40, 30, 720, 190)}<g transform="translate(470,170)">${planeShape(2)}</g>
       <path d="M40 30 V220 M220 30 V220 M400 30 V220 M580 30 V220 M760 30 V220" stroke="#6c7a89" stroke-width="7"/>
-      ${floor('#b8c0cc', '#9aa5b1')}
+      ${floor('#b8c0cc', '#9aa5b1')}${crowd(300, 3)}
       <g><rect x="40" y="236" width="160" height="34" rx="6" fill="#ffce00"/><text x="120" y="260" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="22" font-weight="700" fill="#1d1d1d">Gate B15</text></g>
       <g><rect x="250" y="236" width="230" height="34" rx="6" fill="#1d2433"/><text class="blink" x="365" y="259" text-anchor="middle" font-family="monospace" font-size="15" font-weight="700" fill="#ffce00">WIEN 10:10 VERSPÄTET</text></g>
       ${[520, 580, 640, 700].map((x) => `<rect x="${x}" y="268" width="50" height="30" rx="6" fill="#457b9d"/><rect x="${x}" y="252" width="50" height="18" rx="6" fill="#5c8fb5"/>`).join('')}`,
@@ -45,14 +51,14 @@
       ${[30, 190, 350, 510, 670].map((x) => `<rect x="${x}" y="240" width="110" height="100" rx="18" fill="#1e3a5f"/><rect x="${x + 8}" y="232" width="94" height="24" rx="10" fill="#2c5282"/>`).join('')}`,
     baggage: () => `<rect width="800" height="300" fill="#edf0f3"/>
       ${sign(250, 24, 300, 'Gepäckausgabe · Baggage claim', '#ffce00', '#1d1d1d')}
-      ${floor('#c7cdd4', '#adb5bd')}
+      ${floor('#c7cdd4', '#adb5bd')}${crowd(300, 2)}
       <rect x="40" y="232" width="720" height="60" rx="30" fill="#495057"/><rect x="60" y="244" width="680" height="36" rx="18" fill="#343a40"/>
       <g class="carousel"><rect x="0" y="226" width="56" height="34" rx="6" fill="#2a9d8f"/><rect x="140" y="222" width="48" height="38" rx="6" fill="#264653"/><rect x="300" y="228" width="60" height="32" rx="6" fill="#f4a261"/><rect x="470" y="224" width="52" height="36" rx="6" fill="#6d597a"/></g>
       ${clock(720, 110)}`,
     reception: () => `<rect width="800" height="300" fill="#f1f3f5"/><rect x="0" y="0" width="800" height="60" fill="#e9ecef"/>
       <g><circle cx="400" cy="110" r="34" fill="#2ec4b6"/><text x="400" y="122" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="30" font-weight="700" fill="#fff">T</text><text x="400" y="176" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="26" font-weight="600" fill="#1f2a48">TechNord</text></g>
       ${plant(60)}${plant(700)}
-      ${floor('#d6d0c4', '#bfb7a8')}
+      ${floor('#d6d0c4', '#bfb7a8')}${crowd(300, 1)}
       <rect x="440" y="222" width="320" height="94" rx="10" fill="#1f2a48"/><rect x="430" y="212" width="340" height="16" rx="6" fill="#adb5bd"/>
       ${clock(150, 110)}`,
     office: () => `<rect width="800" height="300" fill="#f3efe7"/>
@@ -110,6 +116,159 @@
       <rect x="410" y="240" width="10" height="22" fill="#fffde7"/><path class="flicker" d="M415 230 q6 6 0 12 q-6 -6 0 -12z" fill="#ffb703"/>`,
   };
 
+  /* ---------- more places ---------- */
+  const shelf = (x, y, w, rows, colors) => `<g><rect x="${x}" y="${y}" width="${w}" height="${rows * 44 + 10}" fill="#dfe3e8"/>${Array.from({ length: rows }, (_, r) => `<rect x="${x}" y="${y + 40 + r * 44}" width="${w}" height="6" fill="#9aa5b1"/>${Array.from({ length: Math.floor(w / 22) }, (_, k) => `<rect x="${x + 4 + k * 22}" y="${y + 12 + r * 44 + ((k * 7 + r * 3) % 3) * 3}" width="17" height="${28 - ((k * 7 + r * 3) % 3) * 3}" rx="2" fill="${colors[(k + r * 2) % colors.length]}"/>`).join('')}`).join('')}</g>`;
+  const counterDesk = (x, w, top, front) => `<rect x="${x}" y="226" width="${w}" height="90" rx="6" fill="${front}"/><rect x="${x - 10}" y="214" width="${w + 20}" height="16" rx="5" fill="${top}"/><rect x="${x}" y="230" width="${w}" height="8" fill="#000" opacity=".12"/>`;
+  const screen = (x, y) => `<rect x="${x}" y="${y}" width="70" height="48" rx="4" fill="#263238"/><rect x="${x + 5}" y="${y + 5}" width="60" height="36" fill="#80deea"/><rect x="${x + 30}" y="${y + 48}" width="10" height="10" fill="#37474f"/>`;
+  const depBoard = (x, y, title, rows) => `<g><rect x="${x}" y="${y}" width="300" height="${34 + rows.length * 22}" rx="6" fill="#0b2a5b"/><text x="${x + 12}" y="${y + 22}" font-family="monospace" font-size="12" fill="#9fb3d1">${title}</text>
+    ${rows.map((r, i) => `<text class="${i === 0 ? 'blink' : ''}" x="${x + 12}" y="${y + 46 + i * 22}" font-family="monospace" font-size="13" font-weight="700" fill="#fff">${r}</text>`).join('')}</g>`;
+  const trainShape = (x, y, w, c = '#f2f2f2', stripe = '#e30613') => `<g><rect x="${x}" y="${y}" width="${w}" height="120" rx="26" fill="${c}" stroke="#8d99ae" stroke-width="2"/><rect x="${x}" y="${y + 84}" width="${w}" height="10" fill="${stripe}"/>${Array.from({ length: Math.floor((w - 60) / 70) }, (_, i) => `<rect x="${x + 40 + i * 70}" y="${y + 22}" width="52" height="38" rx="8" fill="#37474f"/><rect x="${x + 44 + i * 70}" y="${y + 26}" width="20" height="30" rx="4" fill="#90a4ae" opacity=".5"/>`).join('')}<rect x="${x + w - 20}" y="${y + 30}" width="16" height="50" rx="8" fill="#37474f"/></g>`;
+  const windowNight = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#1d3557"/>${[[0.2, 0.3], [0.5, 0.2], [0.8, 0.4], [0.35, 0.6], [0.7, 0.7]].map(([a, b], i) => `<circle class="blink" style="animation-delay:${i * 0.4}s" cx="${x + a * w}" cy="${y + b * h}" r="2" fill="#fff"/>`).join('')}<circle cx="${x + w * 0.82}" cy="${y + h * 0.22}" r="12" fill="#fff3c4"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#6d4c41" stroke-width="8"/>`;
+  const lamp = (x) => `<g><line x1="${x}" y1="0" x2="${x}" y2="40" stroke="#555" stroke-width="2"/><path d="M${x - 22} 62 L${x - 12} 40 H${x + 12} L${x + 22} 62 Z" fill="#f4a261"/><ellipse cx="${x}" cy="66" rx="30" ry="6" fill="#ffe8a3" opacity=".7"/></g>`;
+
+  Object.assign(BG, {
+    station: () => `<rect width="800" height="300" fill="#e7e2d8"/><path d="M0 0 H800 V40 Q400 -10 0 40Z" fill="#cfc6b6"/>
+      ${[100, 300, 500, 700].map((x) => `<path d="M${x - 90} 40 Q${x} -20 ${x + 90} 40" stroke="#8d8577" stroke-width="5" fill="none"/>`).join('')}
+      ${depBoard(40, 50, 'ABFAHRT    ZUG     NACH          GLEIS', ['10:12  ICE 597  München Hbf    7', '10:20  RE 1     Magdeburg      3', '10:34  S 5      Potsdam       12'])}
+      ${clock(400, 80)}
+      ${floor('#cbbfae', '#b3a693')}${crowd(300, 4)}
+      ${counterDesk(450, 320, '#ced4da', '#e30613')}
+      ${sign(500, 112, 220, 'DB Reisezentrum', '#e30613')}${screen(640, 166)}`,
+    platform: () => `<rect width="800" height="300" fill="#b7c6d6"/><rect width="800" height="90" fill="#8fa7bf"/>
+      <path d="M0 40 H800" stroke="#6c7a89" stroke-width="10"/>${[60, 260, 460, 660].map((x) => `<rect x="${x}" y="40" width="10" height="200" fill="#6c7a89"/>`).join('')}
+      <g class="train-in">${trainShape(-60, 120, 940)}</g>
+      <rect x="0" y="240" width="800" height="60" fill="#9aa5b1"/><rect x="0" y="236" width="800" height="8" fill="#fff" opacity=".9"/>
+      <g><rect x="560" y="70" width="200" height="56" rx="6" fill="#0b2a5b"/><text x="572" y="92" font-family="monospace" font-size="12" fill="#9fb3d1">GLEIS 7</text><text class="blink" x="572" y="114" font-family="monospace" font-size="14" font-weight="700" fill="#fff">ICE 597 München</text></g>
+      ${floor('#a5aeb8', '#8d97a2')}${crowd(300, 2)}
+      <rect x="0" y="300" width="800" height="10" fill="#ffce00" opacity=".9"/>`,
+    train: () => `<rect width="800" height="400" fill="#e3e7ec"/><rect width="800" height="50" fill="#cfd6de"/>
+      <rect x="40" y="70" width="720" height="150" rx="20" fill="#9ccbe8"/>
+      <g class="landscape far"><path d="M0 180 Q100 120 200 170 T400 160 T600 170 T800 150 T1000 170 T1200 160 V220 H0Z" fill="#8fbf9f"/></g>
+      <g class="landscape">${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<g transform="translate(${60 + i * 160},0)"><rect x="-3" y="170" width="6" height="40" fill="#6d4c41"/><circle cx="0" cy="160" r="22" fill="#3d8b5f"/></g>`).join('')}<rect x="0" y="205" width="1600" height="15" fill="#7a9a6a"/></g>
+      ${[40, 280, 520].map((x) => `<rect x="${x + 228}" y="70" width="12" height="150" fill="#cfd6de"/>`).join('')}
+      <rect x="40" y="70" width="720" height="150" rx="20" fill="none" stroke="#cfd6de" stroke-width="12"/>
+      <rect y="300" width="800" height="100" fill="#5c6b7a"/>
+      ${[20, 210, 400, 590].map((x) => `<g><rect x="${x}" y="230" width="170" height="120" rx="20" fill="#24476b"/><rect x="${x + 12}" y="222" width="146" height="34" rx="12" fill="#2f5d8a"/><rect x="${x + 40}" y="232" width="90" height="10" rx="4" fill="#fff" opacity=".7"/></g>`).join('')}`,
+    hotel: () => `<rect width="800" height="300" fill="#efe4d2"/><rect width="800" height="300" fill="url(#none)"/>
+      ${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<rect x="${i * 100}" y="0" width="50" height="300" fill="#e8dcc6"/>`).join('')}
+      ${lamp(200)}${lamp(600)}
+      <g><text x="400" y="110" text-anchor="middle" font-family="Georgia, serif" font-size="34" fill="#7a5a2e">Hotel Lindenhof</text><text x="400" y="134" text-anchor="middle" font-family="Georgia, serif" font-size="14" letter-spacing="6" fill="#a1887f">★ ★ ★ ★</text></g>
+      <rect x="560" y="150" width="190" height="60" rx="4" fill="#6d4c41"/>${[0, 1, 2, 3, 4, 5].map((i) => `<circle cx="${580 + i * 30}" cy="170" r="4" fill="#ffd166"/><rect x="${577 + i * 30}" y="174" width="6" height="16" rx="2" fill="#ffd166"/>`).join('')}
+      ${plant(40)}
+      ${floor('#8d6e63', '#795548')}${crowd(300, 1, ['#8a7a6a'])}
+      ${counterDesk(430, 340, '#d7c4a3', '#5d4037')}
+      <circle cx="500" cy="208" r="9" fill="#ffd166"/><rect x="491" y="208" width="18" height="5" fill="#c9a227"/>`,
+    hotelroom: () => `<rect width="800" height="300" fill="#e9e1f0"/>
+      ${windowNight(520, 40, 220, 160)}
+      <rect x="70" y="60" width="150" height="100" fill="#ffe0b2" stroke="#8d6e63" stroke-width="6"/><path d="M80 150 L130 100 L160 130 L190 105 L210 150Z" fill="#81c784"/>
+      ${floor('#a1887f', '#8d6e63')}
+      <rect x="240" y="200" width="300" height="110" rx="10" fill="#fff"/><rect x="240" y="180" width="300" height="40" rx="10" fill="#d1c4e9"/><rect x="230" y="150" width="20" height="160" rx="6" fill="#6d4c41"/>
+      <rect x="560" y="236" width="70" height="70" rx="6" fill="#8d6e63"/><rect x="592" y="206" width="6" height="30" fill="#5d4037"/><path d="M576 210 L584 186 H606 L614 210 Z" fill="#ffd166"/><ellipse cx="595" cy="200" rx="40" ry="26" fill="#ffe8a3" opacity=".25"/>`,
+    breakfast: () => `<rect width="800" height="300" fill="#fff8e7"/>
+      <rect x="40" y="40" width="260" height="160" fill="#bde0fe"/><rect x="40" y="40" width="260" height="160" fill="none" stroke="#c9a227" stroke-width="8"/><circle cx="250" cy="80" r="20" fill="#ffd166"/>
+      ${sign(470, 30, 280, 'Frühstücksbuffet 6:30–10:30', '#7a5a2e')}
+      ${floor('#d7b48f', '#c19a6b')}${crowd(300, 2, ['#9c8a75', '#7f7365'])}
+      ${counterDesk(400, 380, '#fff', '#c9a227')}
+      ${[[430, '#f4a261'], [500, '#e9c46a'], [570, '#e76f51'], [640, '#2a9d8f'], [710, '#b5651d']].map(([x, c]) => `<ellipse cx="${x}" cy="208" rx="26" ry="8" fill="#fff" stroke="#ccc"/><circle cx="${x - 8}" cy="200" r="7" fill="${c}"/><circle cx="${x + 6}" cy="198" r="8" fill="${c}"/>`).join('')}
+      <g><rect x="740" y="160" width="26" height="46" rx="6" fill="#6d4c41"/><path class="steam" d="M752 150 q6 -10 0 -20" stroke="#adb5bd" stroke-width="3" fill="none"/></g>`,
+    market: () => `<rect width="800" height="300" fill="#f5f7fa"/><rect width="800" height="26" fill="#2a9d8f"/>
+      ${sign(40, 36, 150, 'Obst & Gemüse', '#2a9d8f')}${sign(600, 36, 160, 'Getränke', '#264653')}
+      ${shelf(30, 80, 250, 5, ['#e63946', '#f4a261', '#2a9d8f', '#e9c46a', '#457b9d', '#8ab17d'])}
+      ${shelf(520, 80, 250, 5, ['#264653', '#e76f51', '#a8dadc', '#ffb703', '#6d597a'])}
+      <rect x="300" y="90" width="200" height="200" fill="#e9ecef"/><path d="M300 90 L360 160 H440 L500 90" fill="#dee2e6"/>${shelf(360, 160, 80, 3, ['#ffb703', '#e63946', '#2a9d8f'])}
+      ${floor('#e6e9ed', '#cdd3da')}${crowd(300, 2, ['#8896a5', '#a2acb8'])}
+      <g transform="translate(330,250)"><rect x="0" y="0" width="70" height="40" rx="4" fill="none" stroke="#6c757d" stroke-width="4"/><path d="M0 0 l-10 -12" stroke="#6c757d" stroke-width="4"/><circle cx="12" cy="52" r="6" fill="#495057"/><circle cx="58" cy="52" r="6" fill="#495057"/></g>`,
+    deli: () => `<rect width="800" height="300" fill="#fbf3e8"/>
+      ${sign(470, 26, 280, 'Frische-Theke · Käse & Wurst', '#8d2a1e')}
+      <rect x="40" y="40" width="300" height="150" fill="#efe1cd"/>${[60, 130, 200, 270].map((x, i) => `<path d="M${x} 60 v60" stroke="#8d6e63" stroke-width="3"/><ellipse cx="${x}" cy="130" rx="16" ry="26" fill="${['#c1121f', '#bc6c25', '#dda15e', '#9c6644'][i]}"/>`).join('')}
+      ${floor('#d9c7ae', '#c4b096')}
+      <rect x="360" y="196" width="420" height="120" rx="8" fill="#e8e8e8"/><path d="M360 196 L400 140 H780 V196 Z" fill="#cfe8f3" opacity=".7" stroke="#9fb7c4" stroke-width="2"/>
+      ${[[400, '#ffd166'], [460, '#f4a261'], [520, '#ffe8a3'], [580, '#e5989b'], [640, '#c9184a'], [700, '#ffd166']].map(([x, c]) => `<path d="M${x} 190 l20 -26 l20 26 z" fill="${c}"/>`).join('')}
+      <rect x="360" y="190" width="420" height="10" fill="#bfc5ca"/>`,
+    checkout: () => `<rect width="800" height="300" fill="#eef2f5"/><rect width="800" height="26" fill="#2a9d8f"/>
+      ${shelf(30, 60, 200, 4, ['#e63946', '#ffb703', '#2a9d8f', '#457b9d'])}
+      <g><rect x="620" y="50" width="70" height="40" rx="6" fill="#2a9d8f"/><text x="655" y="78" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="22" font-weight="700" fill="#fff">3</text><line x1="655" y1="26" x2="655" y2="50" stroke="#888" stroke-width="2"/></g>
+      ${floor('#dfe4e9', '#c5ccd4')}${crowd(300, 2)}
+      <rect x="300" y="226" width="480" height="90" rx="6" fill="#adb5bd"/><rect x="290" y="212" width="320" height="18" rx="4" fill="#343a40"/>
+      <g class="belt-move" style="animation-duration:5s"><rect x="300" y="196" width="26" height="18" rx="3" fill="#e63946"/><rect x="340" y="190" width="18" height="24" rx="3" fill="#ffb703"/></g>
+      <rect x="610" y="196" width="50" height="20" rx="3" fill="#495057"/><rect class="beep" x="620" y="200" width="30" height="5" fill="#e63946"/>
+      ${screen(690, 150)}`,
+    practice: () => `<rect width="800" height="300" fill="#f1f8f6"/>
+      <g><rect x="40" y="30" width="250" height="70" rx="8" fill="#fff" stroke="#2a9d8f" stroke-width="3"/><text x="165" y="60" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="20" fill="#1b6f66">Praxis Dr. Braun</text><text x="165" y="84" text-anchor="middle" font-family="Nunito, sans-serif" font-size="13" fill="#555">Allgemeinmedizin · Mo–Fr 8–12</text></g>
+      <rect x="330" y="40" width="120" height="150" rx="6" fill="#fff"/><path d="M350 70 h80 M350 95 h80 M350 120 h60 M350 145 h70" stroke="#b0bec5" stroke-width="5"/>
+      ${clock(520, 70)}
+      ${floor('#dfe8e5', '#c3d3ce')}
+      ${[50, 120, 190].map((x) => `<rect x="${x}" y="260" width="56" height="12" rx="4" fill="#2a9d8f"/><rect x="${x}" y="226" width="56" height="38" rx="6" fill="#3fb5a3"/><rect x="${x + 6}" y="272" width="6" height="30" fill="#555"/><rect x="${x + 44}" y="272" width="6" height="30" fill="#555"/>`).join('')}
+      ${counterDesk(450, 320, '#fff', '#2a9d8f')}${screen(660, 160)}`,
+    exam: () => `<rect width="800" height="300" fill="#eef6f8"/>
+      <g><rect x="60" y="40" width="120" height="170" rx="4" fill="#fff" stroke="#b0bec5" stroke-width="3"/>${['E', 'F P', 'T O Z', 'L P E D'].map((t, i) => `<text x="120" y="${80 + i * 34}" text-anchor="middle" font-family="monospace" font-weight="700" font-size="${30 - i * 6}" fill="#222">${t}</text>`).join('')}</g>
+      <rect x="560" y="50" width="190" height="130" fill="#bde0fe"/><rect x="560" y="50" width="190" height="130" fill="none" stroke="#90a4ae" stroke-width="6"/><path d="M560 115 H750" stroke="#90a4ae" stroke-width="4"/>
+      ${floor('#d7e3e7', '#bccbd0')}
+      <rect x="220" y="230" width="320" height="22" rx="8" fill="#a8dadc"/><rect x="220" y="216" width="80" height="20" rx="8" fill="#fff"/><rect x="240" y="252" width="10" height="50" fill="#78909c"/><rect x="510" y="252" width="10" height="50" fill="#78909c"/>
+      <g><rect x="600" y="196" width="150" height="110" rx="6" fill="#fff" stroke="#cfd8dc" stroke-width="3"/><path d="M600 240 H750 M675 196 V306" stroke="#cfd8dc" stroke-width="3"/><rect x="616" y="170" width="20" height="26" rx="3" fill="#90caf9"/><rect x="644" y="178" width="30" height="18" rx="3" fill="#e0e0e0"/></g>`,
+    pharmacy: () => `<rect width="800" height="300" fill="#f7f9f9"/>
+      <g><rect x="40" y="24" width="80" height="80" rx="10" fill="#d62828"/><text x="80" y="88" text-anchor="middle" font-family="Georgia, serif" font-size="66" font-weight="700" fill="#fff">A</text></g>
+      <text x="140" y="74" font-family="Fredoka, sans-serif" font-size="26" fill="#d62828">Linden-Apotheke</text>
+      ${shelf(420, 40, 350, 4, ['#fff', '#e0f2f1', '#ffcdd2', '#bbdefb', '#fff9c4'])}
+      ${floor('#e3e7e8', '#c9cfd1')}${crowd(300, 1)}
+      ${counterDesk(400, 380, '#e0e0e0', '#2a9d8f')}<rect x="520" y="186" width="34" height="28" rx="4" fill="#fff" stroke="#999"/><rect x="560" y="194" width="24" height="20" rx="3" fill="#ffcdd2"/>`,
+    bank: () => `<rect width="800" height="300" fill="#eef1f6"/>
+      <g><rect x="40" y="30" width="200" height="60" rx="8" fill="#0b3d91"/><text x="140" y="70" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="24" fill="#fff">Stadtbank</text></g>
+      <rect x="290" y="40" width="200" height="140" fill="#bcd4f6"/>${[300, 340, 390, 440].map((x, i) => `<rect x="${x}" y="${90 + (i % 2) * 20}" width="34" height="${90 - (i % 2) * 20}" fill="#7d93b2"/>`).join('')}<rect x="290" y="40" width="200" height="140" fill="none" stroke="#5c6b7a" stroke-width="6"/>
+      <g><rect x="60" y="130" width="90" height="170" rx="8" fill="#5c6b7a"/><rect x="72" y="146" width="66" height="44" fill="#80deea"/><rect x="78" y="205" width="54" height="8" fill="#263238"/>${[0, 1, 2].map((r) => [0, 1, 2].map((c) => `<rect x="${80 + c * 18}" y="${222 + r * 14}" width="12" height="9" rx="2" fill="#cfd8dc"/>`).join('')).join('')}<text x="105" y="125" text-anchor="middle" font-family="Nunito, sans-serif" font-size="12" font-weight="800" fill="#5c6b7a">Geldautomat</text></g>
+      ${plant(720)}
+      ${floor('#c9d1dc', '#adb7c5')}
+      <rect x="400" y="236" width="300" height="16" rx="4" fill="#d7ccc8"/><rect x="420" y="252" width="12" height="54" fill="#8d6e63"/><rect x="670" y="252" width="12" height="54" fill="#8d6e63"/>${screen(600, 188)}<rect x="470" y="226" width="60" height="10" fill="#fff"/>`,
+    interview: () => `<rect width="800" height="300" fill="#eaeef3"/>
+      <rect x="0" y="0" width="800" height="230" fill="#dfe6ee"/>${[0, 1, 2, 3].map((i) => `<rect x="${40 + i * 190}" y="30" width="170" height="190" fill="#c7dcef" opacity=".8"/><rect x="${40 + i * 190}" y="30" width="170" height="190" fill="none" stroke="#9aa9b8" stroke-width="5"/>`).join('')}
+      ${[0, 1, 2, 3].map((i) => `<rect x="${60 + i * 190}" y="${110 + (i % 2) * 30}" width="50" height="${106 - (i % 2) * 30}" fill="#9fb3c8" opacity=".7"/><rect x="${130 + i * 190}" y="${80 + (i % 3) * 20}" width="60" height="${136 - (i % 3) * 20}" fill="#9fb3c8" opacity=".55"/>`).join('')}
+      <g><circle cx="680" cy="70" r="26" fill="#3a86ff"/><text x="680" y="80" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="28" font-weight="700" fill="#fff">G</text></g>
+      ${floor('#b9c2cd', '#9fa9b6')}
+      <rect x="300" y="250" width="480" height="16" rx="6" fill="#f5f5f5"/><rect x="320" y="266" width="10" height="40" fill="#9aa5b1"/><rect x="750" y="266" width="10" height="40" fill="#9aa5b1"/>
+      <rect x="380" y="232" width="56" height="20" rx="2" fill="#fff" stroke="#ccc"/><rect x="460" y="230" width="20" height="22" rx="3" fill="#3a86ff"/>`,
+    shop: () => `<rect width="800" height="300" fill="#fbeff4"/>
+      ${sign(300, 24, 200, 'MODEHAUS KÖHLER', '#1f1f1f')}
+      ${[60, 520].map((bx) => `<g><line x1="${bx}" y1="90" x2="${bx + 220}" y2="90" stroke="#6c757d" stroke-width="5"/>${[0, 1, 2, 3, 4, 5].map((i) => `<g class="hanger" style="animation-delay:${i * 0.3}s"><path d="M${bx + 20 + i * 36} 90 l-14 14 h28 z" fill="none" stroke="#555" stroke-width="2"/><path d="M${bx + 6 + i * 36} 104 h28 l4 70 h-36 z" fill="${['#e63946', '#457b9d', '#2a9d8f', '#f4a261', '#6d597a', '#e9c46a'][i]}"/></g>`).join('')}<rect x="${bx + 100}" y="90" width="8" height="210" fill="#6c757d"/></g>`).join('')}
+      ${floor('#e8d5dc', '#d4bcc5')}${crowd(300, 1, ['#a3899a'])}
+      ${counterDesk(470, 300, '#fff', '#c9184a')}${screen(640, 166)}`,
+    fitting: () => `<rect width="800" height="300" fill="#f7eef2"/>
+      ${[80, 300].map((x) => `<g><rect x="${x}" y="30" width="180" height="270" fill="#fff"/><line x1="${x}" y1="36" x2="${x + 180}" y2="36" stroke="#888" stroke-width="5"/><path class="curtain" d="M${x} 36 h${170} q-10 130 0 264 h-170 q10 -130 0 -264z" fill="#9d4edd"/></g>`).join('')}
+      <rect x="560" y="40" width="160" height="240" rx="80" fill="#cfe8f3" stroke="#c9a227" stroke-width="8"/><path d="M600 80 l30 -20 M610 110 l50 -36" stroke="#fff" stroke-width="6" opacity=".7"/>
+      ${floor('#e2cfd6', '#cdb5be')}`,
+    post: () => `<rect width="800" height="300" fill="#fff9db"/><rect width="800" height="30" fill="#ffcc00"/>
+      <g><rect x="40" y="50" width="70" height="70" rx="10" fill="#ffcc00"/><rect x="52" y="68" width="46" height="32" rx="3" fill="#fff" stroke="#1d1d1d" stroke-width="3"/><path d="M52 70 l23 18 l23 -18" stroke="#1d1d1d" stroke-width="3" fill="none"/><text x="125" y="96" font-family="Fredoka, sans-serif" font-size="28" font-weight="700" fill="#1d1d1d">Post · Filiale</text></g>
+      ${[0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => `<rect x="${60 + c * 52}" y="${150 + r * 40}" width="44" height="32" rx="3" fill="#c8a165" stroke="#8d6e63"/><path d="M${60 + c * 52} ${158 + r * 40} h44" stroke="#e9c46a" stroke-width="3"/>`).join('')).join('')}
+      ${floor('#e9dfb8', '#d3c79c')}${crowd(300, 1)}
+      ${counterDesk(430, 340, '#ffe066', '#ffcc00')}${screen(650, 160)}<g><rect x="470" y="186" width="60" height="28" rx="2" fill="#c8a165"/><rect x="470" y="196" width="60" height="6" fill="#e9c46a"/></g>`,
+    police: () => `<rect width="800" height="300" fill="#e8eef3"/>
+      <g><rect x="250" y="24" width="300" height="56" rx="8" fill="#1b4965"/><text x="400" y="62" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="30" font-weight="700" letter-spacing="4" fill="#fff">POLIZEI</text><circle class="siren" cx="270" cy="52" r="8" fill="#3a86ff"/><circle class="siren" style="animation-delay:.5s" cx="530" cy="52" r="8" fill="#3a86ff"/></g>
+      <rect x="40" y="100" width="180" height="130" fill="#fff" stroke="#b0bec5" stroke-width="3"/><text x="130" y="128" text-anchor="middle" font-family="Nunito, sans-serif" font-size="14" font-weight="800" fill="#1b4965">Hinweise</text>${[150, 170, 190, 210].map((y) => `<path d="M60 ${y} h140" stroke="#cfd8dc" stroke-width="5"/>`).join('')}
+      ${clock(320, 150)}
+      ${floor('#c3ced8', '#a8b5c2')}
+      ${counterDesk(420, 360, '#cfd8dc', '#1b4965')}${screen(660, 160)}<rect x="560" y="200" width="50" height="14" rx="2" fill="#fff"/>`,
+    street: () => `<rect width="800" height="300" fill="#cfe8ff"/>
+      ${[[0, 90, '#d9a679'], [170, 60, '#e9c46a'], [360, 80, '#f4a261'], [560, 50, '#a8dadc']].map(([x, y, c]) => `<rect x="${x}" y="${y}" width="${x === 560 ? 240 : 190}" height="${300 - y}" fill="${c}"/>${[0, 1, 2].map((r) => [0, 1, 2].map((k) => `<rect x="${x + 22 + k * 56}" y="${y + 24 + r * 60}" width="34" height="40" fill="#fff" opacity=".85"/>`).join('')).join('')}`).join('')}
+      ${floor('#9e9e9e', '#7f7f7f')}${crowd(300, 3)}
+      <g><path d="M90 250 h120" stroke="#555" stroke-width="5"/>${[110, 150, 190].map((x) => `<path d="M${x} 250 v50" stroke="#555" stroke-width="4"/>`).join('')}<circle cx="125" cy="282" r="18" fill="none" stroke="#333" stroke-width="4"/><circle cx="175" cy="282" r="18" fill="none" stroke="#333" stroke-width="4"/><path d="M125 282 l20 -24 l30 24 M145 258 h20" stroke="#e63946" stroke-width="4" fill="none"/></g>`,
+    doorway: () => `<rect width="800" height="300" fill="#e8d9c5"/>
+      <rect x="320" y="40" width="170" height="262" rx="4" fill="#7b4b2a"/><rect x="336" y="56" width="138" height="110" rx="4" fill="#8d5a35"/><rect x="336" y="180" width="138" height="110" rx="4" fill="#8d5a35"/><circle cx="460" cy="180" r="6" fill="#ffd166"/>
+      <g><rect x="510" y="140" width="40" height="60" rx="4" fill="#cfd8dc"/><circle class="beep" cx="530" cy="182" r="6" fill="#ffd166"/><text x="530" y="160" text-anchor="middle" font-family="Nunito, sans-serif" font-size="8" font-weight="800" fill="#333">Lena · Max</text></g>
+      <rect x="130" y="60" width="120" height="90" fill="#ffcc80" stroke="#8d6e63" stroke-width="6"/><g><rect x="600" y="230" width="60" height="70" rx="4" fill="#8d6e63"/><rect x="618" y="190" width="24" height="40" rx="10" fill="#6a994e"/><path d="M630 190 v-30 M630 175 l-14 -12 M630 170 l14 -12" stroke="#386641" stroke-width="5" stroke-linecap="round"/></g>
+      ${floor('#a1887f', '#8d6e63')}<rect x="330" y="300" width="150" height="16" rx="4" fill="#6d4c41"/>`,
+    dining: () => `<rect width="800" height="300" fill="#f3e3cf"/>
+      ${windowNight(520, 40, 220, 150)}
+      <rect x="70" y="50" width="180" height="120" fill="#ffd6a5" stroke="#8d6e63" stroke-width="6"/><circle cx="160" cy="110" r="30" fill="#e76f51" opacity=".7"/>
+      ${lamp(400)}
+      ${floor('#a47551', '#8d6040')}
+      <rect x="180" y="262" width="440" height="14" rx="5" fill="#fffaf0"/><rect x="180" y="276" width="440" height="34" fill="#f1e4d0"/>
+      ${[260, 340, 460, 540].map((x) => `<ellipse cx="${x}" cy="262" rx="26" ry="6" fill="#fff" stroke="#ddd"/>`).join('')}
+      ${[380, 420].map((x) => `<rect x="${x - 4}" y="236" width="8" height="26" fill="#fffde7"/><path class="flicker" d="M${x} 226 q6 6 0 12 q-6 -6 0 -12z" fill="#ffb703"/>`).join('')}
+      <g><rect x="476" y="230" width="14" height="32" rx="4" fill="#6a040f"/><rect x="480" y="220" width="6" height="12" fill="#6a040f"/></g>`,
+  });
+
+  // lighting per background: '' = daylight, 'evening' = warm, 'night' = dark blue, 'cool' = fluorescent
+  const MOOD = { restaurant: 'evening', dining: 'evening', doorway: 'evening', hotelroom: 'evening', security: 'cool', amt: 'cool', counter: 'cool', police: 'cool', exam: 'cool', practice: 'cool', checkout: 'cool' };
+
   /* ---------- player ---------- */
   function progressOf(id) { return ((Store.state.scenes = Store.state.scenes || {})[id]) || {}; }
 
@@ -134,7 +293,7 @@
         <div class="scn-player">
           <div class="scn-top"><div><span class="scn-big-icon">${sc.icon}</span> <b>${esc(sc.title)}</b> <span class="muted">· ${esc(sc.en)}</span></div>
             <div class="scn-dots">${sc.scenes.map((s, i) => `<span data-i="${i}" title="${attr(s.title)}"></span>`).join('')}</div></div>
-          <div class="scn-stage" id="scnStage"><svg class="scn-bg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice"></svg><div class="scn-actors"></div><div class="scn-card-overlay"></div></div>
+          <div class="scn-stage" id="scnStage"><div class="scn-cam"><svg class="scn-bg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice"></svg><div class="scn-actors"></div></div><div class="scn-light"></div><div class="scn-announce"></div><div class="scn-caption"></div><div class="scn-card-overlay"></div></div>
           <div class="scn-controls row"><button class="btn ghost small" id="scnAuto">⏸ Pause after each line</button><button class="btn ghost small" id="scnReplay">🔁 Repeat line</button><button class="btn ghost small" id="scnEn">${showEn ? '🙈 Hide English' : '👀 Show English'}</button><span class="spacer"></span><span class="pill" id="scnScore">🎯 0 / 0</span></div>
           <div class="card scn-panel" id="scnPanel"></div>
           <div class="scn-log" id="scnLog"></div>
@@ -149,7 +308,14 @@
         $('#scnReplay').onclick = () => { if (lastLine) speakLine(lastLine[0], lastLine[1], token); };
         $('#scnEn').onclick = (e) => { showEn = !showEn; e.target.textContent = showEn ? '🙈 Hide English' : '👀 Show English'; stage.classList.toggle('no-en', !showEn); log.classList.toggle('hide-en', !showEn); };
         stage.classList.toggle('no-en', !showEn); log.classList.toggle('hide-en', !showEn);
-        let waitNext = null;
+        let waitNext = null, pos = {};
+        const cam = $('.scn-cam', stage);
+        const camera = (x, k = 1.07) => {
+          if (x == null) { cam.style.transform = ''; return; }
+          cam.style.transformOrigin = `${x}% 75%`;
+          cam.style.transform = `scale(${k})`;
+        };
+        const actorList = () => $$('.scn-actor', actorsEl).map((el) => ({ el, x: pos[el.dataset.c] }));
 
         const positions = (cast) => {
           const others = cast.filter((c) => c !== 'alex');
@@ -162,9 +328,11 @@
           const s = sc.scenes[i];
           $$('.scn-dots span').forEach((d, k) => { d.className = k < i ? 'done' : k === i ? 'now' : ''; });
           $('.scn-bg', stage).innerHTML = BG[s.bg] ? BG[s.bg]() : '';
-          const pos = positions(s.cast);
-          actorsEl.innerHTML = s.cast.map((c) => `<div class="scn-actor walk-in-${c === 'alex' ? 'l' : 'r'} ${pos[c] > 60 ? 'side-r' : ''}" data-c="${c}" style="left:${pos[c]}%">
-            <div class="scn-bubble"></div>${GL.charSVG(c, 'idle walking')}<span class="nm">${s.bg === 'phone' && c !== 'alex' ? '📞 ' : ''}${esc(GL.chars[c].name)}</span></div>`).join('');
+          pos = positions(s.cast.filter((c) => c !== 'ansage'));
+          stage.dataset.mood = s.mood || MOOD[s.bg] || '';
+          camera(null);
+          actorsEl.innerHTML = s.cast.filter((c) => c !== 'ansage').map((c) => `<div class="scn-actor walk-in-${c === 'alex' ? 'l' : 'r'} ${pos[c] > 60 ? 'side-r' : ''}" data-c="${c}" style="left:${pos[c]}%">
+            <div class="scn-bubble"></div>${GL.charSVG(c, 'idle walking')}<span class="nm">${(s.bg === 'phone' || s.call) && c !== 'alex' ? '📞 ' : ''}${esc(GL.chars[c].name)}</span></div>`).join('');
           setTimeout(() => $$('svg.char', actorsEl).forEach((x) => x.classList.remove('walking')), 1300);
           const ov = $('.scn-card-overlay', stage);
           ov.innerHTML = `<div><small>Szene ${i + 1} von ${sc.scenes.length}</small><b>${esc(s.title)}</b><span>${esc(s.en)}</span></div>`;
@@ -172,14 +340,39 @@
           log.insertAdjacentHTML('beforeend', `<div class="scn-log-title">Szene ${i + 1}: ${esc(s.title)}</div>`);
         }
         function speakLine(c, de, my) {
+          $$('.scn-bubble', actorsEl).forEach((b) => b.classList.remove('show'));
+          const en = (lastLine && lastLine[2]) || '';
+          if (c === '_') {
+            // narration: a caption on stage, not spoken
+            const cap = $('.scn-caption', stage);
+            cap.innerHTML = `<span>${esc(de)}</span>${en ? `<small>${esc(en)}</small>` : ''}`;
+            cap.classList.add('show');
+            camera(null);
+            return GL.sleep(1600 + de.length * 35).then(() => cap.classList.remove('show'));
+          }
+          if (c === 'ansage') {
+            const an = $('.scn-announce', stage);
+            an.innerHTML = `<b>📢 Durchsage</b><span class="sb-de">${esc(de)}</span>${en ? `<span class="sb-en">${esc(en)}</span>` : ''}`;
+            an.classList.add('show');
+            camera(null);
+            GL.lookAt(actorList(), null);
+            GL.sfx('chime');
+            const t0 = Date.now();
+            return GL.sleep(1400).then(() => (alive(my) ? Speech.speak(de, { char: 'ansage' }) : null)).then(async () => {
+              const rest = 1400 + de.length * 45 - (Date.now() - t0);
+              if (rest > 0 && alive(my)) await GL.sleep(rest);
+              an.classList.remove('show');
+            });
+          }
           const actor = $(`.scn-actor[data-c="${c}"]`, actorsEl);
           $$('.scn-actor', actorsEl).forEach((a) => a.classList.toggle('speaking', a === actor));
-          $$('.scn-bubble', actorsEl).forEach((b) => b.classList.remove('show'));
+          actorsEl.classList.toggle('has-speaker', !!actor);
           if (actor) {
             const b = $('.scn-bubble', actor);
-            const en = (lastLine && lastLine[2]) || '';
             b.innerHTML = `<span class="sb-de">${esc(de)}</span>${en ? `<span class="sb-en">${esc(en)}</span>` : ''}`;
             b.classList.add('show');
+            camera(pos[c], 1.06);
+            GL.lookAt(actorList(), pos[c]);
           }
           const svg = actor && $('svg.char', actor);
           const t0 = Date.now();
@@ -187,10 +380,12 @@
             const rest = 500 + de.length * 42 - (Date.now() - t0);
             if (rest > 0 && alive(my)) await GL.sleep(rest);
             if (actor) actor.classList.remove('speaking');
+            actorsEl.classList.remove('has-speaker');
           });
         }
         function addLog(c, de, en) {
-          log.insertAdjacentHTML('beforeend', `<div class="ln ${c === 'alex' ? 'right' : ''}"><div class="av">${GL.charSVG(c)}</div><div class="bub" data-say="${attr(de)}" data-char="${c}"><div class="ln-who">${esc(GL.chars[c].name)}</div><div class="ln-de">${esc(de)}</div><div class="ln-en">${esc(en || '')}</div></div></div>`);
+          if (c === '_') log.insertAdjacentHTML('beforeend', `<div class="scn-log-note">🎬 ${esc(de)}${en ? ` <span class="ln-en">– ${esc(en)}</span>` : ''}</div>`);
+          else log.insertAdjacentHTML('beforeend', `<div class="ln ${c === 'alex' ? 'right' : ''}"><div class="av">${GL.charSVG(c)}</div><div class="bub" data-say="${attr(de)}" data-char="${c}"><div class="ln-who">${esc(GL.chars[c].name)}</div><div class="ln-de">${esc(de)}</div><div class="ln-en">${esc(en || '')}</div></div></div>`);
           log.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
@@ -234,6 +429,8 @@
               <div class="opts" style="margin-top:10px">${order.map((i, k) => `<button class="opt" data-i="${i}"><span class="kbd-hint">${k + 1}</span>${esc(st.o[i])}</button>`).join('')}</div><div id="scnFb"></div></div>`;
             const alexEl = $('.scn-actor[data-c="alex"]', actorsEl);
             alexEl && alexEl.classList.add('thinking');
+            camera(pos.alex, 1.05);
+            GL.lookAt(actorList(), pos.alex);
             const pickOpt = (b) => {
               if (b.disabled) return;
               const ok = +b.dataset.i === st.a;
@@ -280,6 +477,7 @@
         function sceneDone(i) {
           const last = i === sc.scenes.length - 1;
           $$('.scn-dots span')[i].className = 'done';
+          camera(null);
           GL.sfx('pop');
           if (!last) {
             panel.innerHTML = `<div class="center"><h3>✅ Scene ${i + 1} done: ${esc(sc.scenes[i].title)}</h3><button class="btn green big" id="scnNextScene">Next scene: ${esc(sc.scenes[i + 1].title)} ➜</button></div>`;

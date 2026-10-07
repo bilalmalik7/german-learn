@@ -45,7 +45,7 @@ GL.scenarios = [
         title: 'Am Gate', en: 'At the gate', bg: 'gate', cast: ['alex', 'schmidt'],
         phrases: [['die Durchsage', 'the announcement'], ['Der Flug hat Verspätung.', 'The flight is delayed.'], ['Habe ich das richtig verstanden?', 'Did I understand that correctly?'], ['Wie lange dauert die Verspätung?', 'How long is the delay?'], ['Das Gate wurde geändert.', 'The gate has been changed.']],
         steps: [
-          ['schmidt', 'Achtung, eine Durchsage: Der Flug LH 2340 nach Wien hat dreißig Minuten Verspätung und startet jetzt von Gate B15.', 'Attention, an announcement: flight LH 2340 to Vienna is thirty minutes late and now departs from gate B15.'],
+          ['ansage', 'Achtung, eine Durchsage: Der Flug LH 2340 nach Wien hat dreißig Minuten Verspätung und startet jetzt von Gate B15.', 'Attention, an announcement: flight LH 2340 to Vienna is thirty minutes late and now departs from gate B15.'],
           ['alex', 'Oh nein! Entschuldigung, habe ich das richtig verstanden?', 'Oh no! Excuse me, did I understand that correctly?'],
           { choose: true, prompt: 'Ask: does the flight to Vienna now leave from gate B15?', o: ['Fliegt der Flug nach Wien jetzt von Gate B15?', 'Der Flug nach Wien jetzt fliegt von Gate B15?', 'Fliegt jetzt der Flug von Gate B15 nach Wien fliegen?'], a: 0, ex: 'Yes/no question: the conjugated verb goes to <b>position 1</b>.' },
           ['schmidt', 'Ja, genau. B15 ist gleich da drüben, neben dem Café.', 'Yes, exactly. B15 is right over there, next to the café.'],
