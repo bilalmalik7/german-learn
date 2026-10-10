@@ -336,7 +336,7 @@ List the mistakes in the order they appear in the text. If there are none, "mist
 
   /* ---------- views ---------- */
   function tabsHTML(active) {
-    return `<div class="chips" style="margin:6px 0 16px">${[['', '📚 Tasks'], ['free', '✏️ Free writing'], ['history', '🗂️ My texts & progress']].map(([k, l]) => `<a class="chip ${active === k ? 'on' : ''}" href="#/writing${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
+    return `<div class="chips tabs-row" style="margin:6px 0 16px">${[['', '📚 Tasks'], ['free', '✏️ Free writing'], ['history', '🗂️ My texts & progress']].map(([k, l]) => `<a class="chip ${active === k ? 'on' : ''}" href="#/writing${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
   }
   function statsTiles() {
     const h = S().history.filter((x) => x.score != null);

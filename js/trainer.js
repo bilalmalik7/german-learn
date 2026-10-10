@@ -296,7 +296,7 @@
     return {
       html: `<h1>🏋️ Grammar Trainer</h1>
         <p class="muted">Unlimited practice for the grammar that makes German correct: verb forms, articles in every case and adjective endings. Questions are generated fresh every time.</p>
-        <div class="chips" style="margin-bottom:18px">${tabs.map(([k, l]) => `<a class="chip ${k === tab ? 'on' : ''}" href="#/trainer/${k}" style="text-decoration:none">${l}${DRILLS[k] ? ` <small style="opacity:.7">${acc(k)}</small>` : ''}</a>`).join('')}</div>
+        <div class="chips tabs-row" style="margin-bottom:18px">${tabs.map(([k, l]) => `<a class="chip ${k === tab ? 'on' : ''}" href="#/trainer/${k}" style="text-decoration:none">${l}${DRILLS[k] ? ` <small style="opacity:.7">${acc(k)}</small>` : ''}</a>`).join('')}</div>
         <div class="card" id="trRoot"></div>`,
       mount() {
         const root = $('#trRoot');

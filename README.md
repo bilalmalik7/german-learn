@@ -24,7 +24,8 @@ An animated, beginner-friendly website that takes you from your first „Hallo�
 | ❗ **Mistake notebook** | Every exercise you get wrong is saved; practise them until the list is empty. |
 | 🔁 **Review** | Spaced-repetition flashcards (Leitner boxes), mixed grammar quiz, searchable word list. |
 | 🗣️ **Pronunciation** | Alphabet, every German sound with examples, and a minimal-pairs listening game. |
-| ⭐ **Motivation** | Bruno reacts to every answer, streak combos, sound effects, keyboard shortcuts (1–4, Enter), XP, day streak, activity chart, a certificate after Day 30. Light & dark mode. Works on phones. |
+| ⭐ **Motivation** | Bruno reacts to every answer, streak combos, sound effects, keyboard shortcuts (1–4, Enter), XP, day streak, activity chart, a certificate after Day 30. Light & dark mode. |
+| 📱 **Made for phones** | Bottom tab bar (Start · Plan · Real life · Speak · More) with a “More” sheet, sideways-scrolling tabs, compact stats, a taller scene stage, big touch targets, no zoom-in when typing, the tab bar hides while the keyboard is open, and landscape support. |
 
 ## How to run it
 

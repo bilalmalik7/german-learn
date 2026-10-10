@@ -23,15 +23,16 @@
       <span class="logo-text">Deutsch<b>30</b></span>
     </a>
     <nav class="nav" aria-label="Main">
-      <a href="#/" data-nav="home"><span class="ico" aria-hidden="true">🏠</span><span class="lbl">Start</span></a>
-      <a href="#/plan" data-nav="plan"><span class="ico" aria-hidden="true">🗺️</span><span class="lbl">30-Day Plan</span></a>
-      <a href="#/grammar" data-nav="grammar"><span class="ico" aria-hidden="true">📘</span><span class="lbl">Grammar A–Z</span></a>
-      <a href="#/trainer" data-nav="trainer"><span class="ico" aria-hidden="true">🏋️</span><span class="lbl">Trainer</span></a>
-      <a href="#/scenes" data-nav="scenes"><span class="ico" aria-hidden="true">🎬</span><span class="lbl">Real life</span></a>
-      <a href="#/talk" data-nav="talk"><span class="ico" aria-hidden="true">🎤</span><span class="lbl">Speak</span></a>
-      <a href="#/writing" data-nav="writing"><span class="ico" aria-hidden="true">✍️</span><span class="lbl">Writing</span></a>
-      <a href="#/review" data-nav="review"><span class="ico" aria-hidden="true">🔁</span><span class="lbl">Review</span></a>
-      <a href="#/sounds" data-nav="sounds"><span class="ico" aria-hidden="true">🗣️</span><span class="lbl">Sounds</span></a>
+      <a href="#/" data-nav="home"><span class="ico" aria-hidden="true">🏠</span><span class="lbl">Start</span><span class="lbl-s">Start</span></a>
+      <a href="#/plan" data-nav="plan"><span class="ico" aria-hidden="true">🗺️</span><span class="lbl">30-Day Plan</span><span class="lbl-s">Plan</span></a>
+      <a href="#/grammar" data-nav="grammar" class="nav-sec"><span class="ico" aria-hidden="true">📘</span><span class="lbl">Grammar A–Z</span></a>
+      <a href="#/trainer" data-nav="trainer" class="nav-sec"><span class="ico" aria-hidden="true">🏋️</span><span class="lbl">Trainer</span></a>
+      <a href="#/scenes" data-nav="scenes"><span class="ico" aria-hidden="true">🎬</span><span class="lbl">Real life</span><span class="lbl-s">Real life</span></a>
+      <a href="#/talk" data-nav="talk"><span class="ico" aria-hidden="true">🎤</span><span class="lbl">Speak</span><span class="lbl-s">Speak</span></a>
+      <a href="#/writing" data-nav="writing" class="nav-sec"><span class="ico" aria-hidden="true">✍️</span><span class="lbl">Writing</span></a>
+      <a href="#/review" data-nav="review" class="nav-sec"><span class="ico" aria-hidden="true">🔁</span><span class="lbl">Review</span></a>
+      <a href="#/sounds" data-nav="sounds" class="nav-sec"><span class="ico" aria-hidden="true">🗣️</span><span class="lbl">Sounds</span></a>
+      <button class="nav-more" id="navMore" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="moreSheet"><span class="ico" aria-hidden="true">☰</span><span class="lbl-s">More</span></button>
     </nav>
     <div class="top-stats">
       <a href="#/admin" class="icon-btn hidden" id="navAdmin" data-nav="admin" title="Teacher dashboard" aria-label="Teacher dashboard">📊<span class="nb hidden"></span></a>
@@ -42,6 +43,9 @@
       <span class="pill" id="stat-xp" title="Experience points">⭐ <b>0</b></span>
     </div>
   </header>
+
+  <div class="sheet-backdrop" id="moreBackdrop" hidden></div>
+  <div class="more-sheet" id="moreSheet" role="dialog" aria-modal="true" aria-label="More pages" hidden></div>
 
   <main id="app" tabindex="-1"></main>
 

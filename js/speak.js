@@ -271,7 +271,7 @@
     return `<h1>🎤 Sprechen – Speak</h1>
       <p class="muted">Speaking is a skill you train like a sport: short, daily, out loud. Every sentence is checked word by word – wrong endings too (einen ≠ einem).</p>
       ${statsHTML()}
-      <div class="chips sp-tabs">${TABS.map(([k, l]) => `<a class="chip ${active === k ? 'on' : ''}" href="#/talk${k ? '/' + k : ''}">${l}</a>`).join('')}</div>
+      <div class="chips sp-tabs tabs-row">${TABS.map(([k, l]) => `<a class="chip ${active === k ? 'on' : ''}" href="#/talk${k ? '/' + k : ''}">${l}</a>`).join('')}</div>
       ${!Rec.supported ? '<div class="note">🎙️ Automatic speech scoring needs Chrome or Edge. Here you can record yourself and compare with the model, or say each sentence out loud and mark it.</div>' : ''}
       ${body}`;
   }
@@ -434,7 +434,7 @@
     return {
       html: shell('translate', `<div class="card"><h2 style="margin-top:0">🔤 Say it in German</h2>
         <p class="muted">The fastest way to grammar that works when you speak: read the English, <b>say</b> the German sentence, and get every wrong word and ending marked.</p>
-        <div class="chips" id="trScope">${[['mine', 'Up to my day'], ['w1', 'Week 1'], ['w2', 'Week 2'], ['w3', 'Week 3'], ['w4', 'Week 4'], ['scenes', 'Real-life scenes']].map(([k, l]) => `<button class="chip ${scope === k ? 'on' : ''}" data-k="${k}">${l}</button>`).join('')}</div>
+        <div class="chips tabs-row" id="trScope">${[['mine', 'Up to my day'], ['w1', 'Week 1'], ['w2', 'Week 2'], ['w3', 'Week 3'], ['w4', 'Week 4'], ['scenes', 'Real-life scenes']].map(([k, l]) => `<button class="chip ${scope === k ? 'on' : ''}" data-k="${k}">${l}</button>`).join('')}</div>
         <div id="trRoot" style="margin-top:14px"></div></div>`),
       mount() {
         const root = $('#trRoot');

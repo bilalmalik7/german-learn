@@ -67,6 +67,41 @@
     if (x.textContent !== xv) { x.textContent = xv; x.parentNode.classList.remove('bump'); void x.parentNode.offsetWidth; x.parentNode.classList.add('bump'); }
     s.textContent = sv;
   };
+  /* ---------- mobile: bottom tab bar with a "More" sheet ---------- */
+  const MORE_PAGES = ['grammar', 'trainer', 'writing', 'review', 'sounds', 'settings', 'profile', 'teacher', 'admin'];
+  const TOP_LABELS = { admin: ['📊', 'Teacher dashboard'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
+  const moreBtn = $('#navMore'), sheet = $('#moreSheet'), backdrop = $('#moreBackdrop');
+  function closeMore() {
+    if (!sheet || sheet.hidden) return;
+    sheet.classList.remove('open'); backdrop.classList.remove('open');
+    moreBtn.setAttribute('aria-expanded', 'false');
+    setTimeout(() => { if (!sheet.classList.contains('open')) { sheet.hidden = true; backdrop.hidden = true; } }, 220);
+  }
+  function openMore() {
+    const items = [...$$('.nav .nav-sec'), ...$$('.top-stats [data-nav]')].filter((a) => !a.classList.contains('hidden'));
+    const cur = (location.hash.replace(/^#\/?/, '').split(/[/#]/)[0]) || 'home';
+    sheet.innerHTML = `<div class="sheet-handle" aria-hidden="true"></div><div class="more-grid">${items.map((a) => {
+      const k = a.dataset.nav, top = TOP_LABELS[k];
+      const ico = top ? top[0] : $('.ico', a).textContent, lbl = top ? top[1] : $('.lbl', a).textContent;
+      const nb = $('.nb', a), badge = nb && !nb.classList.contains('hidden') && nb.textContent ? `<span class="nb">${esc(nb.textContent)}</span>` : '';
+      return `<a href="${attr(a.getAttribute('href'))}" class="more-item ${k === cur ? 'active' : ''}"><span class="mi-ico">${ico}${badge}</span><span>${esc(lbl)}</span></a>`;
+    }).join('')}</div>`;
+    sheet.hidden = false; backdrop.hidden = false;
+    requestAnimationFrame(() => { sheet.classList.add('open'); backdrop.classList.add('open'); });
+    moreBtn.setAttribute('aria-expanded', 'true');
+    const first = $('.more-item', sheet); first && first.focus({ preventScroll: true });
+  }
+  // hide the bottom tab bar while the on-screen keyboard is open (it would cover the text field)
+  const isTyping = (el) => el && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !/^(checkbox|radio|range|button|submit)$/.test(el.type)) || el.isContentEditable);
+  document.addEventListener('focusin', (e) => { if (isTyping(e.target)) document.body.classList.add('kb-open'); });
+  document.addEventListener('focusout', () => setTimeout(() => { if (!isTyping(document.activeElement)) document.body.classList.remove('kb-open'); }, 50));
+  if (moreBtn) {
+    moreBtn.onclick = () => (sheet.hidden ? openMore() : closeMore());
+    backdrop.onclick = closeMore;
+    sheet.addEventListener('click', (e) => { if (e.target.closest('.more-item')) closeMore(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMore(); });
+  }
+
   function applyTheme() {
     const t = Store.state.settings.theme;
     if (t === 'auto') document.documentElement.removeAttribute('data-theme');
@@ -81,6 +116,8 @@
     const parts = path.split('/');
     const [page, a, b] = parts;
     $$('[data-nav]').forEach((l) => l.classList.toggle('active', l.dataset.nav === (page || 'home') || (page === 'day' && l.dataset.nav === 'plan')));
+    closeMore();
+    if (moreBtn) moreBtn.classList.toggle('active', MORE_PAGES.includes(page));
     let html;
     try {
       if (GL.Accounts && GL.Accounts.needsRegistration() && page !== 'settings') html = GL.viewRegister();
@@ -785,7 +822,7 @@
     return {
       html: `<h1>🔁 Wiederholen – Review</h1>
       <p class="muted">Spaced repetition: words you know come back less often, difficult words more often. Content from the days you have started (${days.length} day${days.length > 1 ? 's' : ''}).</p>
-      <div class="chips" style="margin-bottom:18px">${tabs.map(([k, l]) => `<a class="chip ${k === tab ? 'on' : ''}" href="#/review/${k}" style="text-decoration:none">${l}</a>`).join('')}</div>
+      <div class="chips tabs-row" style="margin-bottom:18px">${tabs.map(([k, l]) => `<a class="chip ${k === tab ? 'on' : ''}" href="#/review/${k}" style="text-decoration:none">${l}</a>`).join('')}</div>
       <div id="revRoot"></div>`,
       mount() {
         const root = $('#revRoot');
