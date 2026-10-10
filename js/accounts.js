@@ -138,7 +138,7 @@
   GL.viewRegister = function () {
     return {
       html: `<div class="reg-wrap">
-        <div class="reg-hero">${GL.charSVG('bruno', 'idle waving')}<div><h1 style="margin:0">Willkommen! 👋</h1><p class="muted" style="margin:.3em 0 0">Before you start, please register once for this course. You are already signed in with your claude.ai account – there is no extra password. Your teacher uses this to follow your progress, and your progress is saved to your account so you can continue on any device.</p></div></div>
+        <div class="reg-hero">${GL.charSVG('bruno', 'idle waving')}<div><h1 style="margin:0">🔐 Student login</h1><p class="muted" style="margin:.3em 0 0">Willkommen! Before you start, please complete your student login once. You are already signed in with your claude.ai account – there is no extra password. Your teacher uses this to follow your progress, and your progress is saved to your account so you can continue on any device.</p></div></div>
         <div class="card" id="regCard"><p class="muted">Loading…</p></div></div>`,
       mount() {
         const card = $('#regCard');
@@ -146,7 +146,8 @@
           if (!card.isConnected) return;
           if (!Cloud.ready) { card.innerHTML = '<p>Registration works when the course is opened from your teacher’s claude.ai link.</p><a class="btn" href="#/">Continue</a>'; return; }
           const me = await Cloud.user.me();
-          card.innerHTML = `${me.name ? `<p class="reg-acc"><img src="${attr(me.avatarUrl)}" alt=""> Signed in as <b></b></p>` : ''}
+          const preview = Cloud.owner;
+          card.innerHTML = `${preview ? '<div class="note">👀 <b>Preview:</b> this is the login screen your students see the first time they open the course. Saving is switched off for you as the teacher. <a href="#/admin">← Back to the teacher portal</a></div>' : ''}${me.name ? `<p class="reg-acc"><img src="${attr(me.avatarUrl)}" alt=""> Signed in as <b></b></p>` : ''}
             ${Cloud.blocked ? `<div class="warn">You can open the course but you have <b>view-only</b> access, so your registration and progress can’t be saved. Ask your teacher to share the course with you as <b>Contributor</b>, then reload this page.</div><p><button class="btn ghost" id="regSkip">Continue without saving</button></p>` : form({}, false)}`;
           if (me.name) $('.reg-acc b', card).textContent = me.name;
           const skip = $('#regSkip'); if (skip) skip.onclick = () => { GL._skipRegister = true; location.hash = '#/'; GL.render(); };
@@ -156,6 +157,7 @@
             e.preventDefault();
             const p = readForm(f);
             if (!p.name) { $('#regInfo').textContent = 'Please enter your name.'; return; }
+            if (preview) { $('#regInfo').textContent = '👀 Preview only – a student would now be logged in and see the course.'; return; }
             const btn = $('button[type=submit]', f); btn.disabled = true; $('#regInfo').textContent = 'Saving…';
             try {
               await Cloud.saveProfile(Object.assign(p, { registeredAt: Date.now(), consent: true }));
@@ -172,6 +174,32 @@
         });
       },
     };
+  };
+
+  /* Home page: the teacher's way into the portal, and the student's login status. */
+  GL.Accounts.mountHome = (slot) => {
+    if (!slot) return;
+    Cloud.init.then(() => {
+      const draw = async () => {
+        if (!slot.isConnected || !Cloud.ready) return;
+        if (Cloud.owner) {
+          const st = Cloud.all.filter((l) => l.id !== Cloud.uid);
+          const reg = st.filter((l) => l.profile).length;
+          const inv = Object.values(Cloud.invites || {}).filter((v) => v && !v.removed && !Cloud.matchInvite(v, st)).length;
+          const today = st.filter((l) => l.lastActive === GL.todayStr()).length;
+          slot.innerHTML = `<section class="card portal-card"><div class="portal-head"><span class="portal-ico">👩‍🏫</span><div><h2 style="margin:0">Teacher portal</h2><p class="muted" style="margin:.2em 0 0">You are the teacher of this course. Add students, see who logged in and follow what each of them does.</p></div></div>
+            <div class="portal-stats"><span><b>${reg}</b> logged-in students</span><span><b>${inv}</b> invited, not logged in yet</span><span><b>${today}</b> active today</span><span><b>${Cloud.openCount()}</b> open messages</span></div>
+            <div class="row"><a class="btn" href="#/admin">📊 Open teacher portal</a><a class="btn ghost" href="#/admin" id="portalAdd">➕ Add students</a><a class="btn ghost" href="#/register">👀 Preview student login</a></div></section>`;
+          const add = $('#portalAdd', slot); if (add) add.onclick = () => { GL._openAddStudents = true; };
+        } else if (profile()) {
+          const me = await Cloud.user.me();
+          slot.innerHTML = `<div class="login-status"><img src="${attr(me.avatarUrl)}" alt=""><span>✅ Logged in as <b></b> · progress saved to your account</span><span class="spacer"></span><a href="#/profile">👤 My account</a><a href="#/teacher">📨 My teacher</a></div>`;
+          $('b', slot).textContent = profile().name;
+        }
+      };
+      draw();
+      const off = Cloud.on(() => { if (!slot.isConnected) { off(); return; } draw(); });
+    });
   };
 
   GL.viewProfile = function () {

@@ -69,7 +69,7 @@
   };
   /* ---------- mobile: bottom tab bar with a "More" sheet ---------- */
   const MORE_PAGES = ['grammar', 'trainer', 'writing', 'review', 'sounds', 'settings', 'profile', 'teacher', 'admin'];
-  const TOP_LABELS = { admin: ['📊', 'Teacher dashboard'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
+  const TOP_LABELS = { admin: ['📊', 'Teacher portal'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
   const moreBtn = $('#navMore'), sheet = $('#moreSheet'), backdrop = $('#moreBackdrop');
   function closeMore() {
     if (!sheet || sheet.hidden) return;
@@ -182,6 +182,7 @@
 
     return {
       html: `
+      <div id="homeAcct"></div>
       <section class="card hero">
         <div>${GL.charSVG('bruno', 'idle waving')}</div>
         <div>
@@ -262,6 +263,7 @@
         </button>`).join('')}</div>
       <p class="foot">Tip: speech works best in Chrome or Edge. Click any 🔊 or dotted German word to hear it.</p>`,
       mount() {
+        if (GL.Accounts && GL.Accounts.mountHome) GL.Accounts.mountHome($('#homeAcct'));
         $$('.meet').forEach((b) => (b.onclick = () => {
           const id = b.dataset.id, c = GL.chars[id];
           const lines = {

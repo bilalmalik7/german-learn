@@ -100,7 +100,17 @@
   });
 
   /* Teacher-only data (status, private notes) – readable and writable by the owner only. */
-  Cloud.roster = {};
+  Cloud.roster = {}; Cloud.invites = {};
+  /* The teacher's own list of students (added by name / email before they log in). */
+  Cloud.saveInvite = (id, data) => queue(async () => {
+    const ref = Cloud.db.doc('teacher/roster');
+    const body = { invites: { [id]: data } };
+    const snap = await ref.get();
+    if (snap.exists) await ref.update(body); else await ref.set(Object.assign({ students: {} }, body));
+  });
+  const normName = (x) => String(x || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  /* Which registered learner belongs to an invite: same email, otherwise the same name. */
+  Cloud.matchInvite = (inv, learners) => learners.find((l) => l.profile && ((inv.email && l.profile.email && l.profile.email.toLowerCase().trim() === inv.email.toLowerCase().trim()) || (normName(inv.name) && normName(l.profile.name) === normName(inv.name))));
   Cloud.saveRoster = (id, patch) => queue(async () => {
     const ref = Cloud.db.doc('teacher/roster');
     const body = { students: { [id]: Object.assign({}, patch, { updatedAt: Date.now() }) } };
@@ -119,7 +129,7 @@
     Cloud.ref.onSnapshot((snap) => { Cloud.mine = snap.exists ? snap.data() : null; Cloud.mineLoaded = true; emit(); }, () => { Cloud.mineLoaded = true; emit(); });
     if (Cloud.owner) {
       db.collection('learners').onSnapshot((q) => { Cloud.all = q.docs.map((d) => Object.assign({ id: d.id }, d.data())); emit(); }, () => {});
-      db.doc('teacher/roster').onSnapshot((snap) => { Cloud.roster = (snap.exists && snap.data().students) || {}; emit(); }, () => {});
+      db.doc('teacher/roster').onSnapshot((snap) => { const d = (snap.exists && snap.data()) || {}; Cloud.roster = d.students || {}; Cloud.invites = d.invites || {}; emit(); }, () => {});
     }
     sync();
     setInterval(sync, 120000);
@@ -227,6 +237,20 @@
     });
     return html + '</ul>';
   }
+  let addOpen = null;
+  function addStudentsHTML(open, count) {
+    if (GL._openAddStudents) { addOpen = true; GL._openAddStudents = false; setTimeout(() => { const d = document.querySelector('.add-stu'); d && d.scrollIntoView({ behavior: 'smooth' }); const n = document.querySelector('#invForm input[name=name]'); n && n.focus({ preventScroll: true }); }, 300); }
+    return `<details class="card add-stu" ${(addOpen == null ? open : addOpen) ? 'open' : ''}><summary><h3 style="display:inline;margin:0">➕ Add students & how they log in</h3> <span class="muted">${count ? `${count} on your list` : 'start here'}</span></summary>
+      <ol class="add-steps">
+        <li><b>Add the student to your list</b> (so you can see who has joined):
+          <form id="invForm" class="inv-form"><input class="txt-in" name="name" placeholder="Student’s name *" maxlength="80" required><input class="txt-in" name="email" type="email" placeholder="Email (optional – used to match them)" maxlength="120"><input class="txt-in" name="note" placeholder="Note (optional)" maxlength="200"><button class="btn green" type="submit">➕ Add student</button><span class="muted" id="invInfo"></span></form></li>
+        <li><b>Give them access:</b> on claude.ai, open the <b>Share</b> button of this course (top right of the page), enter the student’s email and choose <b>Contributor</b> (or invite them as <b>Editor</b>). Then send them the link – <b>Share → Copy link</b>.
+          <p class="muted" style="margin:4px 0 0">⚠️ “Viewer” is not enough: viewers can look at the course but can’t log in or save progress.</p></li>
+        <li><b>The student logs in:</b> they open the link while signed in to their claude.ai account and fill in the <b>Student login</b> form once (name, contact, goals). No extra password needed.
+          <p style="margin:6px 0 0"><a class="btn small ghost" href="#/register">👀 Preview the student login screen</a></p></li>
+        <li><b>Follow them here:</b> as soon as they log in, “✉️ Invited” changes to their live progress – lessons, time, scores and a timeline of everything they do.</li>
+      </ol></details>`;
+  }
   function profileHTML(l) {
     const p = l.profile, r = Cloud.roster[l.id] || {};
     const week = lastNDays(7), avgDay = Math.round(sumMin(l, week) / 7);
@@ -290,7 +314,7 @@
 
   GL.viewAdmin = function () {
     return {
-      html: `<h1>📊 Teacher dashboard</h1>
+      html: `<h1>📊 Teacher portal</h1>
         <p class="muted">Your students: who registered, what each of them did and when, how much time they spend – and their questions.</p>
         <div id="admRoot"><div class="card"><p class="muted">Connecting…</p></div></div>`,
       mount() {
@@ -298,7 +322,7 @@
         Cloud.init.then(() => {
           if (!root.isConnected) return;
           if (!Cloud.ready) { root.innerHTML = `<div class="note">The dashboard uses shared data, so it works when this course is opened on claude.ai (your published link). This local copy has no shared storage.</div>`; return; }
-          if (!Cloud.owner) { root.innerHTML = `<div class="note">Only the owner of this course can see the teacher dashboard.</div><p><a class="btn" href="#/teacher">📨 Message my teacher</a></p>`; return; }
+          if (!Cloud.owner) { root.innerHTML = `<div class="note">Only the teacher (owner) of this course can open the teacher portal.</div><p><a class="btn" href="#/teacher">📨 Message my teacher</a></p>`; return; }
           const render = async () => {
             if (!root.isConnected) return;
             const everyone = Cloud.all.filter((l) => l.id !== Cloud.uid).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
@@ -309,6 +333,9 @@
             everyone.forEach((l) => { const st = statusOf(l.id); if (st === 'finished') counts.finished++; else if (st === 'archived') counts.archived++; else counts.current++; });
             const learners = everyone.filter((l) => { const st = statusOf(l.id); return stuFilter === 'all' || (stuFilter === 'current' ? st === 'active' || st === 'paused' : st === stuFilter); });
             const registered = everyone.filter((l) => l.profile).length;
+            const invites = Object.entries(Cloud.invites || {}).filter(([, v]) => v && !v.removed).map(([id, v]) => Object.assign({ id }, v));
+            const pending = invites.filter((v) => !Cloud.matchInvite(v, everyone));
+            const showPending = stuFilter === 'current' || stuFilter === 'all';
             const week = lastNDays(7);
             const active = learners.filter((l) => daysAgo(l.lastActive) <= 6).length;
             const weekMin = learners.reduce((a, l) => a + sumMin(l, week), 0);
@@ -325,11 +352,12 @@
                 <div class="stat"><span class="s-ico">⏱️</span><div><b>${fmtMin(weekMin)}</b><span>study time, last 7 days</span></div></div>
                 <div class="stat"><span class="s-ico">📨</span><div><b>${open}</b><span>open messages</span></div></div>
               </div>
-              ${everyone.length ? '' : `<div class="card"><h3>No students yet</h3><p>Share this course from the <b>Share</b> menu and give each student <b>Contributor</b> access (or invite them by email as <b>Editor</b>). When they open it, they register with their name and details – then they appear here with all their progress and activity.</p></div>`}
-              ${everyone.length ? `<div class="card"><div class="row"><h3 style="margin:0">👥 Students</h3><span class="spacer"></span>
+              ${addStudentsHTML(everyone.length + pending.length === 0, invites.length)}
+              ${everyone.length || pending.length ? `<div class="card"><div class="row"><h3 style="margin:0">👥 Students</h3><span class="spacer"></span>
                 <div class="chips" id="stuFilter">${[['current', 'Current'], ['finished', 'Finished'], ['archived', 'Archived'], ['all', 'All']].map(([k, lb]) => `<button class="chip ${stuFilter === k ? 'on' : ''}" data-f="${k}">${lb} <small>${counts[k]}</small></button>`).join('')}</div>
                 <button class="btn small ghost" id="admCsv">⬇ Export CSV</button></div>
                 <div class="gtable-wrap" style="margin-top:10px"><table class="gtable adm-table"><thead><tr><th>Student</th><th>Status</th><th>Registered</th><th>Day</th><th>Done</th><th>Today</th><th>7 days</th><th>Total time</th><th>Avg. score</th><th>Last active</th><th>Open</th></tr></thead><tbody>
+                ${showPending ? pending.map((v) => `<tr class="inv-row" data-inv="${attr(v.id)}"><td><b>${esc(v.name)}</b>${v.email ? `<br><small class="muted">${esc(v.email)}</small>` : ''}</td><td><span class="st-chip st-invited">✉️ Invited</span></td><td colspan="8" class="muted">Added ${new Date(v.createdAt).toLocaleDateString('de-DE')} · hasn’t logged in yet${v.note ? ' · ' + esc(v.note) : ''}</td><td><button class="btn tiny ghost inv-del" data-inv="${attr(v.id)}" title="Remove from list">✖</button></td></tr>`).join('') : ''}
                 ${learners.map((l) => { const o = Object.values(l.messages || {}).filter((m) => m.status === 'open').length; const av = avgScore(l); const st = STATUS[statusOf(l.id)]; const p = l.profile; return `<tr class="${l.id === selected ? 'sel' : ''}" data-id="${attr(l.id)}" tabindex="0">
                   <td><b class="who" data-name="${attr(l.id)}"></b>${p ? `<br><small class="muted who-acc" data-acc="${attr(l.id)}"></small>` : '<br><span class="path-tag warn-tag">not registered</span>'}</td>
                   <td><span class="st-chip st-${statusOf(l.id)}">${st[0]} ${st[1]}</span></td><td>${p && p.registeredAt ? new Date(p.registeredAt).toLocaleDateString('de-DE') : '–'}</td>
@@ -337,7 +365,7 @@
                   <td>${((l.time || {})[GL.todayStr()] || 0)} min</td><td>${fmtMin(sumMin(l, week))}</td><td>${fmtMin(l.totalMin || 0)}</td>
                   <td>${av == null ? '–' : `<span class="score-badge ${av >= 80 ? '' : av >= 50 ? 'mid' : 'low'}">${av}%</span>`}</td>
                   <td><span class="act ${daysAgo(l.lastActive) <= 1 ? 'on' : daysAgo(l.lastActive) <= 6 ? 'mid' : 'off'}"></span>${agoText(l.lastActive)}</td><td>${o ? `<span class="nb-inline">${o}</span>` : '–'}</td></tr>`; }).join('')}
-                </tbody></table></div>${learners.length ? '' : '<p class="muted">No students in this list.</p>'}<p class="muted" style="margin:8px 0 0">Click a student for their profile, activity timeline and progress. Time counts only while the course is open and being used.</p></div>` : ''}
+                </tbody></table></div>${learners.length || (showPending && pending.length) ? '' : '<p class="muted">No students in this list.</p>'}<p class="muted" style="margin:8px 0 0">Click a student for their profile, activity timeline and progress. Time counts only while the course is open and being used.</p></div>` : ''}
               ${sel ? `<div class="card" id="admDetail"><div class="row"><h3 style="margin:0">📈 <span class="who" data-name="${attr(sel.id)}"></span></h3><span class="spacer"></span><button class="btn tiny ghost" id="admClose">✖ Close</button></div>
                 ${profileHTML(sel)}
                 <h4>🕒 Activity – who did what</h4><div class="tl-wrap">${timelineHTML(sel)}</div>
@@ -361,12 +389,28 @@
             $$('[data-acc]', root).forEach((el) => { el.textContent = 'claude.ai: ' + nm(el.dataset.acc, true); });
             $$('#stuFilter .chip', root).forEach((b) => (b.onclick = () => { stuFilter = b.dataset.f; render(); }));
             const csvB = $('#admCsv'); if (csvB) csvB.onclick = () => csvExport(everyone, nm);
+            const det = $('.add-stu', root); if (det) det.ontoggle = () => { addOpen = det.open; };
+            const addF = $('#invForm');
+            if (addF) addF.onsubmit = async (e) => {
+              e.preventDefault();
+              const fd = new FormData(addF), name = String(fd.get('name') || '').trim(), email = String(fd.get('email') || '').trim(), note = String(fd.get('note') || '').trim();
+              const info = $('#invInfo');
+              if (!name) { info.textContent = 'Enter the student’s name.'; return; }
+              info.textContent = 'Adding…';
+              try { await Cloud.saveInvite('i' + Date.now().toString(36), { name: name.slice(0, 80), email: email.slice(0, 120), note: note.slice(0, 200), createdAt: Date.now() }); GL.toast(`✅ ${esc(name)} added – now share the course with them (step 2).`, 'ok'); GL.sfx('ok'); }
+              catch (err) { info.textContent = 'Could not save – try again.'; }
+            };
+            $$('.inv-del', root).forEach((b) => (b.onclick = async (e) => {
+              e.stopPropagation();
+              if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = 'Remove?'; return; }
+              await Cloud.saveInvite(b.dataset.inv, { removed: true });
+            }));
             const tSave = $('#tchSave');
             if (tSave) tSave.onclick = async () => {
               const info = $('#tchInfo'); info.textContent = 'Saving…';
               try { await Cloud.saveRoster(sel.id, { status: $('#tchStatus').value, note: $('#tchNote').value.slice(0, 4000) }); info.textContent = '✅ Saved'; GL.sfx('ok'); } catch (e) { info.textContent = 'Could not save – try again.'; }
             };
-            $$('.adm-table tbody tr', root).forEach((tr) => {
+            $$('.adm-table tbody tr[data-id]', root).forEach((tr) => {
               const go = () => { selected = selected === tr.dataset.id ? null : tr.dataset.id; render().then(() => { const d = $('#admDetail'); d && d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); };
               tr.onclick = go; tr.onkeydown = (e) => { if (e.key === 'Enter') go(); };
             });
@@ -414,7 +458,8 @@
           const off = Cloud.on(() => {
             if (!root.isConnected) { off(); return; }
             // don't wipe a reply the teacher is typing
-            const typing = document.activeElement && (document.activeElement.classList.contains('rep-in') && document.activeElement.value || document.activeElement.id === 'tchNote');
+            const ae = document.activeElement;
+            const typing = ae && ((ae.classList.contains('rep-in') && ae.value) || ae.id === 'tchNote' || (ae.closest && ae.closest('#invForm') && ae.value));
             if (typing) { clearTimeout(pending); pending = setTimeout(() => Cloud.on && render(), 15000); return; }
             render();
           });

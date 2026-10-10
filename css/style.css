@@ -996,3 +996,28 @@ a, button, .chip, .opt, label, summary, [data-say] { touch-action: manipulation;
   .scn-stage { aspect-ratio: auto; height: 78vh; max-height: 360px; }
   .topbar { position: static; }
 }
+
+/* ---------- teacher portal entry points ---------- */
+.icon-btn .adm-lbl, .icon-btn .adm-lbl-s { display: none; }
+#navAdmin:not(.hidden) { width: auto; padding: 0 14px; border-radius: 99px; gap: 6px; display: inline-flex; align-items: center; font-weight: 800; font-size: .95rem; text-decoration: none; color: var(--ink); background: var(--gold); border-color: var(--gold); }
+#navAdmin .adm-lbl { display: inline; }
+@media (max-width: 640px) { #navAdmin .adm-lbl { display: none; } #navAdmin .adm-lbl-s { display: inline; } #navAdmin:not(.hidden) { padding: 0 10px; font-size: .85rem; } }
+.portal-card { border: 3px solid var(--gold); background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 16%, var(--card)), var(--card)); }
+.portal-head { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+.portal-ico { font-size: 2.6rem; }
+.portal-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.portal-stats span { background: var(--card); border: 2px solid var(--line); border-radius: 99px; padding: 4px 12px; font-size: .88rem; }
+.login-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 8px 14px; margin-bottom: 14px; font-size: .92rem; }
+.login-status img { width: 28px; height: 28px; border-radius: 50%; }
+.login-status a { font-weight: 800; }
+.st-invited { background: color-mix(in srgb, var(--purple) 16%, var(--card)); }
+.inv-row td { vertical-align: middle; }
+.add-stu summary { cursor: pointer; list-style: none; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.add-stu summary::-webkit-details-marker { display: none; }
+.add-stu summary::before { content: '▸'; font-weight: 800; transition: transform .2s; }
+.add-stu[open] summary::before { transform: rotate(90deg); }
+.add-steps { margin: 14px 0 0; padding-left: 22px; display: grid; gap: 14px; }
+.add-steps li { padding-left: 4px; }
+.inv-form { display: grid; grid-template-columns: 1.2fr 1.4fr 1.2fr auto; gap: 8px; margin-top: 8px; align-items: center; }
+.inv-form #invInfo { grid-column: 1 / -1; }
+@media (max-width: 760px) { .inv-form { grid-template-columns: 1fr; } }
