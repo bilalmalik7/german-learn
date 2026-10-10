@@ -49,6 +49,7 @@
       writing: Object.values(st.writing || {}).filter((w) => w && w.trim()).length, lastActive: GL.todayStr(),
       studio: studioSummary(st.studio),
       speak: GL.Speak ? GL.Speak.summary() : null,
+      activity: (st.events || []).slice(-150),
     };
   }
 
@@ -75,6 +76,37 @@
     });
   }
   Cloud.sync = sync;
+  Cloud._queue = queue;
+  Cloud._summary = summary;
+
+  /* Activity log ("who did what"): kept locally and shipped with the summary. */
+  let trackTimer = null;
+  Cloud.track = (k, x) => {
+    const st = Store.state;
+    const ev = (st.events = st.events || []);
+    ev.push({ t: Date.now(), k, x: String(x || '').slice(0, 140) });
+    if (ev.length > 200) ev.splice(0, ev.length - 200);
+    Store.save();
+    clearTimeout(trackTimer);
+    trackTimer = setTimeout(sync, 4000);
+  };
+  GL.track = Cloud.track;
+
+  /* Registration profile, stored in the learner's own document. */
+  Cloud.saveProfile = (profile) => queue(async () => {
+    const snap = await Cloud.ref.get();
+    if (snap.exists) await Cloud.ref.update({ profile });
+    else await Cloud.ref.set(Object.assign(summary(), { updatedAt: Date.now(), messages: {}, profile }));
+  });
+
+  /* Teacher-only data (status, private notes) – readable and writable by the owner only. */
+  Cloud.roster = {};
+  Cloud.saveRoster = (id, patch) => queue(async () => {
+    const ref = Cloud.db.doc('teacher/roster');
+    const body = { students: { [id]: Object.assign({}, patch, { updatedAt: Date.now() }) } };
+    const snap = await ref.get();
+    if (snap.exists) await ref.update(body); else await ref.set(body);
+  });
 
   Cloud.init = (async () => {
     const [db, user] = await Promise.all([GL.useCap('db'), GL.useCap('user')]);
@@ -84,8 +116,11 @@
     Object.assign(Cloud, { db, user, uid, ready: true, owner: await user.isOwner(), canWrite: await user.can('data.write') });
     if (Cloud.canWrite === false && !Cloud.owner) Cloud.blocked = true;
     Cloud.ref = db.doc('learners/' + uid);
-    Cloud.ref.onSnapshot((snap) => { Cloud.mine = snap.exists ? snap.data() : null; emit(); }, () => {});
-    if (Cloud.owner) db.collection('learners').onSnapshot((q) => { Cloud.all = q.docs.map((d) => Object.assign({ id: d.id }, d.data())); emit(); }, () => {});
+    Cloud.ref.onSnapshot((snap) => { Cloud.mine = snap.exists ? snap.data() : null; Cloud.mineLoaded = true; emit(); }, () => { Cloud.mineLoaded = true; emit(); });
+    if (Cloud.owner) {
+      db.collection('learners').onSnapshot((q) => { Cloud.all = q.docs.map((d) => Object.assign({ id: d.id }, d.data())); emit(); }, () => {});
+      db.doc('teacher/roster').onSnapshot((snap) => { Cloud.roster = (snap.exists && snap.data().students) || {}; emit(); }, () => {});
+    }
     sync();
     setInterval(sync, 120000);
     document.addEventListener('visibilitychange', () => { if (document.hidden) sync(); });
@@ -100,6 +135,7 @@
     await sync();
     if (!Cloud.mine) { await Cloud.ref.set(Object.assign(summary(), { updatedAt: Date.now(), messages: {} })); }
     const id = newId();
+    Cloud.track('message', (TYPES[type] || type) + (context ? ' · ' + context : ''));
     const msg = { id, type, text: String(text).slice(0, 5000), context: String(context || '').slice(0, 200), createdAt: Date.now(), status: 'open' };
     await queue(() => Cloud.ref.update({ messages: { [id]: msg } }));
     return id;
@@ -173,7 +209,58 @@
   /* ======================================================
      ADMIN DASHBOARD (artifact owner only)
      ====================================================== */
-  let selected = null, inboxFilter = 'open';
+  let selected = null, inboxFilter = 'open', stuFilter = 'current';
+  const STATUS = { active: ['🟢', 'Active'], paused: ['⏸️', 'Paused'], finished: ['🎓', 'Finished'], archived: ['🗄️', 'Archived'] };
+  const statusOf = (id) => (Cloud.roster[id] && Cloud.roster[id].status) || 'active';
+  const EV = { open: '👋', register: '📝', profile: '✏️', step: '📖', day: '✅', scene: '🎬', writing: '✍️', speak: '🎤', story: '📚', talk: '🤖', message: '📨' };
+  const GOAL_L = { work: 'Work', study: 'Studies', move: 'Moving to Germany', exam: 'Exam', family: 'Family / partner', travel: 'Travel', fun: 'For fun' };
+  const fmtDay = (ts) => new Date(ts).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+  const fmtTime = (ts) => new Date(ts).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  function timelineHTML(l) {
+    const evs = (l.activity || []).slice().reverse().slice(0, 80);
+    if (!evs.length) return '<p class="muted">No activity recorded yet. New activity appears here as soon as the student studies.</p>';
+    let html = '', day = '';
+    evs.forEach((e) => {
+      const d = fmtDay(e.t);
+      if (d !== day) { if (day) html += '</ul>'; html += `<h5 class="tl-day">${d}</h5><ul class="timeline">`; day = d; }
+      html += `<li><span class="tl-ico">${EV[e.k] || '•'}</span><span class="tl-time">${fmtTime(e.t)}</span><span>${esc(e.x)}</span></li>`;
+    });
+    return html + '</ul>';
+  }
+  function profileHTML(l) {
+    const p = l.profile, r = Cloud.roster[l.id] || {};
+    const week = lastNDays(7), avgDay = Math.round(sumMin(l, week) / 7);
+    const contact = p ? [p.email ? `<a href="mailto:${attr(p.email)}">✉️ ${esc(p.email)}</a>` : '', p.phone ? `<a href="tel:${attr(p.phone.replace(/[^+\d]/g, ''))}">📞 ${esc(p.phone)}</a> <a href="https://wa.me/${attr(p.phone.replace(/[^\d]/g, ''))}" target="_blank" rel="noopener">WhatsApp</a>` : ''].filter(Boolean).join(' · ') : '';
+    return `<div class="grid grid-2 prof-grid">
+      <div class="prof-box"><h4 style="margin-top:0">📝 Registration</h4>${p ? `
+        ${contact ? `<p style="margin:0 0 8px">${contact}</p>` : ''}
+        <div class="kv"><span>Registered</span><b>${p.registeredAt ? fmtDay(p.registeredAt) : '–'}</b></div>
+        <div class="kv"><span>German at the start</span><b>${esc(p.level || '–')}</b></div>
+        <div class="kv"><span>Goals</span><b>${esc((p.goals || []).map((g) => GOAL_L[g] || g).join(', ') || '–')}</b></div>
+        <div class="kv"><span>Daily time goal</span><b>${p.minutes || '–'} min · actual ⌀ ${avgDay} min (7 days)</b></div>
+        <div class="kv"><span>Native language</span><b>${esc(p.lang || '–')}</b></div>
+        <div class="kv"><span>City / country</span><b>${esc(p.city || '–')}</b></div>
+        ${p.note ? `<p class="muted" style="margin:8px 0 0">💬 “${esc(p.note)}”</p>` : ''}` : '<p class="muted">This person opened the course but hasn’t registered yet. They’ll see the registration screen next time.</p>'}</div>
+      <div class="prof-box"><h4 style="margin-top:0">🔒 Teacher only</h4><p class="muted" style="margin-top:0">Only you can see this – not the student.</p>
+        <label class="muted" for="tchStatus">Status</label>
+        <select class="txt-in" id="tchStatus" style="width:100%;margin:4px 0 10px">${Object.entries(STATUS).map(([k, [ic, lb]]) => `<option value="${k}" ${statusOf(l.id) === k ? 'selected' : ''}>${ic} ${lb}</option>`).join('')}</select>
+        <label class="muted" for="tchNote">Private notes (payments, lesson plans, strengths …)</label>
+        <textarea class="txt-in" id="tchNote" rows="5" style="width:100%;margin-top:4px" placeholder="e.g. Paid until 30.11. · Needs more speaking practice · Exam on 15 March">${esc(r.note || '')}</textarea>
+        <div class="row" style="margin-top:8px"><button class="btn small green" id="tchSave">💾 Save</button><span class="muted" id="tchInfo">${r.updatedAt ? 'Last saved ' + fmtDay(r.updatedAt) : ''}</span></div></div>
+    </div>`;
+  }
+  function csvExport(learners, nm) {
+    const week = lastNDays(7);
+    const rows = [['Name', 'Claude account', 'Email', 'Phone', 'Status', 'Registered', 'Level at start', 'Goals', 'Current day', 'Days done', 'XP', 'Streak', 'Minutes last 7 days', 'Total minutes', 'Avg exercise score', 'Writing texts', 'Avg writing score', 'Sentences spoken', 'Speaking accuracy', 'Mistakes in notebook', 'Last active', 'Teacher notes']];
+    learners.forEach((l) => {
+      const p = l.profile || {}, r = Cloud.roster[l.id] || {};
+      rows.push([p.name || '', nm(l.id, true), p.email || '', p.phone || '', statusOf(l.id), p.registeredAt ? new Date(p.registeredAt).toISOString().slice(0, 10) : '', p.level || '', (p.goals || []).map((g) => GOAL_L[g] || g).join('; '),
+        l.currentDay || 1, (l.done || []).length, l.xp || 0, l.streak || 0, sumMin(l, week), l.totalMin || 0, avgScore(l) == null ? '' : avgScore(l),
+        l.studio ? l.studio.texts : 0, l.studio ? l.studio.avg : '', l.speak ? l.speak.n : 0, l.speak && l.speak.avg != null ? l.speak.avg : '', l.mistakes || 0, l.lastActive || '', r.note || '']);
+    });
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+    GL.saveFile(`students-${GL.todayStr()}.csv`, new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }), 'text/csv');
+  }
   const lastNDays = (n) => Array.from({ length: n }, (_, i) => GL.todayStr(new Date(Date.now() - (n - 1 - i) * 864e5)));
   const sumMin = (l, days) => days.reduce((a, d) => a + ((l.time || {})[d] || 0), 0);
   const fmtMin = (m) => (m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m} min`);
@@ -204,7 +291,7 @@
   GL.viewAdmin = function () {
     return {
       html: `<h1>📊 Teacher dashboard</h1>
-        <p class="muted">See how your learners are doing, how much time they spend, and answer their questions.</p>
+        <p class="muted">Your students: who registered, what each of them did and when, how much time they spend – and their questions.</p>
         <div id="admRoot"><div class="card"><p class="muted">Connecting…</p></div></div>`,
       mount() {
         const root = $('#admRoot');
@@ -214,10 +301,14 @@
           if (!Cloud.owner) { root.innerHTML = `<div class="note">Only the owner of this course can see the teacher dashboard.</div><p><a class="btn" href="#/teacher">📨 Message my teacher</a></p>`; return; }
           const render = async () => {
             if (!root.isConnected) return;
-            const learners = Cloud.all.slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-            const ids = learners.map((l) => l.id);
+            const everyone = Cloud.all.filter((l) => l.id !== Cloud.uid).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+            const ids = everyone.map((l) => l.id);
             const ps = ids.length ? await Cloud.user.profiles(ids) : {};
-            const nm = (id) => (ps[id] && ps[id].name) || (id === Cloud.uid ? 'You' : 'Learner');
+            const nm = (id, account) => { const l = everyone.find((x) => x.id === id); if (!account && l && l.profile && l.profile.name) return l.profile.name; return (ps[id] && ps[id].name) || (id === Cloud.uid ? 'You' : 'Student'); };
+            const counts = { current: 0, finished: 0, archived: 0, all: everyone.length };
+            everyone.forEach((l) => { const st = statusOf(l.id); if (st === 'finished') counts.finished++; else if (st === 'archived') counts.archived++; else counts.current++; });
+            const learners = everyone.filter((l) => { const st = statusOf(l.id); return stuFilter === 'all' || (stuFilter === 'current' ? st === 'active' || st === 'paused' : st === stuFilter); });
+            const registered = everyone.filter((l) => l.profile).length;
             const week = lastNDays(7);
             const active = learners.filter((l) => daysAgo(l.lastActive) <= 6).length;
             const weekMin = learners.reduce((a, l) => a + sumMin(l, week), 0);
@@ -229,26 +320,32 @@
             const shown = allMsgs.filter((m) => inboxFilter === 'all' || m.status === inboxFilter).sort((a, b) => (inboxFilter === 'open' ? a.createdAt - b.createdAt : b.createdAt - a.createdAt));
             root.innerHTML = `
               <div class="stats">
-                <div class="stat"><span class="s-ico">👥</span><div><b>${learners.length}</b><span>learners</span></div></div>
+                <div class="stat"><span class="s-ico">👥</span><div><b>${registered}</b><span>registered students${everyone.length > registered ? ` · ${everyone.length - registered} not yet` : ''}</span></div></div>
                 <div class="stat"><span class="s-ico">🟢</span><div><b>${active}</b><span>active in the last 7 days</span></div></div>
                 <div class="stat"><span class="s-ico">⏱️</span><div><b>${fmtMin(weekMin)}</b><span>study time, last 7 days</span></div></div>
                 <div class="stat"><span class="s-ico">📨</span><div><b>${open}</b><span>open messages</span></div></div>
               </div>
-              ${learners.length ? '' : `<div class="card"><h3>No learners yet</h3><p>Share this course from the <b>Share</b> menu and give each learner <b>Contributor</b> access (or invite them by email as <b>Editor</b>). Viewers can open the course but can’t save progress. As soon as someone studies, they appear here.</p></div>`}
-              ${learners.length ? `<div class="card"><h3>👥 Learners</h3>
-                <div class="gtable-wrap"><table class="gtable adm-table"><thead><tr><th>Learner</th><th>Day</th><th>Done</th><th>XP</th><th>Streak</th><th>Today</th><th>7 days</th><th>Total time</th><th>Avg. score</th><th>Mistakes</th><th>Last active</th><th>Open</th></tr></thead><tbody>
-                ${learners.map((l) => { const o = Object.values(l.messages || {}).filter((m) => m.status === 'open').length; const av = avgScore(l); return `<tr class="${l.id === selected ? 'sel' : ''}" data-id="${attr(l.id)}" tabindex="0">
-                  <td><span class="who" data-name="${attr(l.id)}"></span></td><td>${l.currentDay || 1}</td><td>${(l.done || []).length}/30</td><td>${l.xp || 0}</td><td>🔥 ${l.streak || 0}</td>
+              ${everyone.length ? '' : `<div class="card"><h3>No students yet</h3><p>Share this course from the <b>Share</b> menu and give each student <b>Contributor</b> access (or invite them by email as <b>Editor</b>). When they open it, they register with their name and details – then they appear here with all their progress and activity.</p></div>`}
+              ${everyone.length ? `<div class="card"><div class="row"><h3 style="margin:0">👥 Students</h3><span class="spacer"></span>
+                <div class="chips" id="stuFilter">${[['current', 'Current'], ['finished', 'Finished'], ['archived', 'Archived'], ['all', 'All']].map(([k, lb]) => `<button class="chip ${stuFilter === k ? 'on' : ''}" data-f="${k}">${lb} <small>${counts[k]}</small></button>`).join('')}</div>
+                <button class="btn small ghost" id="admCsv">⬇ Export CSV</button></div>
+                <div class="gtable-wrap" style="margin-top:10px"><table class="gtable adm-table"><thead><tr><th>Student</th><th>Status</th><th>Registered</th><th>Day</th><th>Done</th><th>Today</th><th>7 days</th><th>Total time</th><th>Avg. score</th><th>Last active</th><th>Open</th></tr></thead><tbody>
+                ${learners.map((l) => { const o = Object.values(l.messages || {}).filter((m) => m.status === 'open').length; const av = avgScore(l); const st = STATUS[statusOf(l.id)]; const p = l.profile; return `<tr class="${l.id === selected ? 'sel' : ''}" data-id="${attr(l.id)}" tabindex="0">
+                  <td><b class="who" data-name="${attr(l.id)}"></b>${p ? `<br><small class="muted who-acc" data-acc="${attr(l.id)}"></small>` : '<br><span class="path-tag warn-tag">not registered</span>'}</td>
+                  <td><span class="st-chip st-${statusOf(l.id)}">${st[0]} ${st[1]}</span></td><td>${p && p.registeredAt ? new Date(p.registeredAt).toLocaleDateString('de-DE') : '–'}</td>
+                  <td>${l.currentDay || 1}</td><td>${(l.done || []).length}/30</td>
                   <td>${((l.time || {})[GL.todayStr()] || 0)} min</td><td>${fmtMin(sumMin(l, week))}</td><td>${fmtMin(l.totalMin || 0)}</td>
-                  <td>${av == null ? '–' : `<span class="score-badge ${av >= 80 ? '' : av >= 50 ? 'mid' : 'low'}">${av}%</span>`}</td><td>${l.mistakes || 0}</td>
+                  <td>${av == null ? '–' : `<span class="score-badge ${av >= 80 ? '' : av >= 50 ? 'mid' : 'low'}">${av}%</span>`}</td>
                   <td><span class="act ${daysAgo(l.lastActive) <= 1 ? 'on' : daysAgo(l.lastActive) <= 6 ? 'mid' : 'off'}"></span>${agoText(l.lastActive)}</td><td>${o ? `<span class="nb-inline">${o}</span>` : '–'}</td></tr>`; }).join('')}
-                </tbody></table></div><p class="muted" style="margin:8px 0 0">Click a learner for details. Time counts only while the course is open and being used.</p></div>` : ''}
+                </tbody></table></div>${learners.length ? '' : '<p class="muted">No students in this list.</p>'}<p class="muted" style="margin:8px 0 0">Click a student for their profile, activity timeline and progress. Time counts only while the course is open and being used.</p></div>` : ''}
               ${sel ? `<div class="card" id="admDetail"><div class="row"><h3 style="margin:0">📈 <span class="who" data-name="${attr(sel.id)}"></span></h3><span class="spacer"></span><button class="btn tiny ghost" id="admClose">✖ Close</button></div>
+                ${profileHTML(sel)}
+                <h4>🕒 Activity – who did what</h4><div class="tl-wrap">${timelineHTML(sel)}</div>
                 <h4>Minutes studied per day · last 14 days</h4>${barChart(sel)}
                 <h4>30-day plan</h4><div class="day-grid">${GL.days.map((d) => { const b = (sel.best || {})[d.day], dn = (sel.done || []).includes(d.day); return `<span class="${dn ? 'done' : b ? 'part' : ''}" title="Day ${d.day}: ${esc(d.title)}${b ? ' · best ' + b + '%' : ''}">${d.day}${b ? `<small>${b}%</small>` : ''}</span>`; }).join('')}</div>
                 <div class="grid grid-3" style="margin-top:14px">
                   <div><h4>🏋️ Trainer accuracy</h4>${['verbs', 'articles', 'adjectives'].map((k) => { const t = (sel.trainer || {})[k]; return `<div class="kv"><span>${{ verbs: 'Verbs', articles: 'Articles & cases', adjectives: 'Adjective endings' }[k]}</span><b>${t && t.total ? Math.round((t.right / t.total) * 100) + '% of ' + t.total : '–'}</b></div>`; }).join('')}</div>
-                  <div><h4>🎬 Scenes & 📖 stories</h4>${GL.scenarios.map((s) => `<div class="kv"><span>${s.icon} ${esc(s.title)}</span><b>${(sel.scenes || {})[s.id] != null ? sel.scenes[s.id] + '%' : '–'}</b></div>`).join('')}${GL.stories.map((s) => `<div class="kv"><span>📖 ${esc(s.title)}</span><b>${(sel.stories || {})[s.id] != null ? sel.stories[s.id] + '%' : '–'}</b></div>`).join('')}</div>
+                  <div><h4>🎬 Scenes & 📖 stories</h4>${(() => { const sc = GL.scenarios.filter((x) => (sel.scenes || {})[x.id] != null), so = GL.stories.filter((x) => (sel.stories || {})[x.id] != null); return sc.length || so.length ? sc.map((x) => `<div class="kv"><span>${x.icon} ${esc(x.title)}</span><b>${sel.scenes[x.id]}%</b></div>`).join('') + so.map((x) => `<div class="kv"><span>📖 ${esc(x.title)}</span><b>${sel.stories[x.id]}%</b></div>`).join('') + `<p class="muted" style="margin:6px 0 0">${sc.length} of ${GL.scenarios.length} scenes · ${so.length} of ${GL.stories.length} stories</p>` : '<p class="muted">None finished yet.</p>'; })()}</div>
                   <div><h4>✍️ Activity</h4><div class="kv"><span>Lesson steps opened</span><b>${sel.steps || 0}</b></div><div class="kv"><span>Writing tasks written</span><b>${sel.writing || 0}</b></div><div class="kv"><span>Sentences spoken</span><b>${sel.speak ? sel.speak.n + ' · today ' + ((sel.speak.days || {})[GL.todayStr()] || 0) : '–'}</b></div><div class="kv"><span>Speaking accuracy</span><b>${sel.speak && sel.speak.avg != null ? sel.speak.avg + '%' : '–'}</b></div>${sel.speak && (sel.speak.weak || []).length ? `<div class="kv"><span>Tricky words</span><b>${sel.speak.weak.slice(0, 4).map(esc).join(', ')}</b></div>` : ''}<div class="kv"><span>Writing studio texts</span><b>${sel.studio ? sel.studio.texts + ' · ' + sel.studio.words + ' words' : '–'}</b></div><div class="kv"><span>Avg. writing score (last 10)</span><b>${sel.studio ? sel.studio.avg + '/100' : '–'}</b></div>${sel.studio && Object.keys(sel.studio.cats || {}).length ? `<div class="kv"><span>Most frequent mistakes</span><b>${Object.entries(sel.studio.cats).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k, n]) => esc({ grammar: 'grammar', case: 'cases', verb: 'verbs', word_order: 'word order', spelling: 'spelling', vocabulary: 'word choice', punctuation: 'commas', style: 'style' }[k] || k) + ' (' + n + ')').join(', ')}</b></div>` : ''}<div class="kv"><span>Mistakes in notebook</span><b>${sel.mistakes || 0}</b></div><div class="kv"><span>Messages sent</span><b>${Object.keys(sel.messages || {}).length}</b></div></div>
                 </div></div>` : ''}
               <div class="card"><div class="row"><h3 style="margin:0">📨 Inbox</h3><span class="spacer"></span>
@@ -261,6 +358,14 @@
                   <div class="row" style="margin-top:8px"><span class="rep-info muted"></span><span class="spacer"></span><button class="btn small purple rep-ai hidden">✨ Draft with AI</button>${m.status === 'answered' ? '<button class="btn small ghost rep-open">Reopen</button>' : ''}<button class="btn small green rep-send">${m.reply ? 'Update answer' : 'Send answer'}</button></div>
                 </div>`).join('') : `<p class="muted">${inboxFilter === 'open' ? 'No open messages. 🎉' : 'Nothing here yet.'}</p>`}</div></div>`;
             $$('[data-name]', root).forEach((el) => { el.textContent = nm(el.dataset.name); });
+            $$('[data-acc]', root).forEach((el) => { el.textContent = 'claude.ai: ' + nm(el.dataset.acc, true); });
+            $$('#stuFilter .chip', root).forEach((b) => (b.onclick = () => { stuFilter = b.dataset.f; render(); }));
+            const csvB = $('#admCsv'); if (csvB) csvB.onclick = () => csvExport(everyone, nm);
+            const tSave = $('#tchSave');
+            if (tSave) tSave.onclick = async () => {
+              const info = $('#tchInfo'); info.textContent = 'Saving…';
+              try { await Cloud.saveRoster(sel.id, { status: $('#tchStatus').value, note: $('#tchNote').value.slice(0, 4000) }); info.textContent = '✅ Saved'; GL.sfx('ok'); } catch (e) { info.textContent = 'Could not save – try again.'; }
+            };
             $$('.adm-table tbody tr', root).forEach((tr) => {
               const go = () => { selected = selected === tr.dataset.id ? null : tr.dataset.id; render().then(() => { const d = $('#admDetail'); d && d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); };
               tr.onclick = go; tr.onkeydown = (e) => { if (e.key === 'Enter') go(); };
@@ -309,7 +414,7 @@
           const off = Cloud.on(() => {
             if (!root.isConnected) { off(); return; }
             // don't wipe a reply the teacher is typing
-            const typing = document.activeElement && document.activeElement.classList.contains('rep-in') && document.activeElement.value;
+            const typing = document.activeElement && (document.activeElement.classList.contains('rep-in') && document.activeElement.value || document.activeElement.id === 'tchNote');
             if (typing) { clearTimeout(pending); pending = setTimeout(() => Cloud.on && render(), 15000); return; }
             render();
           });

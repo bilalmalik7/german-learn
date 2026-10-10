@@ -83,7 +83,8 @@
     $$('[data-nav]').forEach((l) => l.classList.toggle('active', l.dataset.nav === (page || 'home') || (page === 'day' && l.dataset.nav === 'plan')));
     let html;
     try {
-      switch (page) {
+      if (GL.Accounts && GL.Accounts.needsRegistration() && page !== 'settings') html = GL.viewRegister();
+      else switch (page) {
         case '': case undefined: case 'home': html = viewHome(); break;
         case 'plan': html = viewPlan(); break;
         case 'day': html = viewDay(+a || 1, b || 'intro'); break;
@@ -95,6 +96,8 @@
         case 'writing': html = GL.viewWriting(a, b); break;
         case 'teacher': html = GL.viewTeacher(); break;
         case 'admin': html = GL.viewAdmin(); break;
+        case 'register': html = GL.viewRegister(); break;
+        case 'profile': html = GL.viewProfile(); break;
         case 'sounds': html = viewSounds(); break;
         case 'settings': html = viewSettings(); break;
         default: html = viewHome();

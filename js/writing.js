@@ -468,6 +468,7 @@ List the mistakes in the order they appear in the text. If there are none, "mist
               if (st.history.length > 40) st.history.splice(0, st.history.length - 40);
               const prev = st.history.filter((h) => h.pid === entry.pid && h !== entry && h.title === entry.title).pop();
               Store.addXP(prev ? 5 : 15); Store.save();
+              GL.track && GL.track('writing', `Writing „${entry.title}“: ${r.score}/100, ${r.mistakes.length} mistake${r.mistakes.length === 1 ? '' : 's'}, ${entry.words} words`);
               out.innerHTML = `<div class="card">${prev && prev.score != null ? `<p class="wr-prev">${r.score > prev.score ? `📈 Better than last time: ${prev.score} → <b>${r.score}</b>. Super!` : r.score === prev.score ? `Same score as last time (${prev.score}).` : `Last time: ${prev.score}. Keep going – read the explanations below.`}</p>` : ''}${resultHTML(text, r, { points: free ? [] : p.points })}</div>`;
               wireResult(out, text, r);
               markPoints(r.coverage);

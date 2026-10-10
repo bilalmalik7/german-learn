@@ -348,6 +348,7 @@
           const done = results.filter((r) => r && !r.skipped);
           const sc = done.length ? Math.round(done.reduce((a, r) => a + (r.score || 0), 0) / done.length) : 0;
           const s = st(); s.workouts = s.workouts || {}; s.workouts[GL.todayStr()] = Math.max(s.workouts[GL.todayStr()] || 0, sc);
+          GL.track && GL.track('speak', `Speaking workout: ${sc}% (${done.length} of ${steps.length} exercises)`);
           Store.addXP(20); Store.save(); GL.sfx('done'); if (sc >= 80) GL.confetti();
           const weak = Object.entries(st().weak).sort((a, b) => b[1] - a[1]).slice(0, 8);
           root.innerHTML = `<div class="center">${GL.charSVG('bruno', 'happy waving')}<h2>🎉 Workout done!</h2>

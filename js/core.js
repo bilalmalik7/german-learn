@@ -104,7 +104,7 @@ GL.grammar = GL.grammar || {};
 
   const Store = {
     get state() { return state; },
-    save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} },
+    save() { state.savedAt = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} },
     day(n) { return (state.days[n] = state.days[n] || { steps: {}, done: false, best: 0 }); },
     markStep(n, step) {
       const d = Store.day(n);

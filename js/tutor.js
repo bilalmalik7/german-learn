@@ -281,6 +281,7 @@ The conversation starts with your line: "${sc.opener}"`;
           ${(r.focus || []).length ? `<p><b>Practise next</b></p><ul class="mistake-list">${r.focus.map((f) => `<li><b>${esc(f.topic)}</b>${f.example_wrong ? `<small><span class="m-wrong">${esc(f.example_wrong)}</span> → <span class="m-right">${esc(f.example_right || '')}</span></small>` : ''}</li>`).join('')}</ul>` : ''}
           ${(r.phrases || []).length ? `<p><b>Useful phrases</b></p>${r.phrases.map((p) => `<div class="ex"><button class="say-btn" data-say="${attr(p)}">🔊</button><span class="ex-de">${esc(p)}</span><span class="ex-en"></span></div>`).join('')}` : ''}</div>`;
         Store.addXP(15); GL.confetti(70); GL.sfx('done');
+        GL.track && GL.track('talk', `AI conversation „${sc.de}“: ${Math.round(+r.score || 0)}/100 after ${count} messages`);
       } catch (e) { out.innerHTML = `<p class="muted">${esc(AI.errorText(e))}</p>`; }
     };
     return () => { call = false; Rec.stop(); ctl && ctl.abort(); };

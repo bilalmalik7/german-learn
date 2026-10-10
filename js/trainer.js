@@ -281,7 +281,7 @@
       const r = $('#sQuizRoot', root);
       GL.Exercises.run(r, qs, {
         noMistakes: true,
-        onFinish: (pct) => { const st = (Store.state.trainer.stories = Store.state.trainer.stories || {}); st[s.id] = Math.max(st[s.id] || 0, pct); Store.save(); },
+        onFinish: (pct) => { const st = (Store.state.trainer.stories = Store.state.trainer.stories || {}); st[s.id] = Math.max(st[s.id] || 0, pct); Store.save(); GL.track && GL.track('story', `Story „${s.title}“: ${pct}%`); },
       });
       r.scrollIntoView({ behavior: 'smooth' });
     };
