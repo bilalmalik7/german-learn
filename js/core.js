@@ -79,7 +79,7 @@ GL.grammar = GL.grammar || {};
   const todayStr = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 
   /* ---------- progress store (localStorage) ---------- */
-  const KEY = 'deutsch30:v1';
+  const KEY = window.D30_STORE_KEY || 'deutsch30:v1';
   const defaults = () => ({
     days: {},
     xp: 0,

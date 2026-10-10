@@ -29,7 +29,27 @@ An animated, beginner-friendly website that takes you from your first „Hallo�
 
 ## How to run it
 
-It’s a static site – no build step, no server code.
+### As a website with logins (recommended – works in any browser)
+
+The repository is ready for **Vercel** (free plan): static pages plus one small server function, `api/v1.js`.
+It adds real logins – the teacher creates a username and password for each student in the teacher portal – and
+stores every student’s progress, activity, messages and a private backup on the server.
+
+1. Import the repository in Vercel (no framework, no build command).
+2. *Storage → Create → Blob* (access **private**) and connect it to the project (sets `BLOB_READ_WRITE_TOKEN`).
+3. Environment variables:
+   - `SESSION_SECRET` – a long random string (signs the logins)
+   - `TEACHER_USERNAME` – optional, default `teacher`
+   - `TEACHER_PASSWORD` – the teacher’s first password (can be changed later on *👤 Account*)
+   - `ANTHROPIC_API_KEY` – optional; turns on the AI features (writing analysis, AI conversations, AI tutor)
+4. Deploy, open the site, log in as the teacher → **📊 Teacher portal → ➕ Add students**.
+
+Saving is deliberately frugal (routine progress is sent every 10 minutes and when the page is closed; messages,
+registrations and teacher actions immediately), so 5–10 students fit comfortably into the free Blob allowance.
+
+### As a plain static copy
+
+Without the server function everything still works except logins, the teacher portal and AI.
 
 - **Easiest:** open `index.html` in Chrome or Edge.
 - **Best (microphone works reliably):** serve it over http(s), e.g.
@@ -46,12 +66,14 @@ It’s a static site – no build step, no server code.
 
 ### Your progress
 
-Progress is stored in your browser (`localStorage`). Use **Settings → Export / Import** to move it to another device.
+Progress is stored in your browser (`localStorage`, one copy per login). With a login it is also backed up to the server and restored automatically on a new device. Without a login use **Settings → Export / Import** to move it.
 
 ## Project structure
 
 ```
 index.html            app shell
+api/v1.js             server for the website version: logins, student accounts, saved data, AI proxy
+js/standalone.js      website version: login screen + connection to api/v1.js (skipped inside claude.ai)
 css/style.css         design, animations, light/dark themes
 js/core.js            helpers, progress store, text-to-speech, speech recognition, confetti
 js/characters.js      animated SVG characters

@@ -98,8 +98,8 @@
     const chip = $('#navMe');
     if (!chip) return;
     const p = profile();
-    chip.classList.toggle('hidden', !Cloud.ready || Cloud.owner);
-    $('.me-name', chip).textContent = p ? p.name.split(' ')[0] : 'Register';
+    chip.classList.toggle('hidden', !Cloud.ready || (Cloud.owner && !GL.SA));
+    $('.me-name', chip).textContent = Cloud.owner ? 'Account' : p ? p.name.split(' ')[0] : 'Register';
   }
 
   /* ---------- registration / account page ---------- */
@@ -138,7 +138,7 @@
   GL.viewRegister = function () {
     return {
       html: `<div class="reg-wrap">
-        <div class="reg-hero">${GL.charSVG('bruno', 'idle waving')}<div><h1 style="margin:0">🔐 Student login</h1><p class="muted" style="margin:.3em 0 0">Willkommen! Before you start, please complete your student login once. You are already signed in with your claude.ai account – there is no extra password. Your teacher uses this to follow your progress, and your progress is saved to your account so you can continue on any device.</p></div></div>
+        <div class="reg-hero">${GL.charSVG('bruno', 'idle waving')}<div><h1 style="margin:0">🔐 Student login</h1><p class="muted" style="margin:.3em 0 0">Willkommen! Before you start, please complete your student login once. ${GL.SA ? 'You are logged in with the username from your teacher.' : 'You are already signed in with your claude.ai account – there is no extra password.'} Your teacher uses this to follow your progress, and your progress is saved to your account so you can continue on any device.</p></div></div>
         <div class="card" id="regCard"><p class="muted">Loading…</p></div></div>`,
       mount() {
         const card = $('#regCard');
@@ -147,9 +147,10 @@
           if (!Cloud.ready) { card.outerHTML = GL.connectionHelpHTML('login'); GL.wireConnectionHelp($('#app')); return; }
           const me = await Cloud.user.me();
           const preview = Cloud.owner;
-          card.innerHTML = `${preview ? '<div class="note">👀 <b>Preview:</b> this is the login screen your students see the first time they open the course. Saving is switched off for you as the teacher. <a href="#/admin">← Back to the teacher portal</a></div>' : ''}${me.name ? `<p class="reg-acc"><img src="${attr(me.avatarUrl)}" alt=""> Signed in as <b></b></p>` : ''}
+          card.innerHTML = `${preview ? '<div class="note">👀 <b>Preview:</b> this is the login screen your students see the first time they open the course. Saving is switched off for you as the teacher. <a href="#/admin">← Back to the teacher portal</a></div>' : ''}${me.name ? `<p class="reg-acc"><img src="${attr(me.avatarUrl)}" alt=""> ${GL.SA ? 'Logged in as' : 'Signed in as'} <b></b>${GL.SA && me.username ? ` <span class="muted">(${esc(me.username)})</span> · <a href="#" id="regOut">Not you? Log out</a>` : ''}</p>` : ''}
             ${Cloud.blocked ? `<div class="warn">You can open the course but you have <b>view-only</b> access, so your registration and progress can’t be saved. Ask your teacher to share the course with you as <b>Contributor</b>, then reload this page.</div><p><button class="btn ghost" id="regSkip">Continue without saving</button></p>` : form({}, false)}`;
           if (me.name) $('.reg-acc b', card).textContent = me.name;
+          const out = $('#regOut', card); if (out) out.onclick = (e) => { e.preventDefault(); D30.logout(); };
           const skip = $('#regSkip'); if (skip) skip.onclick = () => { GL._skipRegister = true; location.hash = '#/'; GL.render(); };
           const f = $('#regForm');
           if (!f) return;
@@ -184,6 +185,7 @@
         if (!slot.isConnected) return;
         if (!Cloud.ready) {
           if (Cloud.status.done && Cloud.status.framed) slot.innerHTML = `<a class="conn-banner" href="#/admin">🔌 <span><b>Login & teacher portal are not connected in this view.</b> Tap to see why and how to fix it.</span></a>`;
+          else if (Cloud.status.done && window.D30 && D30.standalone) { slot.innerHTML = `<a class="conn-banner" href="#" id="homeLogin">🔐 <span><b>${D30.guest() ? 'You are not logged in' : 'Not connected to the server'}</b> – your progress is only kept in this browser. Tap to log in.</span></a>`; $('#homeLogin', slot).onclick = (e) => { e.preventDefault(); D30.showLogin(); }; }
           return;
         }
         if (Cloud.owner) {
@@ -197,7 +199,8 @@
           const add = $('#portalAdd', slot); if (add) add.onclick = () => { GL._openAddStudents = true; };
         } else if (profile()) {
           const me = await Cloud.user.me();
-          slot.innerHTML = `<div class="login-status"><img src="${attr(me.avatarUrl)}" alt=""><span>✅ Logged in as <b></b> · progress saved to your account</span><span class="spacer"></span><a href="#/profile">👤 My account</a><a href="#/teacher">📨 My teacher</a></div>`;
+          slot.innerHTML = `<div class="login-status"><img src="${attr(me.avatarUrl)}" alt=""><span>✅ Logged in as <b></b> · progress saved to your account</span><span class="spacer"></span><a href="#/profile">👤 My account</a><a href="#/teacher">📨 My teacher</a>${GL.SA ? '<a href="#" class="home-out">🚪 Log out</a>' : ''}</div>`;
+          const ho = $('.home-out', slot); if (ho) ho.onclick = (e) => { e.preventDefault(); D30.logout(); };
           $('b', slot).textContent = profile().name;
         }
       };
@@ -205,6 +208,31 @@
       const off = Cloud.on(() => { if (!slot.isConnected) { off(); return; } draw(); });
     });
   };
+
+  /* Stand-alone website: change password and log out. */
+  function securityHTML() {
+    if (!GL.SA) return '';
+    const s = D30.session();
+    return `<div class="card"><h3 style="margin-top:0">🔑 Login & password</h3>
+      <div class="kv"><span>Username</span><b class="mono">${esc((s && s.user.username) || '')}</b></div>
+      <form id="pwForm" class="pw-form" autocomplete="on"><input type="text" name="username" autocomplete="username" value="${attr((s && s.user.username) || '')}" hidden>
+        <input class="txt-in" type="password" name="current" placeholder="Current password" autocomplete="current-password" required>
+        <input class="txt-in" type="password" name="next" placeholder="New password (min. 6 characters)" autocomplete="new-password" minlength="6" required>
+        <button class="btn small" type="submit">🔑 Change password</button><span class="muted" id="pwInfo"></span></form>
+      <div class="row" style="margin-top:12px"><button class="btn ghost" id="logoutBtn" type="button">🚪 Log out</button><span class="muted">Log out on shared computers. Your progress is saved first.</span></div></div>`;
+  }
+  function wireSecurity(root) {
+    const f = $('#pwForm', root);
+    if (f) f.onsubmit = async (e) => {
+      e.preventDefault();
+      const info = $('#pwInfo', root);
+      if (f.elements.next.value.length < 6) { info.textContent = 'At least 6 characters.'; return; }
+      info.textContent = 'Saving…';
+      try { await D30.changePassword(f.elements.current.value, f.elements.next.value); f.reset(); info.textContent = '✅ Password changed.'; GL.sfx('ok'); }
+      catch (err) { info.textContent = err.message || 'Could not change the password.'; }
+    };
+    const lo = $('#logoutBtn', root); if (lo) lo.onclick = () => { lo.disabled = true; lo.textContent = 'Saving & logging out…'; D30.logout(); };
+  }
 
   GL.viewProfile = function () {
     return {
@@ -214,17 +242,18 @@
         Cloud.init.then(async () => {
           if (!root.isConnected) return;
           if (!Cloud.ready) { root.innerHTML = GL.connectionHelpHTML('login') + `<p class="muted">Until then your progress is saved in this browser only – use <a href="#/settings">Settings → Export</a> to move it.</p>`; GL.wireConnectionHelp(root); return; }
-          if (Cloud.owner) { root.innerHTML = `<div class="note">You are the teacher (owner). Your students’ accounts are in the <a href="#/admin">📊 Teacher dashboard</a>. <a href="#/register">Preview the registration screen</a>.</div>`; return; }
+          if (Cloud.owner) { root.innerHTML = `<div class="note">You are the teacher (owner). Your students’ accounts are in the <a href="#/admin">📊 Teacher portal</a>. <a href="#/register">Preview the registration screen</a>.</div>${securityHTML()}`; wireSecurity(root); return; }
           const me = await Cloud.user.me();
           const p = profile();
           const fmt = (t) => (t ? new Date(t).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }) : '–');
-          root.innerHTML = `<div class="card"><div class="row"><img class="prof-av" src="${attr(me.avatarUrl)}" alt=""><div><b id="profName"></b><br><small class="muted">Signed in with claude.ai${p ? ' · registered ' + fmt(p.registeredAt) : ''}</small></div></div>
+          root.innerHTML = `<div class="card"><div class="row"><img class="prof-av" src="${attr(me.avatarUrl)}" alt=""><div><b id="profName"></b><br><small class="muted">${GL.SA ? 'Logged in as ' + esc(me.username || '') : 'Signed in with claude.ai'}${p ? ' · registered ' + fmt(p.registeredAt) : ''}</small></div></div>
             <h3>☁️ Progress saved to your account</h3>
             <p class="muted" style="margin-top:0">Your progress is backed up privately (only you can read the backup) and restored automatically when you open the course on a new device.</p>
             <div class="kv"><span>Last backup</span><b id="profBk">${fmt(GL.Accounts.lastBackupAt || GL.Accounts.cloudBackupAt)}</b></div>
             ${GL.Accounts.newerElsewhere ? `<div class="warn" style="margin-top:10px">Newer progress from another device (${GL.Accounts.newerElsewhere.xp} XP, ${fmt(GL.Accounts.newerElsewhere.at)}). Loading it replaces the progress in this browser.</div>` : ''}
             <div class="row" style="margin-top:10px"><button class="btn ghost small" id="profBackup">☁️ Save now</button><button class="btn ghost small" id="profRestore">⬇ Load progress from my account</button><span class="muted" id="profInfo"></span></div></div>
-            <div class="card"><h3 style="margin-top:0">✏️ My details</h3>${p ? form(p, true) : '<p>You haven’t registered yet. <a class="btn" href="#/register">Register now</a></p>'}</div>`;
+            <div class="card"><h3 style="margin-top:0">✏️ My details</h3>${p ? form(p, true) : '<p>You haven’t registered yet. <a class="btn" href="#/register">Register now</a></p>'}</div>${securityHTML()}`;
+          wireSecurity(root);
           $('#profName').textContent = (p && p.name) || me.name || 'You';
           $('#profBackup').onclick = async () => { $('#profInfo').textContent = 'Saving…'; await backup(); $('#profBk').textContent = fmt(GL.Accounts.lastBackupAt); $('#profInfo').textContent = '✅ Saved'; };
           const rb = $('#profRestore');

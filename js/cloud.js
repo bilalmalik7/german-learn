@@ -110,7 +110,7 @@
   });
   const normName = (x) => String(x || '').toLowerCase().replace(/\s+/g, ' ').trim();
   /* Which registered learner belongs to an invite: same email, otherwise the same name. */
-  Cloud.matchInvite = (inv, learners) => learners.find((l) => l.profile && ((inv.email && l.profile.email && l.profile.email.toLowerCase().trim() === inv.email.toLowerCase().trim()) || (normName(inv.name) && normName(l.profile.name) === normName(inv.name))));
+  Cloud.matchInvite = (inv, learners) => learners.find((l) => (inv.uid && l.id === inv.uid) || (l.profile && !inv.uid && ((inv.email && l.profile.email && l.profile.email.toLowerCase().trim() === inv.email.toLowerCase().trim()) || (normName(inv.name) && normName(l.profile.name) === normName(inv.name)))));
   Cloud.saveRoster = (id, patch) => queue(async () => {
     const ref = Cloud.db.doc('teacher/roster');
     const body = { students: { [id]: Object.assign({}, patch, { updatedAt: Date.now() }) } };
@@ -120,7 +120,9 @@
 
   /* Connection status, so the page can explain (instead of silently hiding) a missing login / portal. */
   GL.COURSE_URL = 'https://claude.ai/artifact/QSGxPhc61Dihr1fK2k1aqJ';
-  Cloud.status = { framed: !!(window.claude && typeof window.claude.use === 'function'), done: false, reason: 'pending' };
+  const SA = !!(window.D30 && window.claude && window.claude.__standalone);
+  GL.SA = SA;
+  Cloud.status = { framed: !SA && !!(window.claude && typeof window.claude.use === 'function'), done: false, reason: 'pending' };
   Cloud.init = (async () => {
     const S = Cloud.status;
     try {
@@ -156,6 +158,12 @@
   /* Help card shown wherever the login / portal would be when the connection is missing. */
   GL.connectionHelpHTML = (where) => {
     const S = Cloud.status;
+    if (window.D30 && D30.standalone) {
+      return `<div class="card conn-card"><h2 style="margin-top:0">🔐 ${where === 'admin' ? 'Teacher portal' : 'Student login'}</h2>
+        <p>${!S.done ? 'Connecting…' : D30.guest() ? 'You are looking around without an account, so nothing is saved for your teacher.' : 'No connection to the server right now – your progress is kept in this browser.'}</p>
+        <div class="row" style="margin:12px 0"><button class="btn green" id="connLogin">🔐 Log in</button><button class="btn ghost" id="connRetry">🔄 Try again</button></div>
+        <p class="muted">${where === 'admin' ? 'Log in with the teacher username and password to open the portal.' : 'Students log in with the username and password their teacher created for them.'}</p></div>`;
+    }
     const yes = (v) => (v ? '✅' : v === false ? '❌' : '–');
     const pm = S.perms || {};
     const denied = Object.entries(pm).filter(([k, v]) => ['db', 'user'].includes(k) && v === 'denied').map(([k]) => k);
@@ -181,6 +189,7 @@
   };
   GL.wireConnectionHelp = (root) => {
     const r = $('#connRetry', root); if (r) r.onclick = () => location.reload();
+    const li = $('#connLogin', root); if (li) li.onclick = () => window.D30 && D30.showLogin();
     const a = $('#connAllow', root); if (a) a.onclick = async () => { a.disabled = true; try { await Cloud.perms.request(['db', 'user']); } catch (e) {} location.reload(); };
     const m = $('#connManage', root); if (m) m.onclick = async () => { try { await Cloud.perms.manage(); location.reload(); } catch (e) { GL.toast('Open the course’s <b>Permissions</b> menu on claude.ai and allow access.'); } };
   };
@@ -293,7 +302,39 @@
     return html + '</ul>';
   }
   let addOpen = null;
+  let lastCred = null, saUsers = [];
+  const credText = (c) => `Hallo ${c.name.split(' ')[0]}! 🇩🇪\nYour login for the German course:\n\nWebsite: ${location.origin + location.pathname}\nUsername: ${c.username}\nPassword: ${c.password}\n\nOpen the website in Chrome (phone or computer) and log in. Viel Erfolg!`;
+  function credHTML() {
+    if (!lastCred) return '';
+    const c = lastCred;
+    return `<div class="cred-card" id="credCard"><div class="row"><h4 style="margin:0">${c.reset ? '🔑 New password for' : '✅ Login created for'} ${esc(c.name)}</h4><span class="spacer"></span><button class="btn tiny ghost" id="credClose" type="button">✖</button></div>
+      <div class="kv"><span>Website</span><b>${esc(location.origin + location.pathname)}</b></div>
+      <div class="kv"><span>Username</span><b class="mono">${esc(c.username)}</b></div>
+      <div class="kv"><span>Password</span><b class="mono">${esc(c.password)}</b></div>
+      <p class="muted" style="margin:6px 0">Send this to ${esc(c.name.split(' ')[0])} now – the password is not shown again (you can always set a new one).</p>
+      <div class="row"><button class="btn small" id="credCopy" type="button">📋 Copy login text</button><a class="btn small green" target="_blank" rel="noopener" href="https://wa.me/?text=${attr(encodeURIComponent(credText(c)))}">💬 Send by WhatsApp</a>${c.email ? `<a class="btn small ghost" href="mailto:${attr(c.email)}?subject=${attr(encodeURIComponent('Your German course login'))}&body=${attr(encodeURIComponent(credText(c)))}">✉️ Email</a>` : ''}</div></div>`;
+  }
+  function addStudentsSA(open, count) {
+    if (GL._openAddStudents) { addOpen = true; GL._openAddStudents = false; setTimeout(() => { const d = document.querySelector('.add-stu'); d && d.scrollIntoView({ behavior: 'smooth' }); const n = document.querySelector('#newLogin input[name=name]'); n && n.focus({ preventScroll: true }); }, 300); }
+    return `<details class="card add-stu" ${(addOpen == null ? open : addOpen) || lastCred ? 'open' : ''}><summary><h3 style="display:inline;margin:0">➕ Add students – create their login</h3> <span class="muted">${count ? `${count} on your list` : 'start here'}</span></summary>
+      <ol class="add-steps">
+        <li><b>Create a login</b> for the student:
+          <form id="newLogin" class="inv-form" autocomplete="off"><input class="txt-in" name="name" placeholder="Student’s name *" maxlength="80" required><input class="txt-in" name="username" placeholder="Username * (e.g. ayesha)" maxlength="30" autocapitalize="none" spellcheck="false" required><input class="txt-in" name="email" type="email" placeholder="Email (optional)" maxlength="120"><input class="txt-in" name="password" placeholder="Password (leave empty = automatic)" maxlength="60" autocapitalize="none" spellcheck="false"><button class="btn green" type="submit">➕ Create login</button><span class="muted" id="invInfo"></span></form>
+          ${credHTML()}</li>
+        <li><b>Send them the login</b> – website address, username and password. Use the <b>Copy</b> or <b>WhatsApp</b> button that appears.</li>
+        <li><b>The student logs in</b> in any browser – Chrome, Safari, on the phone or a computer – and fills in a short registration once (contact, goals).</li>
+        <li><b>Follow them here:</b> as soon as they log in, “✉️ Login created” changes to their live progress – lessons, time, scores and a timeline of everything they do.</li>
+      </ol>
+      <p style="margin:6px 0 0"><a class="btn small ghost" href="#/register">👀 Preview the student registration screen</a></p></details>`;
+  }
+  function loginBoxHTML(id) {
+    const u = saUsers.find((x) => x.uid === id);
+    if (!u) return '';
+    return `<div class="login-adm"><b>🔑 Login</b> <span class="mono">${esc(u.username)}</span> ${u.disabled ? '<span class="path-tag warn-tag">blocked</span>' : ''}
+      <span class="spacer"></span><button class="btn tiny ghost acc-pw" data-u="${attr(u.username)}" type="button">🔑 New password</button><button class="btn tiny ghost acc-block" data-u="${attr(u.username)}" data-b="${u.disabled ? '0' : '1'}" type="button">${u.disabled ? '✅ Unblock login' : '⛔ Block login'}</button></div>`;
+  }
   function addStudentsHTML(open, count) {
+    if (SA) return addStudentsSA(open, count);
     if (GL._openAddStudents) { addOpen = true; GL._openAddStudents = false; setTimeout(() => { const d = document.querySelector('.add-stu'); d && d.scrollIntoView({ behavior: 'smooth' }); const n = document.querySelector('#invForm input[name=name]'); n && n.focus({ preventScroll: true }); }, 300); }
     return `<details class="card add-stu" ${(addOpen == null ? open : addOpen) ? 'open' : ''}><summary><h3 style="display:inline;margin:0">➕ Add students & how they log in</h3> <span class="muted">${count ? `${count} on your list` : 'start here'}</span></summary>
       <ol class="add-steps">
@@ -325,12 +366,12 @@
         <select class="txt-in" id="tchStatus" style="width:100%;margin:4px 0 10px">${Object.entries(STATUS).map(([k, [ic, lb]]) => `<option value="${k}" ${statusOf(l.id) === k ? 'selected' : ''}>${ic} ${lb}</option>`).join('')}</select>
         <label class="muted" for="tchNote">Private notes (payments, lesson plans, strengths …)</label>
         <textarea class="txt-in" id="tchNote" rows="5" style="width:100%;margin-top:4px" placeholder="e.g. Paid until 30.11. · Needs more speaking practice · Exam on 15 March">${esc(r.note || '')}</textarea>
-        <div class="row" style="margin-top:8px"><button class="btn small green" id="tchSave">💾 Save</button><span class="muted" id="tchInfo">${r.updatedAt ? 'Last saved ' + fmtDay(r.updatedAt) : ''}</span></div></div>
+        <div class="row" style="margin-top:8px"><button class="btn small green" id="tchSave">💾 Save</button><span class="muted" id="tchInfo">${r.updatedAt ? 'Last saved ' + fmtDay(r.updatedAt) : ''}</span></div>${SA ? loginBoxHTML(l.id) : ''}</div>
     </div>`;
   }
   function csvExport(learners, nm) {
     const week = lastNDays(7);
-    const rows = [['Name', 'Claude account', 'Email', 'Phone', 'Status', 'Registered', 'Level at start', 'Goals', 'Current day', 'Days done', 'XP', 'Streak', 'Minutes last 7 days', 'Total minutes', 'Avg exercise score', 'Writing texts', 'Avg writing score', 'Sentences spoken', 'Speaking accuracy', 'Mistakes in notebook', 'Last active', 'Teacher notes']];
+    const rows = [['Name', SA ? 'Username' : 'Claude account', 'Email', 'Phone', 'Status', 'Registered', 'Level at start', 'Goals', 'Current day', 'Days done', 'XP', 'Streak', 'Minutes last 7 days', 'Total minutes', 'Avg exercise score', 'Writing texts', 'Avg writing score', 'Sentences spoken', 'Speaking accuracy', 'Mistakes in notebook', 'Last active', 'Teacher notes']];
     learners.forEach((l) => {
       const p = l.profile || {}, r = Cloud.roster[l.id] || {};
       rows.push([p.name || '', nm(l.id, true), p.email || '', p.phone || '', statusOf(l.id), p.registeredAt ? new Date(p.registeredAt).toISOString().slice(0, 10) : '', p.level || '', (p.goals || []).map((g) => GOAL_L[g] || g).join('; '),
@@ -367,6 +408,62 @@
     </svg><div class="chart-tip" hidden></div></div>`;
   }
 
+  /* Stand-alone website: create logins, new passwords, block / unblock. */
+  function wireSA(root, render, invites) {
+    const rf = $('#admRefresh', root);
+    if (rf) rf.onclick = async () => { rf.disabled = true; rf.textContent = '⏳'; await Promise.all([D30.refresh(), D30.users(true)]); render(); };
+    const cc = $('#credClose', root); if (cc) cc.onclick = () => { lastCred = null; render(); };
+    const cp = $('#credCopy', root);
+    if (cp) cp.onclick = async () => {
+      const t = credText(lastCred);
+      try { await navigator.clipboard.writeText(t); cp.textContent = '✅ Copied'; }
+      catch (e) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); cp.textContent = '✅ Copied'; } catch (x) { cp.textContent = 'Select & copy manually'; } ta.remove(); }
+    };
+    const f = $('#newLogin', root);
+    if (f) {
+      const nameIn = f.elements.name, userIn = f.elements.username;
+      const slug = (x) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss').trim().replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, '').slice(0, 30);
+      nameIn.oninput = () => { if (!userIn.dataset.touched) userIn.value = slug(nameIn.value.split(' ')[0] || ''); };
+      userIn.oninput = () => { userIn.dataset.touched = '1'; userIn.value = userIn.value.toLowerCase().replace(/\s/g, ''); };
+      f.onsubmit = async (e) => {
+        e.preventDefault();
+        const info = $('#invInfo', root), btn = $('button[type=submit]', f);
+        const body = { name: nameIn.value.trim(), username: userIn.value.trim(), email: f.elements.email.value.trim(), password: f.elements.password.value.trim() };
+        if (!body.name || !body.username) { info.textContent = 'Enter a name and a username.'; return; }
+        btn.disabled = true; info.textContent = 'Creating…';
+        try {
+          const r = await D30.call('users.create', body);
+          lastCred = { name: r.user.name, username: r.user.username, password: r.password, email: r.user.email };
+          addOpen = true;
+          f.reset(); delete userIn.dataset.touched;
+          GL.sfx('ok');
+          await Promise.all([D30.refresh(), D30.users(true)]);
+          render().then(() => { const c = $('#credCard'); c && c.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+        } catch (err) { info.textContent = err.message || 'Could not create the login – try again.'; btn.disabled = false; }
+      };
+    }
+    $$('.acc-pw', root).forEach((b) => (b.onclick = async (e) => {
+      e.stopPropagation();
+      if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = '🔑 Set new password?'; return; }
+      b.disabled = true;
+      try {
+        const r = await D30.call('users.update', { username: b.dataset.u, resetPassword: true });
+        lastCred = { name: r.user.name, username: r.user.username, password: r.password, email: r.user.email, reset: true };
+        addOpen = true;
+        await render();
+        const c = $('#credCard'); c && c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (err) { GL.toast(esc(err.message || 'Could not set a new password.'), 'bad'); b.disabled = false; }
+    }));
+    $$('.acc-block', root).forEach((b) => (b.onclick = async (e) => {
+      e.stopPropagation();
+      const block = b.dataset.b === '1';
+      if (block && !b.dataset.sure) { b.dataset.sure = '1'; b.textContent = '⛔ Really block?'; return; }
+      b.disabled = true;
+      try { await D30.call('users.update', { username: b.dataset.u, disabled: block }); await D30.users(true); GL.toast(block ? '⛔ Login blocked – the student can’t log in any more.' : '✅ Login unblocked.', 'ok'); render(); }
+      catch (err) { GL.toast(esc(err.message || 'Could not change the login.'), 'bad'); b.disabled = false; }
+    }));
+  }
+
   GL.viewAdmin = function () {
     return {
       html: `<h1>📊 Teacher portal</h1>
@@ -382,8 +479,10 @@
             if (!root.isConnected) return;
             const everyone = Cloud.all.filter((l) => l.id !== Cloud.uid).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
             const ids = everyone.map((l) => l.id);
+            if (SA) saUsers = await D30.users();
+            if (!root.isConnected) return;
             const ps = ids.length ? await Cloud.user.profiles(ids) : {};
-            const nm = (id, account) => { const l = everyone.find((x) => x.id === id); if (!account && l && l.profile && l.profile.name) return l.profile.name; return (ps[id] && ps[id].name) || (id === Cloud.uid ? 'You' : 'Student'); };
+            const nm = (id, account) => { if (account && SA) return (ps[id] && ps[id].username) || ''; const l = everyone.find((x) => x.id === id); if (!account && l && l.profile && l.profile.name) return l.profile.name; return (ps[id] && ps[id].name) || (id === Cloud.uid ? 'You' : 'Student'); };
             const counts = { current: 0, finished: 0, archived: 0, all: everyone.length };
             everyone.forEach((l) => { const st = statusOf(l.id); if (st === 'finished') counts.finished++; else if (st === 'archived') counts.archived++; else counts.current++; });
             const learners = everyone.filter((l) => { const st = statusOf(l.id); return stuFilter === 'all' || (stuFilter === 'current' ? st === 'active' || st === 'paused' : st === stuFilter); });
@@ -410,9 +509,9 @@
               ${addStudentsHTML(everyone.length + pending.length === 0, invites.length)}
               ${everyone.length || pending.length ? `<div class="card"><div class="row"><h3 style="margin:0">👥 Students</h3><span class="spacer"></span>
                 <div class="chips" id="stuFilter">${[['current', 'Current'], ['finished', 'Finished'], ['archived', 'Archived'], ['all', 'All']].map(([k, lb]) => `<button class="chip ${stuFilter === k ? 'on' : ''}" data-f="${k}">${lb} <small>${counts[k]}</small></button>`).join('')}</div>
-                <button class="btn small ghost" id="admCsv">⬇ Export CSV</button></div>
+                ${SA ? '<button class="btn small ghost" id="admRefresh" title="Load the newest data">🔄 Refresh</button>' : ''}<button class="btn small ghost" id="admCsv">⬇ Export CSV</button></div>
                 <div class="gtable-wrap" style="margin-top:10px"><table class="gtable adm-table"><thead><tr><th>Student</th><th>Status</th><th>Registered</th><th>Day</th><th>Done</th><th>Today</th><th>7 days</th><th>Total time</th><th>Avg. score</th><th>Last active</th><th>Open</th></tr></thead><tbody>
-                ${showPending ? pending.map((v) => `<tr class="inv-row" data-inv="${attr(v.id)}"><td><b>${esc(v.name)}</b>${v.email ? `<br><small class="muted">${esc(v.email)}</small>` : ''}</td><td><span class="st-chip st-invited">✉️ Invited</span></td><td colspan="8" class="muted">Added ${new Date(v.createdAt).toLocaleDateString('de-DE')} · hasn’t logged in yet${v.note ? ' · ' + esc(v.note) : ''}</td><td><button class="btn tiny ghost inv-del" data-inv="${attr(v.id)}" title="Remove from list">✖</button></td></tr>`).join('') : ''}
+                ${showPending ? pending.map((v) => `<tr class="inv-row" data-inv="${attr(v.id)}"><td><b>${esc(v.name)}</b>${v.email ? `<br><small class="muted">${esc(v.email)}</small>` : ''}</td><td><span class="st-chip st-invited">✉️ ${v.username ? 'Login created' : 'Invited'}</span></td><td colspan="8" class="muted">Added ${new Date(v.createdAt).toLocaleDateString('de-DE')}${v.username ? ` · username <b class="mono">${esc(v.username)}</b>` : ''} · hasn’t logged in yet${v.note ? ' · ' + esc(v.note) : ''}</td><td class="nowrap">${v.username ? `<button class="btn tiny ghost acc-pw" data-u="${attr(v.username)}" title="Set a new password">🔑</button>` : ''}<button class="btn tiny ghost inv-del" data-inv="${attr(v.id)}" title="Remove from list">✖</button></td></tr>`).join('') : ''}
                 ${learners.map((l) => { const o = Object.values(l.messages || {}).filter((m) => m.status === 'open').length; const av = avgScore(l); const st = STATUS[statusOf(l.id)]; const p = l.profile; return `<tr class="${l.id === selected ? 'sel' : ''}" data-id="${attr(l.id)}" tabindex="0">
                   <td><b class="who" data-name="${attr(l.id)}"></b>${p ? `<br><small class="muted who-acc" data-acc="${attr(l.id)}"></small>` : '<br><span class="path-tag warn-tag">not registered</span>'}</td>
                   <td><span class="st-chip st-${statusOf(l.id)}">${st[0]} ${st[1]}</span></td><td>${p && p.registeredAt ? new Date(p.registeredAt).toLocaleDateString('de-DE') : '–'}</td>
@@ -441,7 +540,8 @@
                   <div class="row" style="margin-top:8px"><span class="rep-info muted"></span><span class="spacer"></span><button class="btn small purple rep-ai hidden">✨ Draft with AI</button>${m.status === 'answered' ? '<button class="btn small ghost rep-open">Reopen</button>' : ''}<button class="btn small green rep-send">${m.reply ? 'Update answer' : 'Send answer'}</button></div>
                 </div>`).join('') : `<p class="muted">${inboxFilter === 'open' ? 'No open messages. 🎉' : 'Nothing here yet.'}</p>`}</div></div>`;
             $$('[data-name]', root).forEach((el) => { el.textContent = nm(el.dataset.name); });
-            $$('[data-acc]', root).forEach((el) => { el.textContent = 'claude.ai: ' + nm(el.dataset.acc, true); });
+            $$('[data-acc]', root).forEach((el) => { el.textContent = SA ? '👤 ' + nm(el.dataset.acc, true) : 'claude.ai: ' + nm(el.dataset.acc, true); });
+            if (SA) wireSA(root, render, invites);
             $$('#stuFilter .chip', root).forEach((b) => (b.onclick = () => { stuFilter = b.dataset.f; render(); }));
             const csvB = $('#admCsv'); if (csvB) csvB.onclick = () => csvExport(everyone, nm);
             const det = $('.add-stu', root); if (det) det.ontoggle = () => { addOpen = det.open; };
@@ -457,7 +557,9 @@
             };
             $$('.inv-del', root).forEach((b) => (b.onclick = async (e) => {
               e.stopPropagation();
-              if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = 'Remove?'; return; }
+              if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = SA ? 'Remove & block login?' : 'Remove?'; return; }
+              const inv = invites.find((v) => v.id === b.dataset.inv);
+              if (SA && inv && inv.username) { try { await D30.call('users.update', { username: inv.username, disabled: true }); await D30.users(true); } catch (err) { GL.toast('Could not block the login – try again.', 'bad'); return; } }
               await Cloud.saveInvite(b.dataset.inv, { removed: true });
             }));
             const tSave = $('#tchSave');
@@ -514,7 +616,7 @@
             if (!root.isConnected) { off(); return; }
             // don't wipe a reply the teacher is typing
             const ae = document.activeElement;
-            const typing = ae && ((ae.classList.contains('rep-in') && ae.value) || ae.id === 'tchNote' || (ae.closest && ae.closest('#invForm') && ae.value));
+            const typing = ae && ((ae.classList.contains('rep-in') && ae.value) || ae.id === 'tchNote' || (ae.closest && ae.closest('#invForm, #newLogin') && ae.value));
             if (typing) { clearTimeout(pending); pending = setTimeout(() => Cloud.on && render(), 15000); return; }
             render();
           });
