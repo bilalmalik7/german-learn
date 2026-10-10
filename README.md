@@ -9,15 +9,15 @@ An animated, beginner-friendly website that takes you from your first „Hallo�
 | 🗺️ **30-day plan** | 4 weeks (A1.1 → A1.2 → A2 → B1 structures). Each day unlocks after the previous one, with a timed study plan of about 2 h 45 min. |
 | 📚 **Vocabulary** | 790 words with article colour code (der / die / das), plurals, irregular verb forms, example sentences and audio. |
 | 📘 **Grammar A–Z** | 62 topics with rules, tables, audio examples, tips and common mistakes – from personal pronouns to Konjunktiv I. Searchable, filterable by level. |
-| 🎬 **Animated dialogues** | Bruno the Berlin bear plus 28 illustrated people who breathe, blink, look at whoever is speaking, change expression (smile, worry, curiosity) and lip-sync with mouth shapes that follow the audio. 33 lesson scenes. Role-play mode: you speak one character’s lines. |
+| 🎬 **Animated dialogues** | Bruno the Berlin bear plus 37 illustrated people who breathe, blink, look at whoever is speaking, change expression (smile, worry, curiosity) and lip-sync with mouth shapes that follow the audio. 33 lesson scenes. Role-play mode: you speak one character’s lines. |
 | 🧩 **Exercises** | 532 hand-written exercises plus auto-generated ones: multiple choice, gap-fill, sentence building, translation, dictation, der/die/das, matching. Instant feedback with explanations; mistakes come back once. |
 | 🎤 **Speaking** | Speech recognition scores your pronunciation word by word (Chrome/Edge). Free speaking tasks with model answers. Record-yourself fallback in other browsers. |
 | ✍️ **Writing studio** | 20 writing tasks (A1–B1: emails, formal letters, stories, opinions) plus free writing, with required content points, word goal, umlaut buttons, autosave and model answers. On claude.ai the **AI analysis** marks every mistake in your text, explains each rule, sorts mistakes by type (cases, verbs, word order, spelling …), checks task coverage, shows the corrected text as a word-by-word diff plus a more natural version, and tracks your scores over time. Mistakes go into the mistake notebook with one click. An offline **quick check** finds common learner mistakes everywhere (cases after prepositions, verb position, Perfekt with sein, capitals, spelling …). Plus a writing task in every lesson. |
 | 🏋️ **Grammar Trainer** | Unlimited generated drills: conjugation of 45 key verbs (Präsens, Perfekt, Präteritum), articles in every case (der/den/dem, ein/einen/einem, kein, mein) and adjective endings – each answer shows the full table. |
 | 📖 **Stories** | 4 graded listening & reading stories (A1 → B1) read aloud sentence by sentence, with comprehension questions. |
-| 💬 **Talk** | A speaking drill with 36 everyday questions and model answers. On claude.ai: **AI conversation partner** – role-play 8 situations with the characters while every message you send is corrected and explained. |
+| 🎤 **Speak** | A daily 10-minute speaking workout (sounds → shadowing → say it in German → real-life lines → answer questions), **shadowing** of every lesson, scene and story sentence (normal / slow / hidden text), **“Say it in German”** with 300+ sentences (English prompt → you speak → every wrong word and ending is marked: einen ≠ einem), a question drill, pronunciation tips for missed sounds, your tricky words, and a daily goal with streak. No speech recognition? Record yourself and compare with the model, or say it and self-check. On claude.ai: **AI conversations** with 8 characters, now with a hands-free **📞 call mode**. |
 | ✨ **AI tutor (claude.ai only)** | Bruno corrects your writing tasks and free-speaking answers (score, mistakes with rules, corrected version) and answers questions about any grammar topic. Hidden automatically elsewhere. |
-| 🎬 **Real-life scenes** | 14 animated 10-minute situations: airport, first day at the office, Bürgeramt, restaurant, train station, hotel, supermarket, doctor & pharmacy, bank, job interview, buying and exchanging clothes, post office, police (stolen bike) and dinner at friends’. 36 animated places with passers-by, lighting moods, a camera that follows the speaker, loudspeaker announcements and narration. Learn the phrases first, then speak at 124 “your turn” moments. |
+| 🎬 **Real-life scenes** | 22 animated situations: airport, first day at the office, Bürgeramt, restaurant, train station, hotel, supermarket, doctor & pharmacy, bank, job interview, clothes shop, post office, police (stolen bike), dinner at friends’, flat viewing, hairdresser, phone contract, emergency call 112 & emergency room, immigration office, gym, a noisy neighbour and the farmers’ market. 43 animated places with passers-by, lighting moods, a camera that follows the speaker, announcements and narration. Learn the phrases first, then **say your lines out loud** (speak mode) at 167 “your turn” moments – or choose them. |
 | 📊 **Teacher dashboard (claude.ai)** | The course owner sees every learner’s progress: current day, completed days, scores, XP, streak, study time (today / 7 days / total, chart per day), trainer accuracy, scenes and stories, writing-studio scores and most frequent mistake types – plus an inbox to answer questions and correct texts (with an optional AI draft). |
 | 📨 **My teacher (claude.ai)** | Learners send questions or texts for correction (also straight from each writing task) and get the answers with an unread badge. Learners need **Contributor** access (or Editor by email) to save data. |
 | ❗ **Mistake notebook** | Every exercise you get wrong is saved; practise them until the list is empty. |
@@ -56,7 +56,8 @@ js/characters.js      animated SVG characters
 js/exercises.js       exercise engine
 js/dialogue.js        dialogue scenes & role-play
 js/trainer.js         grammar drills & stories
-js/tutor.js           AI tutor (claude.ai) & Talk page
+js/tutor.js           AI tutor & AI conversations (claude.ai)
+js/speak.js           speaking practice: scoring, workout, shadowing, say it in German
 js/scenarios.js       real-life scene player, camera & animated backgrounds
 js/writing.js         writing studio: AI analysis, quick check, history
 js/cloud.js           study-time tracking, teacher inbox, admin dashboard (claude.ai db)
@@ -65,7 +66,7 @@ js/data/grammar*.js   grammar topics (Weeks 1–2, 3–4, reference)
 js/data/week1-4.js    the 30 daily lessons
 js/data/sounds.js     pronunciation guide
 js/data/practice.js   verb tables, drill nouns, conversation questions, scenarios, stories
-js/data/scenarios*.js the 14 real-life scenes
+js/data/scenarios*.js the 22 real-life scenes
 js/data/writing.js    writing studio tasks and model answers
 ```
 

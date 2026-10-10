@@ -33,6 +33,15 @@
     frank: { name: 'Frau Frank', role: 'Train conductor', gender: 'f', pitch: 1.0, rate: 1, color: '#c8102e' },
     berg: { name: 'Herr Berg', role: 'Fellow traveller', gender: 'm', pitch: 0.8, rate: 0.92, color: '#6b705c' },
     jana: { name: 'Jana', role: 'Cashier at the supermarket', gender: 'f', pitch: 1.2, rate: 1.05, color: '#2a9d8f' },
+    schulz: { name: 'Herr Schulz', role: 'Landlord', gender: 'm', pitch: 0.75, rate: 0.95, color: '#7a8b6f' },
+    yildiz: { name: 'Frau Yıldız', role: 'Hairdresser', gender: 'f', pitch: 1.1, rate: 1.05, color: '#b5179e' },
+    tim: { name: 'Tim', role: 'Phone shop assistant', gender: 'm', pitch: 1.1, rate: 1.08, color: '#5a189a' },
+    falk: { name: 'Leitstelle 112', role: 'Emergency dispatcher', gender: 'm', pitch: 0.85, rate: 0.95, color: '#d00000' },
+    klein: { name: 'Dr. Klein', role: 'Emergency room doctor', gender: 'f', pitch: 1.0, rate: 1, color: '#4ea8de' },
+    lorenz: { name: 'Frau Lorenz', role: 'Clerk at the immigration office', gender: 'f', pitch: 0.9, rate: 0.92, color: '#8d6e63' },
+    kevin: { name: 'Kevin', role: 'Fitness trainer', gender: 'm', pitch: 1.0, rate: 1.08, color: '#ef476f' },
+    wagner: { name: 'Herr Wagner', role: 'New neighbour', gender: 'm', pitch: 0.95, rate: 1.02, color: '#6c757d' },
+    brandt: { name: 'Frau Brandt', role: 'Market stall owner', gender: 'f', pitch: 0.95, rate: 0.95, color: '#588157' },
     ansage: { name: 'Durchsage', role: 'Announcement', gender: 'f', pitch: 1.05, rate: 0.95, color: '#ffce00' },
   };
 
@@ -65,6 +74,15 @@
     frank: { skin: '#e8b896', hair: '#5a3825', hairStyle: 'ponytail', shirt: '#1d2a44', collar: '#eef1f4', scarf: '#c8102e', blazer: true, badge: true, eyes: '#4a2c1a' },
     berg: { skin: '#f0c8a8', hair: '#d6d6d6', hairStyle: 'side', shirt: '#6b705c', collar: '#a5a58d', scarf: '#bc4749', mustache: true, eyes: '#4b6584' },
     jana: { skin: '#f6d2b8', hair: '#2b2b2b', hairStyle: 'bob', shirt: '#2a9d8f', collar: '#1d7a6f', polo: true, badge: true, eyes: '#5a3e2b' },
+    schulz: { skin: '#eec3a1', hair: '#6b4f3a', hairStyle: 'side', shirt: '#7a8b6f', collar: '#ffffff', beard: true, vest: true, eyes: '#4b6584' },
+    yildiz: { skin: '#dcaa84', hair: '#3b1f1a', hairStyle: 'long', shirt: '#222222', collar: '#b5179e', apron: true, eyes: '#4a2c1a' },
+    tim: { skin: '#f2cbb0', hair: '#c58b4a', hairStyle: 'short', shirt: '#5a189a', collar: '#3c096c', polo: true, badge: true, eyes: '#3b6fb6' },
+    falk: { skin: '#e5b896', hair: '#4a3426', hairStyle: 'buzz', shirt: '#d00000', collar: '#9d0208', badge: true, eyes: '#4a5a3a' },
+    klein: { skin: '#f1cdb3', hair: '#3b2a20', hairStyle: 'ponytail', shirt: '#4ea8de', collar: '#2a7fb8', scrubs: true, badge: true, glasses: true, eyes: '#4a2c1a' },
+    lorenz: { skin: '#f3d6c2', hair: '#9e9e9e', hairStyle: 'bob', shirt: '#8d6e63', collar: '#ffffff', glasses: true, blazer: true, eyes: '#5a6d8a' },
+    kevin: { skin: '#b9825e', hair: '#1a1a1a', hairStyle: 'buzz', shirt: '#ef476f', collar: '#c9184a', polo: true, eyes: '#3a2414' },
+    wagner: { skin: '#f0c8a8', hair: '#2b2b2b', hairStyle: 'curly', shirt: '#6c757d', collar: '#495057', hood: true, beard: true, eyes: '#4a2c1a' },
+    brandt: { skin: '#f0c9ae', hair: '#c9c9c9', hairStyle: 'bun', shirt: '#588157', collar: '#3a5a40', apron: true, scarf: '#e9c46a', eyes: '#3d7a3a' },
     hahn: { skin: '#f3cfb6', hair: '#8c5a3c', hairStyle: 'bun', shirt: '#1b4965', collar: '#13344a', cap: '#13344a', badge: true, eyes: '#3d7a3a' },
   };
 

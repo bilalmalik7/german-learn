@@ -170,7 +170,7 @@
           <a href="#/review/cards"><span class="t-ico">🃏</span><div><b>${Store.dueCards()} due</b><small>flashcards to review</small></div></a>
           <a href="#/review/mistakes"><span class="t-ico">❗</span><div><b>${Object.keys(st.mistakes || {}).length}</b><small>mistakes to fix</small></div></a>
           <a href="#/trainer"><span class="t-ico">🏋️</span><div><b>Trainer</b><small>verbs · cases · endings</small></div></a>
-          <a href="#/talk"><span class="t-ico">💬</span><div><b>Talk</b><small>answer questions aloud</small></div></a>
+          <a href="#/talk"><span class="t-ico">🎤</span><div><b>Speak · ${GL.Speak.today()}/${GL.Speak.GOAL}</b><small>10-minute speaking workout</small></div></a>
           <a href="#/scenes"><span class="t-ico">🎬</span><div><b>Real life</b><small>${GL.scenarios.length} scenes: airport, doctor, bank …</small></div></a>
           <a href="#/writing"><span class="t-ico">✍️</span><div><b>Writing</b><small>AI marks every mistake</small></div></a>
         </div>

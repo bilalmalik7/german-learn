@@ -266,8 +266,56 @@
       <g><rect x="476" y="230" width="14" height="32" rx="4" fill="#6a040f"/><rect x="480" y="220" width="6" height="12" fill="#6a040f"/></g>`,
   });
 
+  Object.assign(BG, {
+    emptyflat: () => `<rect width="800" height="300" fill="#f5f1ea"/>
+      <rect x="470" y="40" width="240" height="190" fill="#bde0fe"/><path d="M490 230 V150 h40 v80 M560 230 V120 h50 v110 M640 230 V170 h50 v60" fill="#a9c4dc"/><rect x="470" y="40" width="240" height="190" fill="none" stroke="#fff" stroke-width="10"/><path d="M590 40 V230" stroke="#fff" stroke-width="6"/>
+      <rect x="80" y="70" width="130" height="232" rx="4" fill="#fff" stroke="#d6cfc2" stroke-width="4"/><circle cx="192" cy="190" r="5" fill="#b0a48f"/>
+      <rect x="290" y="250" width="110" height="40" rx="4" fill="#e9ecef" stroke="#adb5bd" stroke-width="3"/><path d="M300 262 h90 M300 274 h90" stroke="#adb5bd" stroke-width="2"/>
+      ${floor('#d9b38c', '#c39a6e')}
+      <g><rect x="250" y="276" width="56" height="34" fill="#c8a165"/><rect x="250" y="286" width="56" height="5" fill="#e9c46a"/><rect x="262" y="250" width="44" height="28" fill="#b98f55"/></g>`,
+    salon: () => `<rect width="800" height="300" fill="#fdf0f5"/>
+      ${sign(300, 22, 200, 'Salon Schnittpunkt', '#b5179e')}
+      ${[60, 300, 540].map((x) => `<g><rect x="${x}" y="70" width="170" height="150" rx="80" fill="#e3f2fd" stroke="#d4af37" stroke-width="6"/><path d="M${x + 40} 110 l40 -24 M${x + 50} 140 l70 -44" stroke="#fff" stroke-width="6" opacity=".7"/><rect x="${x + 10}" y="226" width="150" height="10" rx="4" fill="#fff"/><circle cx="${x + 40}" cy="218" r="6" fill="#b5179e"/><rect x="${x + 110}" y="206" width="12" height="20" rx="3" fill="#7209b7"/></g>`).join('')}
+      ${floor('#ece4e8', '#d6c9cf')}
+      <g><rect x="330" y="246" width="80" height="16" rx="6" fill="#222"/><rect x="330" y="214" width="80" height="36" rx="10" fill="#333"/><rect x="364" y="262" width="12" height="40" fill="#888"/><ellipse cx="370" cy="304" rx="34" ry="6" fill="#888"/></g>`,
+    phoneshop: () => `<rect width="800" height="300" fill="#f3efff"/><rect width="800" height="28" fill="#5a189a"/>
+      ${sign(40, 40, 230, 'Funkwelt · Mobilfunk', '#5a189a')}
+      <rect x="40" y="96" width="330" height="120" rx="8" fill="#fff"/>${[0, 1, 2, 3, 4].map((i) => `<rect x="${58 + i * 62}" y="112" width="40" height="76" rx="8" fill="#212529"/><rect x="${62 + i * 62}" y="118" width="32" height="62" rx="4" fill="${['#48cae4', '#f72585', '#ffd166', '#06d6a0', '#8338ec'][i]}"/>`).join('')}
+      <g><rect x="440" y="40" width="320" height="110" rx="10" fill="#240046"/><text x="600" y="78" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="22" fill="#fff">Tarif „Smart 20“</text><text class="blink" x="600" y="112" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="26" font-weight="700" fill="#ffd166">20 GB · 19,99 €</text><text x="600" y="136" text-anchor="middle" font-family="Nunito, sans-serif" font-size="12" fill="#c8b6ff">monatlich kündbar</text></g>
+      ${floor('#e6e0f2', '#cfc6e3')}${crowd(300, 1, ['#8f84a6'])}
+      ${counterDesk(450, 320, '#fff', '#3c096c')}${screen(640, 166)}`,
+    hospital: () => `<rect width="800" height="300" fill="#eef6f9"/><rect width="800" height="40" fill="#dbe9ef"/>
+      <g><rect x="40" y="56" width="250" height="44" rx="6" fill="#d00000"/><text x="165" y="86" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="22" font-weight="700" fill="#fff">NOTAUFNAHME</text></g>
+      <g><rect x="330" y="56" width="44" height="44" rx="6" fill="#fff" stroke="#d00000" stroke-width="3"/><path d="M352 64 v28 M338 78 h28" stroke="#d00000" stroke-width="8"/></g>
+      <rect x="560" y="60" width="190" height="140" rx="4" fill="#fff" stroke="#b0bec5" stroke-width="3"/><path d="M580 130 l20 0 l10 -30 l14 60 l12 -40 l10 10 h44" stroke="#2ec4b6" stroke-width="3" fill="none" class="beep"/>
+      ${floor('#dce8ec', '#c2d3d9')}
+      <g><rect x="120" y="226" width="320" height="22" rx="8" fill="#fff" stroke="#cfd8dc" stroke-width="2"/><rect x="120" y="212" width="90" height="20" rx="8" fill="#e3f2fd"/><rect x="140" y="248" width="10" height="44" fill="#90a4ae"/><rect x="410" y="248" width="10" height="44" fill="#90a4ae"/><circle cx="145" cy="296" r="6" fill="#546e7a"/><circle cx="415" cy="296" r="6" fill="#546e7a"/></g>
+      <g><path d="M500 300 V150" stroke="#90a4ae" stroke-width="4"/><path d="M486 150 h28" stroke="#90a4ae" stroke-width="4"/><rect x="490" y="156" width="20" height="30" rx="6" fill="#bbdefb" stroke="#90a4ae"/></g>`,
+    gym: () => `<rect width="800" height="300" fill="#e9ecef"/><rect width="800" height="300" fill="url(#none)"/>
+      <rect x="0" y="0" width="800" height="70" fill="#212529"/><text x="400" y="46" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="28" font-weight="700" letter-spacing="6" fill="#ef476f">FIT &amp; FROH</text>
+      <rect x="40" y="90" width="300" height="160" fill="#cfe2f3" stroke="#adb5bd" stroke-width="5"/><path d="M190 90 V250" stroke="#adb5bd" stroke-width="4"/>
+      ${floor('#495057', '#343a40')}
+      <g><rect x="420" y="190" width="150" height="70" rx="10" fill="#343a40"/><rect x="430" y="172" width="130" height="20" rx="6" fill="#212529"/><rect x="440" y="260" width="110" height="10" fill="#adb5bd" class="belt-slide"/><path d="M560 190 l20 -60" stroke="#6c757d" stroke-width="6"/><rect x="566" y="116" width="34" height="22" rx="4" fill="#212529"/><rect x="570" y="120" width="26" height="14" fill="#06d6a0" class="blink"/></g>
+      <g><rect x="630" y="240" width="140" height="8" rx="4" fill="#adb5bd"/>${[640, 660, 740, 760].map((x) => `<rect x="${x}" y="222" width="10" height="44" rx="3" fill="#212529"/>`).join('')}<path d="M650 300 v-50 M760 300 v-50" stroke="#6c757d" stroke-width="5"/></g>
+      ${crowd(300, 2, ['#5c677d', '#7d8597'], 1.6)}`,
+    stairwell: () => `<rect width="800" height="300" fill="#e9e1d3"/>
+      <path d="M0 300 L0 230 L80 230 L80 200 L160 200 L160 170 L240 170 L240 140 L320 140 L320 110 L400 110 V300 Z" fill="#c9b79c"/><path d="M0 230 L400 110" stroke="#6d4c41" stroke-width="6"/><path d="M20 230 v-60 M120 200 v-60 M220 170 v-60 M320 140 v-60" stroke="#6d4c41" stroke-width="3"/><path d="M20 170 L320 80" stroke="#6d4c41" stroke-width="6"/>
+      <rect x="470" y="50" width="160" height="252" rx="4" fill="#5d4037"/><rect x="486" y="66" width="128" height="100" rx="4" fill="#6d4c41"/><rect x="486" y="180" width="128" height="106" rx="4" fill="#6d4c41"/><circle cx="600" cy="180" r="6" fill="#ffd166"/><rect x="520" y="110" width="60" height="16" rx="3" fill="#ffd166"/><text x="550" y="123" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" font-weight="800" fill="#333">Wagner</text>
+      <g class="beep"><path d="M650 120 q14 -10 0 -20 M664 128 q24 -18 0 -36" stroke="#e63946" stroke-width="3" fill="none"/><text x="690" y="110" font-size="22">🎵</text></g>
+      <rect x="680" y="160" width="80" height="60" fill="#fff" stroke="#adb5bd" stroke-width="2"/><text x="720" y="180" text-anchor="middle" font-family="Nunito, sans-serif" font-size="9" font-weight="800" fill="#333">HAUSORDNUNG</text><path d="M692 192 h56 M692 202 h56 M692 212 h40" stroke="#ced4da" stroke-width="3"/>
+      ${floor('#b0a089', '#97866e')}`,
+    marketstall: () => `<rect width="800" height="300" fill="#dff3ff"/>
+      <g class="clouds"><ellipse cx="160" cy="60" rx="50" ry="16" fill="#fff"/><ellipse cx="560" cy="44" rx="40" ry="13" fill="#fff"/></g>
+      ${[0, 1, 2].map((k) => `<rect x="${k * 270 - 20}" y="70" width="250" height="230" fill="${['#f4a261', '#e9c46a', '#a8dadc'][k]}" opacity=".5"/>`).join('')}
+      ${floor('#c2b8a3', '#a99f89')}${crowd(300, 3, ['#7d8a99', '#9c8a75', '#6b7887'])}
+      <path d="M340 110 L780 110 L760 70 L360 70 Z" fill="#e63946"/>${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => `<path d="M${360 + i * 40} 70 l20 0 l-6 40 l-34 0 z" fill="#fff" opacity="${i % 2 ? 0 : 0.9}"/>`).join('')}
+      <path d="M356 110 V300 M764 110 V300" stroke="#8d6e63" stroke-width="8"/>
+      <rect x="350" y="214" width="420" height="100" fill="#8d6e63"/><rect x="340" y="204" width="440" height="16" rx="4" fill="#a1887f"/>
+      ${[[380, '#e63946', 'Äpfel 2,80 €/kg'], [480, '#f4a261', 'Möhren 1,50 €'], [580, '#2a9d8f', 'Salat 1,20 €'], [680, '#9d4edd', 'Pflaumen 3,90 €']].map(([x, c, t]) => `<g><rect x="${x - 40}" y="176" width="84" height="30" rx="4" fill="#c8a165"/>${[0, 1, 2, 3, 4].map((j) => `<circle cx="${x - 26 + j * 13}" cy="${176 - (j % 2) * 6}" r="8" fill="${c}"/>`).join('')}<rect x="${x - 34}" y="140" width="72" height="18" rx="3" fill="#fff"/><text x="${x + 2}" y="153" text-anchor="middle" font-family="Nunito, sans-serif" font-size="9" font-weight="800" fill="#333">${t}</text></g>`).join('')}`,
+  });
+
   // lighting per background: '' = daylight, 'evening' = warm, 'night' = dark blue, 'cool' = fluorescent
-  const MOOD = { restaurant: 'evening', dining: 'evening', doorway: 'evening', hotelroom: 'evening', security: 'cool', amt: 'cool', counter: 'cool', police: 'cool', exam: 'cool', practice: 'cool', checkout: 'cool' };
+  const MOOD = { restaurant: 'evening', dining: 'evening', doorway: 'evening', hotelroom: 'evening', security: 'cool', amt: 'cool', counter: 'cool', police: 'cool', exam: 'cool', practice: 'cool', checkout: 'cool', hospital: 'cool', stairwell: 'night', phoneshop: 'cool' };
 
   /* ---------- player ---------- */
   function progressOf(id) { return ((Store.state.scenes = Store.state.scenes || {})[id]) || {}; }
@@ -286,6 +334,8 @@
     };
   }
 
+  const speakMode = () => Rec.supported && !(GL.Speak && GL.Speak.micBlocked) && Store.state.settings.sceneSpeak !== false;
+
   function player(sc) {
     let token = 0, sceneIdx = 0, stepIdx = 0, choices = 0, firstTry = 0, auto = true, showEn = Store.state.settings.showEn;
     return {
@@ -294,7 +344,7 @@
           <div class="scn-top"><div><span class="scn-big-icon">${sc.icon}</span> <b>${esc(sc.title)}</b> <span class="muted">· ${esc(sc.en)}</span></div>
             <div class="scn-dots">${sc.scenes.map((s, i) => `<span data-i="${i}" title="${attr(s.title)}"></span>`).join('')}</div></div>
           <div class="scn-stage" id="scnStage"><div class="scn-cam"><svg class="scn-bg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice"></svg><div class="scn-actors"></div></div><div class="scn-light"></div><div class="scn-announce"></div><div class="scn-caption"></div><div class="scn-card-overlay"></div></div>
-          <div class="scn-controls row"><button class="btn ghost small" id="scnAuto">⏸ Pause after each line</button><button class="btn ghost small" id="scnReplay">🔁 Repeat line</button><button class="btn ghost small" id="scnEn">${showEn ? '🙈 Hide English' : '👀 Show English'}</button><span class="spacer"></span><span class="pill" id="scnScore">🎯 0 / 0</span></div>
+          <div class="scn-controls row"><button class="btn ghost small" id="scnAuto">⏸ Pause after each line</button><button class="btn ghost small" id="scnReplay">🔁 Repeat line</button><button class="btn ghost small" id="scnEn">${showEn ? '🙈 Hide English' : '👀 Show English'}</button>${Rec.supported ? `<button class="btn ghost small" id="scnSpeak">${speakMode() ? '🎤 Speak mode: on' : '🖱️ Speak mode: off'}</button>` : ''}<span class="spacer"></span><span class="pill" id="scnScore">🎯 0 / 0</span></div>
           <div class="card scn-panel" id="scnPanel"></div>
           <div class="scn-log" id="scnLog"></div>
         </div>`,
@@ -308,6 +358,8 @@
         $('#scnReplay').onclick = () => { if (lastLine) speakLine(lastLine[0], lastLine[1], token); };
         $('#scnEn').onclick = (e) => { showEn = !showEn; e.target.textContent = showEn ? '🙈 Hide English' : '👀 Show English'; stage.classList.toggle('no-en', !showEn); log.classList.toggle('hide-en', !showEn); };
         stage.classList.toggle('no-en', !showEn); log.classList.toggle('hide-en', !showEn);
+        const spBtn = $('#scnSpeak');
+        if (spBtn) spBtn.onclick = () => { Store.state.settings.sceneSpeak = !speakMode(); Store.save(); spBtn.textContent = speakMode() ? '🎤 Speak mode: on' : '🖱️ Speak mode: off'; GL.toast(speakMode() ? 'Speak mode on: say your lines out loud at each 🎤 moment.' : 'Speak mode off: choose the right sentence.'); };
         let waitNext = null, pos = {};
         const cam = $('.scn-cam', stage);
         const camera = (x, k = 1.07) => {
@@ -464,6 +516,26 @@
               }
             };
             $$('.opt', panel).forEach((b) => (b.onclick = () => pickOpt(b)));
+            // speak mode: say the line instead of clicking it
+            if (speakMode() && GL.Speak) {
+              const opts = $('.opts', panel);
+              opts.classList.add('hidden');
+              opts.insertAdjacentHTML('beforebegin', '<div class="scn-speak"><div class="sp-slot"></div><button class="btn tiny ghost" id="scnShowOpts">🖱️ Show the options instead</button></div>');
+              const showOpts = () => { opts.classList.remove('hidden'); const b = $('#scnShowOpts'); b && b.remove(); };
+              $('#scnShowOpts').onclick = showOpts;
+              let fails = 0;
+              GL.Speak.attempt($('.scn-speak .sp-slot', panel), {
+                targets: [st.o[st.a]], wrong: st.o.filter((_, k) => k !== st.a), noListen: true, hideTarget: true, pass: 80, wrongHint: st.ex,
+                label: 'Say your answer out loud',
+                onBlocked: () => { showOpts(); const sp = $('.scn-speak', panel); sp && sp.remove(); GL.toast('Microphone not available here – choose the sentence instead.'); },
+                onResult: (r) => {
+                  if (r.ok) { pickOpt($(`.opt[data-i="${st.a}"]`, panel)); const ss = $('#scnSay'); ss && ss.remove(); const sp = $('.scn-speak', panel); sp && sp.remove(); return; }
+                  if (r.matchedWrong) { const wb = $$('.opt', panel).find((b) => st.o[+b.dataset.i] === r.matchedWrong); if (wb) pickOpt(wb); }
+                  else { tries++; fails++; }
+                  if (fails >= 2 || r.matchedWrong) showOpts();
+                },
+              });
+            }
             const keys = (e) => {
               if (!panel.isConnected || !$('.your-turn', panel)) { document.removeEventListener('keydown', keys); return; }
               const k = parseInt(e.key, 10); const b = $$('.opt', panel)[k - 1];

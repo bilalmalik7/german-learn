@@ -815,3 +815,41 @@ mark.wm sup { font-size: .62rem; font-weight: 800; color: var(--red); margin-lef
 .wr-hrow:hover { border-color: var(--blue); }
 @media (max-width: 640px) { .nav a { padding: 8px 5px; font-size: 1.15rem; } .wr-bar { grid-template-columns: 100px 1fr 24px; } }
 a.chip { text-decoration: none; display: inline-block; }
+
+/* ---------- speaking practice ---------- */
+.sp-tabs { margin: 4px 0 16px; }
+.sp-goal { height: 6px; border-radius: 99px; background: var(--line); margin-top: 4px; overflow: hidden; width: 110px; }
+.sp-goal i { display: block; height: 100%; background: var(--green); border-radius: 99px; transition: width .4s; }
+.sp-att { margin-top: 10px; }
+.sp-label { font-weight: 800; margin-bottom: 6px; color: var(--ink2); }
+.sp-btns { gap: 8px; }
+.sp-note { font-size: .88rem; margin: 6px 0 0; }
+.sp-heard { margin-top: 10px; }
+.sp-words { margin: 8px 0 4px; line-height: 2; font-size: 1.08rem; }
+.say-word { font: inherit; border: 0; background: none; cursor: pointer; padding: 0 3px; }
+.sp-subs { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0 6px; font-size: .92rem; }
+.sp-tips { margin: 8px 0 0; padding-left: 0; list-style: none; font-size: .9rem; color: var(--ink2); }
+.sp-tips li { margin-top: 3px; }
+.sp-target { font-size: clamp(1.25rem, 2.6vw, 1.6rem); font-weight: 800; font-family: var(--display); margin: 10px 0; line-height: 1.35; }
+.sp-target.blurred, .blurred { filter: blur(7px); cursor: pointer; user-select: none; transition: filter .3s; }
+.sp-prompt { font-size: clamp(1.15rem, 2.4vw, 1.45rem); font-weight: 800; margin: 10px 0 4px; }
+.sp-answer { background: color-mix(in srgb, var(--green) 14%, var(--card)); border-radius: 12px; padding: 8px 12px; margin: 10px 0 0; }
+.sp-kind { font-weight: 800; color: var(--ink2); text-transform: uppercase; letter-spacing: .05em; font-size: .8rem; margin-top: 8px; }
+.sp-dots { display: flex; gap: 5px; margin: 12px 0 4px; }
+.sp-dots span { flex: 1; height: 8px; border-radius: 99px; background: var(--line); transition: background .3s; }
+.sp-dots span.now { background: var(--gold); }
+.sp-dots span.ok { background: var(--green); }
+.sp-dots span.bad { background: var(--red); opacity: .6; }
+.sp-weak { display: flex; flex-wrap: wrap; gap: 6px; }
+.sp-src { gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.sp-src select { min-width: 0; max-width: 100%; flex: 1 1 220px; }
+.sp-toggle { display: flex; gap: 6px; align-items: center; font-weight: 700; }
+.sp-shadow { display: flex; gap: 16px; align-items: flex-start; margin-top: 10px; }
+.sp-sh-char { flex: none; text-align: center; }
+.sp-sh-char svg.char { width: 110px; }
+.sp-sh-char small { display: block; font-weight: 800; color: var(--ink2); }
+@media (max-width: 640px) { .sp-shadow { flex-direction: column; align-items: center; } .sp-shadow > div:last-child { width: 100%; } .sp-sh-char svg.char { width: 90px; } }
+.sp-type { margin-top: 12px; }
+.call-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: var(--bg2); }
+.call-bar .btn.listening { animation: pulse 1.2s infinite; }
+.scn-speak { display: grid; gap: 6px; justify-items: start; }

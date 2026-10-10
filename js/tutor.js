@@ -130,13 +130,17 @@ Question: ${q}`, { signal: ctl.signal, onText: ({ text }) => { out.innerHTML = `
         <label class="muted" for="tAns">Answer out loud in a full sentence${Rec.supported ? ' (🎤) or type it' : ', then type it'}:</label>
         <div class="row" style="margin-top:6px;align-items:stretch"><textarea class="txt-in" id="tAns" rows="2" style="flex:1;min-width:0" placeholder="Ich …"></textarea></div>
         <div class="row" style="margin-top:10px"><button class="btn ghost" id="tModel">👀 Model answer</button><span id="tAi"></span><span class="spacer"></span><button class="btn" id="tNext">Next question ➜</button></div>
-        <div id="tModelBox" class="hidden" style="margin-top:12px"><div class="ex"><button class="say-btn" data-say="${attr(q[3])}">🔊</button><span class="ex-de">${esc(q[3])}</span><span class="ex-en">Say it aloud, then adapt it to your own life.</span></div></div>
+        <div id="tModelBox" class="hidden" style="margin-top:12px"><div class="ex"><button class="say-btn" data-say="${attr(q[3])}">🔊</button><span class="ex-de">${esc(q[3])}</span><span class="ex-en">Say it aloud, then adapt it to your own life.</span></div><div class="tSay"></div></div>
         <div id="tAiOut"></div>`;
       const ta = $('#tAns', root);
       const mic = micButton(ta);
       if (mic) ta.parentNode.appendChild(mic);
       setTimeout(() => { const svg = $('.char-bubble svg', root); GL.charSay(svg, q[1], char); }, 250);
-      $('#tModel', root).onclick = () => $('#tModelBox', root).classList.toggle('hidden');
+      $('#tModel', root).onclick = () => {
+        const box = $('#tModelBox', root); box.classList.toggle('hidden');
+        const slot = $('.tSay', box);
+        if (GL.Speak && !slot.childElementCount) GL.Speak.attempt(slot, { targets: [q[3]], char, label: 'Now say the model answer' });
+      };
       $('#tNext', root).onclick = () => { i++; Store.addXP(2); draw(); };
       $$('.chips [data-l]', root).forEach((b) => (b.onclick = () => { level = b.dataset.l; st.level = level; Store.save(); load(); draw(); }));
       const slot = $('#tAi', root);
@@ -170,6 +174,7 @@ The conversation starts with your line: "${sc.opener}"`;
         <textarea class="txt-in" id="cIn" rows="2" placeholder="Antworte auf Deutsch … (Enter to send)"></textarea>
         <div class="row" style="gap:8px"><button class="btn green" id="cSend">Send ➜</button><button class="btn ghost small" id="cEnd">🏁 Finish & get feedback</button></div>
       </div>
+      ${Rec.supported ? '<div class="call-bar"><button class="btn small ghost" id="cCall">📞 Start call mode (hands-free)</button><span class="muted" id="cCallInfo">Speak instead of typing: the mic opens by itself after each reply.</span></div>' : ''}
       <div class="umlauts" id="cUml">${['ä', 'ö', 'ü', 'ß'].map((x) => `<button type="button" data-ch="${x}" tabindex="-1">${x}</button>`).join('')}</div>
       <div id="cSummary"></div>`;
     const log = $('#chatLog', root), inp = $('#cIn', root), head = $('.chat-head svg', root);
@@ -178,12 +183,13 @@ The conversation starts with your line: "${sc.opener}"`;
     $('#cUml', root).onmousedown = (e) => e.preventDefault();
     $('#cUml', root).onclick = (e) => { const u = e.target.closest('[data-ch]'); if (!u) return; const s = inp.selectionStart ?? inp.value.length; inp.value = inp.value.slice(0, s) + u.dataset.ch + inp.value.slice(s); inp.focus(); inp.setSelectionRange(s + 1, s + 1); };
 
+    let lastSay = Promise.resolve(), call = false;
     const addBot = (de, en) => {
       const el = document.createElement('div');
       el.className = 'msg bot';
       el.innerHTML = `<div class="av">${GL.charSVG(sc.char)}</div><div class="bub"><div class="ln-de">${esc(de)}</div>${en ? `<div class="ln-en">${esc(en)}</div>` : ''}<button class="btn tiny ghost" data-say="${attr(de)}" data-char="${sc.char}">🔊</button></div>`;
       log.appendChild(el); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      GL.charSay(head, de, sc.char);
+      lastSay = GL.charSay(head, de, sc.char);
       return el;
     };
     const addMe = (text) => {
@@ -220,6 +226,8 @@ The conversation starts with your line: "${sc.opener}"`;
         turns.push({ role: 'assistant', content: reply });
         addBot(reply, r && r.reply_en);
         Store.addXP(mistakes.length ? 3 : 5);
+        if (GL.Speak) GL.Speak.log(mistakes.length ? 70 : 100, text);
+        if (call) lastSay.then(() => setTimeout(listenTurn, 250));
       } catch (e) {
         wait.remove();
         turns.pop();
@@ -231,6 +239,33 @@ The conversation starts with your line: "${sc.opener}"`;
       inp.focus();
     };
     $('#cSend', root).onclick = send;
+    // hands-free call mode: the mic opens after every reply
+    const callBtn = $('#cCall', root), callInfo = $('#cCallInfo', root);
+    const listenTurn = async () => {
+      if (!call || busy || !root.isConnected) return;
+      callBtn.textContent = '👂 Listening … (tap to stop)'; callBtn.classList.add('listening');
+      try {
+        const alts = await Rec.listen();
+        if (!call) return;
+        inp.value = alts[0];
+        callInfo.textContent = 'You said: „' + alts[0] + '“';
+        callBtn.textContent = '📞 Call mode on – tap to stop'; callBtn.classList.remove('listening');
+        send();
+      } catch (e) {
+        callBtn.classList.remove('listening');
+        const fatal = /not-allowed|service-not-allowed|unsupported|audio-capture/.test(e && e.message);
+        callInfo.textContent = fatal ? GL.Dialogue.micError(e) : 'I didn’t catch that – tap 🎤 below to answer, or wait and tap the call button again.';
+        if (fatal) { call = false; callBtn.textContent = '📞 Start call mode (hands-free)'; if (GL.Speak) GL.Speak.micBlocked = true; }
+        else callBtn.textContent = '🎤 Tap to answer';
+      }
+    };
+    if (callBtn) callBtn.onclick = () => {
+      if (call && callBtn.classList.contains('listening')) { call = false; Rec.stop(); callBtn.classList.remove('listening'); callBtn.textContent = '📞 Start call mode (hands-free)'; callInfo.textContent = 'Call mode stopped.'; return; }
+      if (call && !busy) { listenTurn(); return; }
+      call = true; callBtn.textContent = '📞 Call mode on – tap to stop';
+      callInfo.textContent = 'Wait for the character to finish, then answer out loud.';
+      lastSay.then(() => setTimeout(listenTurn, 250));
+    };
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
     $('#cEnd', root).onclick = async () => {
       const out = $('#cSummary', root);
@@ -248,42 +283,8 @@ The conversation starts with your line: "${sc.opener}"`;
         Store.addXP(15); GL.confetti(70); GL.sfx('done');
       } catch (e) { out.innerHTML = `<p class="muted">${esc(AI.errorText(e))}</p>`; }
     };
-    return () => ctl && ctl.abort();
+    return () => { call = false; Rec.stop(); ctl && ctl.abort(); };
   }
 
-  GL.viewTalk = function (sub) {
-    return {
-      html: `<h1>💬 Sprechen – Talk</h1>
-        <p class="muted">Grammar becomes automatic only when you use it. Answer real questions out loud, and – where available – have a full conversation with the characters while Bruno corrects every sentence.</p>
-        <div id="aiSection"></div>
-        <div class="card"><h2>🗣️ Speaking drill: ${GL.talkQuestions.length} everyday questions</h2>
-          <p class="muted">The character asks, you answer aloud in a full sentence, then compare with the model answer. Do 10 a day.</p>
-          <div id="drillRoot"></div></div>`,
-      mount() {
-        drill($('#drillRoot'));
-        const ai = $('#aiSection');
-        AI.get().then((sample) => {
-          if (!ai.isConnected) return;
-          if (!sample) {
-            ai.innerHTML = `<div class="note">The AI conversation partner and automatic corrections are available when you open this course on claude.ai. The speaking drill below works everywhere.</div>`;
-            return;
-          }
-          const sc = sub && GL.talkScenarios.find((x) => x.id === sub);
-          if (sc) {
-            ai.innerHTML = '<div class="card" id="chatRoot"></div>';
-            const stop = chat($('#chatRoot'), sc);
-            const my = location.hash;
-            const iv = setInterval(() => { if (location.hash !== my) { stop(); clearInterval(iv); } }, 500);
-            $('#drillRoot').closest('.card').classList.add('hidden');
-            return;
-          }
-          ai.innerHTML = `<div class="card"><h2>🤖 Conversation with the characters <span class="ai-badge">AI</span></h2>
-            <p class="muted">Pick a situation. Type (or speak) your answers in German – the character replies, and every message you send is corrected with a short explanation.</p>
-            <div class="grid grid-3">${GL.talkScenarios.map((s) => `<a class="topic-card scen" href="#/talk/${s.id}"><div class="row" style="gap:10px;align-items:center">${GL.charSVG(s.char, 'idle')}<div style="min-width:0"><span class="level ${s.level}">${s.level}</span><b>${esc(s.de)}</b><small>${esc(s.title)} · with ${esc(GL.chars[s.char].name)}</small></div></div></a>`).join('')}</div></div>`;
-        });
-      },
-    };
-  };
-
-  GL.Tutor = { aiCorrect, correctionHTML, mountCorrector, mountAsk, levelOfDay };
+  GL.Tutor = { aiCorrect, correctionHTML, mountCorrector, mountAsk, levelOfDay, drill, chat, micButton };
 })();
