@@ -1055,3 +1055,6 @@ body.login-open { overflow: hidden; }
 .pw-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
 .pw-form .txt-in { flex: 1 1 180px; min-width: 0; }
 @media (max-width: 480px) { .login-box { padding: 18px 16px 14px; border-radius: 20px; } .login-hero svg { width: 72px; height: 72px; } .login-hero h1 { font-size: 1.45rem; } }
+.setup-warn ul { margin: 6px 0; padding-left: 18px; }
+.setup-warn li { margin: 4px 0; }
+.setup-warn code { font-size: .85em; }

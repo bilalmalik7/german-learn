@@ -265,6 +265,15 @@
     return sample;
   }
 
+  /* Shown to the site owner until the Vercel project is fully set up. */
+  function setupHTML(missing) {
+    const env = missing.filter((m) => m !== 'BLOB');
+    return `<div class="warn setup-warn"><b>⚙️ Setup not finished</b> – the website still needs:
+      <ul>${env.map((m) => `<li><b>${h(m)}</b> – Vercel → your project → <i>Settings → Environment Variables</i> → add <code>${h(m)}</code>${m === 'SESSION_SECRET' ? ' (any long random text)' : ' (the teacher’s first password)'}</li>`).join('')}
+      ${missing.includes('BLOB') ? '<li><b>Storage</b> – Vercel → your project → <i>Storage → Create → Blob</i>, choose <b>Private</b>, connect it to this project</li>' : ''}</ul>
+      Then: <i>Deployments → ⋯ → <b>Redeploy</b></i>. Settings only take effect after a redeploy.</div>`;
+  }
+
   /* ---------- login screen ---------- */
   function showLogin(note) {
     if (document.getElementById('d30Login')) return;
@@ -285,7 +294,7 @@
         <p class="login-err" role="alert"></p>
       </form>
       <p class="muted login-help">No login yet? Your teacher creates it for you in the teacher portal.</p>
-      ${D30.health && D30.health.configured === false ? '<p class="warn">The server is missing its settings (SESSION_SECRET / TEACHER_PASSWORD) – see README.</p>' : ''}
+      ${D30.health && D30.health.configured === false ? setupHTML(D30.health.missing || ['SESSION_SECRET', 'TEACHER_PASSWORD']) : ''}
       <button type="button" class="login-guest" id="d30Guest">Just look around without an account →</button>
     </div>`;
     document.body.appendChild(box);

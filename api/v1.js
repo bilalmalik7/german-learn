@@ -257,7 +257,11 @@ async function ai(input, json) {
 /* ---------- operations ---------- */
 const ops = {
   async health() {
-    return { ok: true, ai: !!process.env.ANTHROPIC_API_KEY, storage: useBlob ? 'blob' : noStorage ? 'missing' : 'local', configured: !!(SECRET && process.env.TEACHER_PASSWORD && !noStorage) };
+    const missing = [];
+    if (!SECRET) missing.push('SESSION_SECRET');
+    if (!process.env.TEACHER_PASSWORD) missing.push('TEACHER_PASSWORD');
+    if (noStorage) missing.push('BLOB');
+    return { ok: true, ai: !!process.env.ANTHROPIC_API_KEY, storage: useBlob ? 'blob' : noStorage ? 'missing' : 'local', configured: !missing.length, missing };
   },
   async login(req, b) {
     const u = normUser(b.username), pw = String(b.password || '');
