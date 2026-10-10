@@ -1021,3 +1021,7 @@ a, button, .chip, .opt, label, summary, [data-say] { touch-action: manipulation;
 .inv-form { display: grid; grid-template-columns: 1.2fr 1.4fr 1.2fr auto; gap: 8px; margin-top: 8px; align-items: center; }
 .inv-form #invInfo { grid-column: 1 / -1; }
 @media (max-width: 760px) { .inv-form { grid-template-columns: 1fr; } }
+#navAdmin.conn-off:not(.hidden) { background: var(--card); border-color: var(--line); }
+.conn-banner { display: flex; gap: 10px; align-items: center; padding: 12px 16px; margin-bottom: 14px; border-radius: 16px; border: 2px solid var(--gold); background: color-mix(in srgb, var(--gold) 18%, var(--card)); color: var(--ink); text-decoration: none; }
+.conn-card details { margin-top: 12px; }
+.conn-card b, .conn-card li { overflow-wrap: anywhere; }

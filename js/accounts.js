@@ -144,7 +144,7 @@
         const card = $('#regCard');
         Cloud.init.then(async () => {
           if (!card.isConnected) return;
-          if (!Cloud.ready) { card.innerHTML = '<p>Registration works when the course is opened from your teacher’s claude.ai link.</p><a class="btn" href="#/">Continue</a>'; return; }
+          if (!Cloud.ready) { card.outerHTML = GL.connectionHelpHTML('login'); GL.wireConnectionHelp($('#app')); return; }
           const me = await Cloud.user.me();
           const preview = Cloud.owner;
           card.innerHTML = `${preview ? '<div class="note">👀 <b>Preview:</b> this is the login screen your students see the first time they open the course. Saving is switched off for you as the teacher. <a href="#/admin">← Back to the teacher portal</a></div>' : ''}${me.name ? `<p class="reg-acc"><img src="${attr(me.avatarUrl)}" alt=""> Signed in as <b></b></p>` : ''}
@@ -181,7 +181,11 @@
     if (!slot) return;
     Cloud.init.then(() => {
       const draw = async () => {
-        if (!slot.isConnected || !Cloud.ready) return;
+        if (!slot.isConnected) return;
+        if (!Cloud.ready) {
+          if (Cloud.status.done && Cloud.status.framed) slot.innerHTML = `<a class="conn-banner" href="#/admin">🔌 <span><b>Login & teacher portal are not connected in this view.</b> Tap to see why and how to fix it.</span></a>`;
+          return;
+        }
         if (Cloud.owner) {
           const st = Cloud.all.filter((l) => l.id !== Cloud.uid);
           const reg = st.filter((l) => l.profile).length;
@@ -209,7 +213,7 @@
         const root = $('#profRoot');
         Cloud.init.then(async () => {
           if (!root.isConnected) return;
-          if (!Cloud.ready) { root.innerHTML = `<div class="note">Accounts work when the course is opened from your teacher’s claude.ai link. Here your progress is saved in this browser only – use <a href="#/settings">Settings → Export</a> to move it.</div>`; return; }
+          if (!Cloud.ready) { root.innerHTML = GL.connectionHelpHTML('login') + `<p class="muted">Until then your progress is saved in this browser only – use <a href="#/settings">Settings → Export</a> to move it.</p>`; GL.wireConnectionHelp(root); return; }
           if (Cloud.owner) { root.innerHTML = `<div class="note">You are the teacher (owner). Your students’ accounts are in the <a href="#/admin">📊 Teacher dashboard</a>. <a href="#/register">Preview the registration screen</a>.</div>`; return; }
           const me = await Cloud.user.me();
           const p = profile();

@@ -118,25 +118,72 @@
     if (snap.exists) await ref.update(body); else await ref.set(body);
   });
 
+  /* Connection status, so the page can explain (instead of silently hiding) a missing login / portal. */
+  GL.COURSE_URL = 'https://claude.ai/artifact/QSGxPhc61Dihr1fK2k1aqJ';
+  Cloud.status = { framed: !!(window.claude && typeof window.claude.use === 'function'), done: false, reason: 'pending' };
   Cloud.init = (async () => {
-    const [db, user] = await Promise.all([GL.useCap('db'), GL.useCap('user')]);
-    if (!db || !user) return Cloud;
-    const uid = await user.id();
-    if (!uid) return Cloud;
-    Object.assign(Cloud, { db, user, uid, ready: true, owner: await user.isOwner(), canWrite: await user.can('data.write') });
-    if (Cloud.canWrite === false && !Cloud.owner) Cloud.blocked = true;
-    Cloud.ref = db.doc('learners/' + uid);
-    Cloud.ref.onSnapshot((snap) => { Cloud.mine = snap.exists ? snap.data() : null; Cloud.mineLoaded = true; emit(); }, () => { Cloud.mineLoaded = true; emit(); });
-    if (Cloud.owner) {
-      db.collection('learners').onSnapshot((q) => { Cloud.all = q.docs.map((d) => Object.assign({ id: d.id }, d.data())); emit(); }, () => {});
-      db.doc('teacher/roster').onSnapshot((snap) => { const d = (snap.exists && snap.data()) || {}; Cloud.roster = d.students || {}; Cloud.invites = d.invites || {}; emit(); }, () => {});
+    const S = Cloud.status;
+    try {
+      const [db, user, perms] = await Promise.all([GL.useCap('db'), GL.useCap('user'), GL.useCap('permissions')]);
+      Object.assign(S, { db: !!db, user: !!user });
+      if (perms) { Cloud.perms = perms; try { S.perms = await perms.state(); } catch (e) { /* not available */ } }
+      if (user) { try { S.owner = await user.isOwner(); } catch (e) {} }
+      if (!db || !user) { S.reason = S.framed ? 'unavailable' : 'local'; return Cloud; }
+      const uid = await user.id();
+      S.uid = !!uid;
+      if (!uid) { S.reason = 'no-id'; return Cloud; }
+      Object.assign(Cloud, { db, user, uid, ready: true, owner: await user.isOwner(), canWrite: await user.can('data.write') });
+      if (Cloud.canWrite === false && !Cloud.owner) Cloud.blocked = true;
+      Cloud.ref = db.doc('learners/' + uid);
+      Cloud.ref.onSnapshot((snap) => { Cloud.mine = snap.exists ? snap.data() : null; Cloud.mineLoaded = true; emit(); }, (e) => { S.dbError = e && e.code; Cloud.mineLoaded = true; emit(); });
+      if (Cloud.owner) {
+        db.collection('learners').onSnapshot((q) => { Cloud.all = q.docs.map((d) => Object.assign({ id: d.id }, d.data())); emit(); }, (e) => { S.dbError = e && e.code; emit(); });
+        db.doc('teacher/roster').onSnapshot((snap) => { const d = (snap.exists && snap.data()) || {}; Cloud.roster = d.students || {}; Cloud.invites = d.invites || {}; emit(); }, () => {});
+      }
+      S.reason = 'ok';
+      try { sync(); } catch (e) { S.syncError = String(e && e.message || e); }
+      setInterval(() => { try { sync(); } catch (e) {} }, 120000);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) { try { sync(); } catch (e) {} } });
+    } catch (e) {
+      S.reason = 'error'; S.error = (e && (e.code || e.message)) || String(e);
+    } finally {
+      S.done = true;
+      emit();
     }
-    sync();
-    setInterval(sync, 120000);
-    document.addEventListener('visibilitychange', () => { if (document.hidden) sync(); });
-    emit();
     return Cloud;
   })();
+
+  /* Help card shown wherever the login / portal would be when the connection is missing. */
+  GL.connectionHelpHTML = (where) => {
+    const S = Cloud.status;
+    const yes = (v) => (v ? '✅' : v === false ? '❌' : '–');
+    const pm = S.perms || {};
+    const denied = Object.entries(pm).filter(([k, v]) => ['db', 'user'].includes(k) && v === 'denied').map(([k]) => k);
+    const ask = Object.entries(pm).filter(([k, v]) => ['db', 'user'].includes(k) && v === 'prompt').map(([k]) => k);
+    const why = !S.done ? 'Still connecting…'
+      : S.reason === 'local' ? 'This copy is not running inside claude.ai (for example a downloaded file or GitHub Pages). Logins and the teacher portal only exist in the claude.ai version.'
+      : S.reason === 'unavailable' ? 'This view of claude.ai does not give the page its account and data features. This happens when the course is opened as a stand-alone page (for example “open in new tab” / full screen) or in an app view that doesn’t support them.'
+      : S.reason === 'no-id' ? 'claude.ai did not share your account with the page yet – usually a permission that still has to be allowed.'
+      : S.reason === 'error' ? 'Connecting failed (' + esc(S.error || 'unknown') + ').'
+      : 'Connected.';
+    return `<div class="card conn-card"><h2 style="margin-top:0">🔌 ${where === 'admin' ? 'Teacher portal' : 'Student login'} is not connected</h2>
+      <p>${why}</p>
+      ${denied.length ? `<div class="warn">You (or the browser) declined a permission this page needs: <b>${denied.join(', ')}</b>. Use “Open permissions” below and switch it back on.</div>` : ''}
+      <div class="row" style="margin:12px 0">${Cloud.perms ? `<button class="btn green" id="connAllow">🔓 Allow access</button><button class="btn ghost" id="connManage">⚙️ Open permissions</button>` : ''}<button class="btn ghost" id="connRetry">🔄 Try again</button></div>
+      <h3>How to open the course so that login & portal work</h3>
+      <ol class="add-steps">
+        <li>Open <b>${esc(GL.COURSE_URL)}</b> while you are <b>signed in to claude.ai</b> – on a computer, or in your phone’s browser (Chrome / Safari).</li>
+        <li>Use the course <b>inside the claude.ai page</b> (with the claude.ai bar around it) – not “open in new tab”, full-screen or a downloaded copy.</li>
+        <li>If claude.ai asks for permission to use your account / data, choose <b>Allow</b>.</li>
+        <li>You are the teacher when you open it from the account that created the course. Then the yellow <b>📊 Teacher portal</b> button appears at the top.</li>
+      </ol>
+      <details><summary class="muted">Technical details</summary><div class="kv"><span>Inside claude.ai viewer</span><b>${yes(S.framed)}</b></div><div class="kv"><span>Data storage (db)</span><b>${yes(S.db)}</b></div><div class="kv"><span>Account (user)</span><b>${yes(S.user)}</b></div><div class="kv"><span>Account id shared</span><b>${yes(S.uid)}</b></div><div class="kv"><span>Course owner</span><b>${yes(S.owner)}</b></div><div class="kv"><span>Permissions</span><b>${esc(Object.entries(pm).map(([k, v]) => k + ': ' + v).join(', ') || '–')}</b></div><div class="kv"><span>Status</span><b>${esc(S.reason)}</b></div></details></div>`;
+  };
+  GL.wireConnectionHelp = (root) => {
+    const r = $('#connRetry', root); if (r) r.onclick = () => location.reload();
+    const a = $('#connAllow', root); if (a) a.onclick = async () => { a.disabled = true; try { await Cloud.perms.request(['db', 'user']); } catch (e) {} location.reload(); };
+    const m = $('#connManage', root); if (m) m.onclick = async () => { try { await Cloud.perms.manage(); location.reload(); } catch (e) { GL.toast('Open the course’s <b>Permissions</b> menu on claude.ai and allow access.'); } };
+  };
 
   const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   Cloud.send = async (type, text, context) => {
@@ -159,7 +206,15 @@
   function updateNav() {
     const t = $('#navTeacher'), a = $('#navAdmin');
     if (t) { t.classList.toggle('hidden', !Cloud.ready || Cloud.owner); const n = Cloud.unread(); $('.nb', t).textContent = n || ''; $('.nb', t).classList.toggle('hidden', !n); }
-    if (a) { a.classList.toggle('hidden', !Cloud.owner); const n = Cloud.openCount(); $('.nb', a).textContent = n || ''; $('.nb', a).classList.toggle('hidden', !n); }
+    if (a) {
+      const off = Cloud.status.done && !Cloud.ready;
+      a.classList.toggle('hidden', !(Cloud.owner || off));
+      a.classList.toggle('conn-off', off);
+      $('.adm-lbl', a).textContent = off ? 'Login & portal' : 'Teacher portal';
+      $('.adm-lbl-s', a).textContent = off ? 'Login' : 'Portal';
+      a.firstChild.textContent = off ? '🔐' : '📊';
+      const n = Cloud.openCount(); $('.nb', a).textContent = n || ''; $('.nb', a).classList.toggle('hidden', !n);
+    }
   }
 
   const TYPES = { question: '❓ Question', correct: '✍️ Please correct my text', other: '💬 Other' };
@@ -321,7 +376,7 @@
         const root = $('#admRoot');
         Cloud.init.then(() => {
           if (!root.isConnected) return;
-          if (!Cloud.ready) { root.innerHTML = `<div class="note">The dashboard uses shared data, so it works when this course is opened on claude.ai (your published link). This local copy has no shared storage.</div>`; return; }
+          if (!Cloud.ready) { root.innerHTML = GL.connectionHelpHTML('admin'); GL.wireConnectionHelp(root); return; }
           if (!Cloud.owner) { root.innerHTML = `<div class="note">Only the teacher (owner) of this course can open the teacher portal.</div><p><a class="btn" href="#/teacher">📨 Message my teacher</a></p>`; return; }
           const render = async () => {
             if (!root.isConnected) return;
