@@ -235,6 +235,33 @@
       ${[80, 300].map((x) => `<g><rect x="${x}" y="30" width="180" height="270" fill="#fff"/><line x1="${x}" y1="36" x2="${x + 180}" y2="36" stroke="#888" stroke-width="5"/><path class="curtain" d="M${x} 36 h${170} q-10 130 0 264 h-170 q10 -130 0 -264z" fill="#9d4edd"/></g>`).join('')}
       <rect x="560" y="40" width="160" height="240" rx="80" fill="#cfe8f3" stroke="#c9a227" stroke-width="8"/><path d="M600 80 l30 -20 M610 110 l50 -36" stroke="#fff" stroke-width="6" opacity=".7"/>
       ${floor('#e2cfd6', '#cdb5be')}`,
+    /* Job German: a modern fashion store, its backstage, the till and the break room */
+    store: () => `<rect width="800" height="300" fill="#f6f4f1"/><rect width="800" height="26" fill="#1f1f1f"/>
+      ${sign(290, 34, 220, 'NEUMARKT · FASHION', '#1f1f1f')}
+      ${[0, 1, 2].map((i) => lamp(130 + i * 270)).join('')}
+      ${[40, 560].map((bx, j) => `<g><line x1="${bx}" y1="110" x2="${bx + 200}" y2="110" stroke="#9e9e9e" stroke-width="5"/>${[0, 1, 2, 3, 4, 5].map((i) => `<g class="hanger" style="animation-delay:${i * 0.25 + j}s"><path d="M${bx + 18 + i * 32} 110 l-12 12 h24 z" fill="none" stroke="#666" stroke-width="2"/><path d="M${bx + 6 + i * 32} 122 h26 l4 76 h-34 z" fill="${(j ? ['#264653', '#e9c46a', '#f4f1de', '#e76f51', '#2a9d8f', '#3d405b'] : ['#d4a373', '#faedcd', '#1d3557', '#e63946', '#ccd5ae', '#6d597a'])[i]}"/></g>`).join('')}<rect x="${bx + 96}" y="110" width="7" height="192" fill="#9e9e9e"/></g>`).join('')}
+      <g><rect x="318" y="150" width="164" height="70" rx="4" fill="#fff" stroke="#d6d1ca" stroke-width="3"/>${[0, 1, 2, 3].map((k) => `<rect x="${330 + k * 38}" y="168" width="30" height="${30 + (k % 2) * 8}" rx="3" fill="${['#e9c46a', '#264653', '#f4a261', '#8ecae6'][k]}"/>`).join('')}<rect x="310" y="220" width="180" height="82" rx="4" fill="#e8e2da"/><text x="400" y="268" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-size="16" font-weight="600" fill="#e63946">NEW IN</text></g>
+      ${floor('#e9e4dd', '#d7cfc4')}${crowd(300, 2, ['#9c8f80', '#7d8a99'])}`,
+    stockroom: () => `<rect width="800" height="300" fill="#e9ecef"/><rect width="800" height="22" fill="#adb5bd"/>
+      ${[30, 560].map((x) => `<g><rect x="${x}" y="40" width="210" height="262" fill="#ced4da"/>${[0, 1, 2].map((r) => `<rect x="${x}" y="${120 + r * 80}" width="210" height="8" fill="#868e96"/>${[0, 1, 2].map((c) => `<g><rect x="${x + 10 + c * 68}" y="${68 + r * 80}" width="58" height="52" rx="3" fill="#c8a165" stroke="#8d6e63" stroke-width="2"/><path d="M${x + 10 + c * 68} ${80 + r * 80} h58" stroke="#e0c08a" stroke-width="5"/><rect x="${x + 26 + c * 68}" y="${92 + r * 80}" width="26" height="12" fill="#fff"/></g>`).join('')}`).join('')}</g>`).join('')}
+      <g><line x1="290" y1="96" x2="510" y2="96" stroke="#495057" stroke-width="6"/>${[0, 1, 2, 3, 4, 5, 6].map((i) => `<g class="hanger" style="animation-delay:${i * 0.3}s"><path d="M${306 + i * 30} 96 l-11 11 h22 z" fill="none" stroke="#555" stroke-width="2"/><path d="M${295 + i * 30} 107 h24 l3 64 h-30 z" fill="${['#2a9d8f', '#e76f51', '#264653', '#f4a261', '#e9c46a', '#8ecae6', '#6d597a'][i]}"/></g>`).join('')}<rect x="296" y="96" width="6" height="206" fill="#495057"/><rect x="498" y="96" width="6" height="206" fill="#495057"/><circle cx="299" cy="300" r="7" fill="#343a40"/><circle cx="501" cy="300" r="7" fill="#343a40"/></g>
+      <g><rect x="340" y="236" width="70" height="56" rx="3" fill="#c8a165" stroke="#8d6e63" stroke-width="2"/><rect x="392" y="252" width="70" height="44" rx="3" fill="#d4ac74" stroke="#8d6e63" stroke-width="2"/><path d="M340 250 h70 M392 266 h70" stroke="#e0c08a" stroke-width="5"/></g>
+      ${sign(320, 34, 160, 'BACKSTAGE', '#495057')}
+      ${floor('#ced4da', '#adb5bd')}`,
+    shopcash: () => `<rect width="800" height="300" fill="#f6f4f1"/><rect width="800" height="26" fill="#1f1f1f"/>
+      ${sign(330, 34, 140, 'KASSE', '#1f1f1f')}
+      ${[0, 1].map((i) => lamp(260 + i * 280)).join('')}
+      <g>${[0, 1, 2, 3].map((r) => [0, 1, 2, 3, 4, 5].map((c) => `<rect x="${40 + c * 30}" y="${60 + r * 52}" width="24" height="40" rx="3" fill="${['#e9c46a', '#264653', '#e76f51', '#2a9d8f', '#f4f1de', '#6d597a'][(c + r) % 6]}"/>`).join('')).join('')}<rect x="34" y="52" width="192" height="214" fill="none" stroke="#c9c2b8" stroke-width="4"/></g>
+      ${counterDesk(250, 340, '#fff', '#1f1f1f')}${screen(300, 166)}<rect x="400" y="190" width="56" height="26" rx="4" fill="#495057"/><rect x="406" y="194" width="44" height="14" rx="2" fill="#a5d8ff"/>
+      <g><rect x="500" y="168" width="40" height="48" rx="3" fill="#fff" stroke="#ccc"/><path d="M506 168 q14 -16 28 0" fill="none" stroke="#333" stroke-width="2"/></g>
+      <g><rect x="640" y="150" width="120" height="150" rx="8" fill="#e8e2da"/><text x="700" y="186" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-size="15" font-weight="600" fill="#2a9d8f">♻ Recycling</text><rect x="660" y="200" width="80" height="12" rx="4" fill="#2a9d8f"/></g>
+      ${floor('#e9e4dd', '#d7cfc4')}${crowd(300, 1, ['#9c8f80'])}`,
+    staffroom: () => `<rect width="800" height="300" fill="#eef3f0"/>
+      <g><rect x="40" y="50" width="250" height="160" rx="6" fill="#fff" stroke="#8d99ae" stroke-width="4"/><text x="165" y="76" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-size="16" font-weight="600" fill="#1d3557">SCHICHTPLAN</text>${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'].map((d, i) => `<text x="${62 + i * 38}" y="98" font-family="Nunito, sans-serif" font-size="12" font-weight="700" fill="#555">${d}</text>${[0, 1, 2].map((r) => `<rect x="${58 + i * 38}" y="${106 + r * 30}" width="30" height="22" rx="3" fill="${['#a8dadc', '#ffd6a5', '#caffbf', '#ffadad', '#bdb2ff'][(i + r * 2) % 5]}"/>`).join('')}`).join('')}</g>
+      ${clock(370, 70)}
+      <g>${[0, 1, 2, 3].map((i) => `<rect x="${520 + i * 62}" y="40" width="56" height="262" rx="4" fill="#90a4ae" stroke="#607d8b" stroke-width="3"/><rect x="${530 + i * 62}" y="70" width="36" height="6" rx="3" fill="#607d8b"/><circle cx="${560 + i * 62}" cy="170" r="4" fill="#37474f"/>`).join('')}</g>
+      <g><rect x="330" y="200" width="150" height="14" rx="6" fill="#a1887f"/><rect x="345" y="214" width="10" height="88" fill="#8d6e63"/><rect x="455" y="214" width="10" height="88" fill="#8d6e63"/><rect x="360" y="182" width="24" height="18" rx="4" fill="#fff"/><path d="M384 186 q8 2 0 10" fill="none" stroke="#fff" stroke-width="3"/><rect x="420" y="188" width="30" height="12" rx="3" fill="#ffb703"/></g>
+      ${plant(470)}${floor('#d8e2dc', '#c2cfc7')}`,
     post: () => `<rect width="800" height="300" fill="#fff9db"/><rect width="800" height="30" fill="#ffcc00"/>
       <g><rect x="40" y="50" width="70" height="70" rx="10" fill="#ffcc00"/><rect x="52" y="68" width="46" height="32" rx="3" fill="#fff" stroke="#1d1d1d" stroke-width="3"/><path d="M52 70 l23 18 l23 -18" stroke="#1d1d1d" stroke-width="3" fill="none"/><text x="125" y="96" font-family="Fredoka, sans-serif" font-size="28" font-weight="700" fill="#1d1d1d">Post · Filiale</text></g>
       ${[0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => `<rect x="${60 + c * 52}" y="${150 + r * 40}" width="44" height="32" rx="3" fill="#c8a165" stroke="#8d6e63"/><path d="M${60 + c * 52} ${158 + r * 40} h44" stroke="#e9c46a" stroke-width="3"/>`).join('')).join('')}
@@ -324,7 +351,7 @@
     return {
       html: `<h1>🎬 Real-life scenes</h1>
         <p class="muted">Ten-minute animated situations you will really meet in Germany. Watch, learn the phrases you need, and speak at the key moments – you are <b>Alex</b>.</p>
-        <div class="grid grid-2">${GL.scenarios.map((s) => {
+        <div class="grid grid-2">${GL.scenarios.filter((s) => !s.track).map((s) => {
           const p = progressOf(s.id);
           return `<a class="card scn-card" href="#/scenes/${s.id}" style="margin:0">
             <div class="scn-thumb"><svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">${BG[(s.scenes.find((x) => !['home', 'phone'].includes(x.bg)) || s.scenes[0]).bg]()}</svg><span class="scn-icon">${s.icon}</span></div>
@@ -339,7 +366,7 @@
   function player(sc) {
     let token = 0, sceneIdx = 0, stepIdx = 0, choices = 0, firstTry = 0, auto = true, showEn = Store.state.settings.showEn;
     return {
-      html: `<p><a href="#/scenes">← All scenes</a></p>
+      html: `<p><a href="${sc.track ? '#/job' : '#/scenes'}">${sc.track ? '← Job German' : '← All scenes'}</a></p>
         <div class="scn-player">
           <div class="scn-top"><div><span class="scn-big-icon">${sc.icon}</span> <b>${esc(sc.title)}</b> <span class="muted">· ${esc(sc.en)}</span></div>
             <div class="scn-dots">${sc.scenes.map((s, i) => `<span data-i="${i}" title="${attr(s.title)}"></span>`).join('')}</div></div>
@@ -569,7 +596,7 @@
           panel.innerHTML = `<div class="center">${GL.charSVG('bruno', 'happy waving')}<h2>🎉 Geschafft! ${esc(sc.title)}</h2>
             <p><span class="score-badge ${pct >= 80 ? '' : pct >= 50 ? 'mid' : 'low'}">${pct}%</span> right on the first try (${firstTry} of ${choices}) · +30 XP</p>
             <p class="muted">Play it again with “Pause after each line” and say every line of Alex out loud – that’s the best speaking practice.</p>
-            <div class="row" style="justify-content:center"><a class="btn ghost" href="#/scenes">All scenes</a><button class="btn" id="scnAgain">🔁 Play again</button></div></div>`;
+            <div class="row" style="justify-content:center">${sc.jobDay && sc.jobDay < 15 ? `<a class="btn green" href="#/job/day/${sc.jobDay + 1}">▶ Next: Day ${sc.jobDay + 1}</a>` : ''}${sc.id === 'job-interview' ? '<a class="btn green" href="#/job/day/1">▶ Start Day 1 at work</a>' : ''}<a class="btn ghost" href="${sc.track ? '#/job' : '#/scenes'}">${sc.track ? 'Job German' : 'All scenes'}</a><button class="btn" id="scnAgain">🔁 Play again</button></div></div>`;
           $('#scnAgain').onclick = () => { token++; choices = firstTry = 0; setScore(); log.innerHTML = ''; sceneIdx = 0; setupScene(0); phrasesPanel(0); };
         }
 

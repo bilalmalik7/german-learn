@@ -68,7 +68,7 @@
     s.textContent = sv;
   };
   /* ---------- mobile: bottom tab bar with a "More" sheet ---------- */
-  const MORE_PAGES = ['grammar', 'trainer', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
+  const MORE_PAGES = ['grammar', 'trainer', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
   const TOP_LABELS = { admin: ['📊', 'Teacher portal'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
   const moreBtn = $('#navMore'), sheet = $('#moreSheet'), backdrop = $('#moreBackdrop');
   function closeMore() {
@@ -122,6 +122,7 @@
     try {
       let planLock = null;
       if (lockedFor(page)) html = viewLocked();
+      else if (jobLocked(page, a)) html = viewJobLocked();
       else if (GL.Plans && (planLock = GL.Plans.lockReason(page, a))) html = GL.Plans.viewLockedPlan(page, planLock, a);
       else if (GL.Accounts && GL.Accounts.needsRegistration() && page !== 'settings' && page !== 'plans') html = GL.viewRegister();
       else switch (page) {
@@ -134,6 +135,7 @@
         case 'talk': html = GL.viewTalk(a); break;
         case 'scenes': html = GL.viewScenes(a); break;
         case 'writing': html = GL.viewWriting(a, b); break;
+        case 'job': html = GL.viewJob(a, b); break;
         case 'teacher': html = GL.viewTeacher(); break;
         case 'admin': html = GL.viewAdmin(); break;
         case 'register': html = GL.viewRegister(); break;
@@ -162,6 +164,23 @@
   /* Website version: visitors without a login may look at the start page and the 30-day plan only. */
   const OPEN_PAGES = ['', 'home', 'plan', 'plans'];
   const lockedFor = (page) => !!(window.D30 && D30.standalone && !D30.session() && !D30.guest()) && !OPEN_PAGES.includes(page || '');
+  /* Job German is for logged-in students only (website version) */
+  const jobLocked = (page, a) => (page === 'job' || (page === 'scenes' && /^job-/.test(a || ''))) && !!(window.D30 && D30.standalone && !D30.session());
+  function viewJobLocked() {
+    const j = GL.job, wa = GL.Plans ? GL.Plans.waLink('Hallo! I would like a login for Job German (Sales Advisor) in Deutsch30.') : '';
+    return {
+      html: `<div class="card lock-card lock-rich">
+        <span class="lock-big" aria-hidden="true">🔒</span>
+        <h1>Job German is for logged-in students</h1>
+        <p>💼 <b>Sales Advisor im Modegeschäft</b> – interview preparation and 15 days in the job, with animated scenes and speaking practice. Log in with the username and password from your teacher to open it.</p>
+        <div class="pv" style="max-width:520px"><ul class="pv-goals" style="list-style:none;padding:0;margin:0">
+          <li>🤝 <b>Das Vorstellungsgespräch</b> – 16 questions with model answers</li>
+          ${j.days.slice(0, 5).map((d) => `<li>${d.icon} <b>Day ${d.day}:</b> ${esc(d.title)} <span class="muted">– ${esc(d.en)}</span></li>`).join('')}
+          <li class="muted">… and ${j.days.length - 5} more days: till, returns, complaints, Saturday rush …</li></ul></div>
+        <div class="row" style="justify-content:center"><button class="btn green big" id="jobLogin" type="button">🔐 Log in</button>${wa ? `<a class="btn wa-btn" target="_blank" rel="noopener" href="${attr(wa)}">💬 No login yet? WhatsApp</a>` : ''}</div></div>`,
+      mount() { $('#jobLogin').onclick = () => D30.showLogin(); },
+    };
+  }
   function viewLocked() {
     return {
       html: `<div class="card lock-card">
@@ -233,7 +252,7 @@
           <a href="#/review/mistakes"><span class="t-ico">❗</span><div><b>${Object.keys(st.mistakes || {}).length}</b><small>mistakes to fix</small></div></a>
           <a href="#/trainer"><span class="t-ico">🏋️</span><div><b>Trainer</b><small>verbs · cases · endings</small></div></a>
           <a href="#/talk"><span class="t-ico">🎤</span><div><b>Speak · ${GL.Speak.today()}/${GL.Speak.GOAL}</b><small>10-minute speaking workout</small></div></a>
-          <a href="#/scenes"><span class="t-ico">🎬</span><div><b>Real life</b><small>${GL.scenarios.length} scenes: airport, doctor, bank …</small></div></a>
+          <a href="#/scenes"><span class="t-ico">🎬</span><div><b>Real life</b><small>${GL.scenarios.filter((x) => !x.track).length} scenes: airport, doctor, bank …</small></div></a>
           <a href="#/writing"><span class="t-ico">✍️</span><div><b>Writing</b><small>AI marks every mistake</small></div></a>
         </div>
       </div>

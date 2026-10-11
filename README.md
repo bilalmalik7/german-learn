@@ -70,6 +70,14 @@ grammar index, writing tasks) but only *play* **Day 1** and the scene **“Im Su
 the WhatsApp contact (+49 155 67783533, set in `js/plans.js`).
 Payments themselves happen outside the site (cash, bank transfer, JazzCash / EasyPaisa).
 
+### 💼 Job German – Sales Advisor (website: logged-in students only)
+
+Prepared for a part-time Sales Advisor job in a fashion store (e.g. H&M Osnabrück): how the application works,
+16 typical interview questions with model answers (listen + speak), questions to ask, rescue phrases, tips –
+and **15 days in the job**, each with 10 key phrases and an animated scene where the learner is the new Sales Advisor
+(first day, greeting customers, directions, sizes, fitting room, styling, backstage, till, returns, complaints,
+pick-ups & phone, shift plan, Saturday rush, sale & recycling, feedback & closing). Plus an interview scene.
+
 ### As a plain static copy
 
 Without the server function everything still works except logins, the teacher portal and AI.
@@ -117,6 +125,8 @@ js/data/sounds.js     pronunciation guide
 js/data/practice.js   verb tables, drill nouns, conversation questions, scenarios, stories
 js/data/scenarios*.js the 22 real-life scenes
 js/data/writing.js    writing studio tasks and model answers
+js/data/jobs.js       Job German: Sales Advisor track – interview questions, 15 work days, 16 scenes
+js/job.js             Job German pages (overview, interview preparation, day pages)
 ```
 
 ### Adding or editing content

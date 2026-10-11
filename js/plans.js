@@ -238,7 +238,7 @@
   const isTrial = () => { const ac = access(); return !!ac && ac.tier === 'free'; };
   const freeScene = () => (GL.scenarios || []).find((x) => x.id === FREE_SCENE);
   const sceneThumb = (sc) => { const bg = (sc.scenes.find((x) => !['home', 'phone'].includes(x.bg)) || sc.scenes[0]).bg; return GL.sceneBG && GL.sceneBG[bg] ? `<svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">${GL.sceneBG[bg]()}</svg>` : ''; };
-  const courseStats = () => ({ days: GL.days.length, words: GL.days.reduce((a, d) => a + (d.vocab || []).length, 0), grammar: Object.keys(GL.grammar || {}).length, scenes: (GL.scenarios || []).length, exercises: GL.days.reduce((a, d) => a + (d.exercises || []).length, 0) });
+  const courseStats = () => ({ days: GL.days.length, words: GL.days.reduce((a, d) => a + (d.vocab || []).length, 0), grammar: Object.keys(GL.grammar || {}).length, scenes: (GL.scenarios || []).filter((x) => !x.track).length, exercises: GL.days.reduce((a, d) => a + (d.exercises || []).length, 0) });
   function trialProgress() {
     const st = GL.Store.state, d1 = (st.days || {})[1] || {}, sc = (st.scenes || {})[FREE_SCENE] || {};
     const steps = Object.keys(d1.steps || {}).length;
@@ -249,7 +249,7 @@
     const d1 = GL.days[0], sc = freeScene(), pr = trialProgress(), cs = courseStats();
     const ring = (pct) => `<svg class="t-ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="t-ring-bg"/><circle cx="18" cy="18" r="15.9" class="t-ring-fg" stroke-dasharray="${Math.round(pct)} 100"/></svg>`;
     const dayPct = pr.dayDone ? 100 : Math.min(95, (pr.daySteps / 8) * 100);
-    const locked = (GL.scenarios || []).filter((x) => x.id !== FREE_SCENE).slice(0, 8);
+    const locked = (GL.scenarios || []).filter((x) => x.id !== FREE_SCENE && !x.track).slice(0, 8);
     const features = [['🎤', 'Speaking coach', 'Your pronunciation scored word by word'], ['✍️', 'Writing studio', '20 tasks with instant corrections'], ['🏋️', 'Grammar trainer', 'Unlimited drills: verbs, cases, endings'], ['🤖', 'AI tutor', 'Ask anything, practise conversations'], ['👩‍🏫', 'Your teacher', 'Questions & corrections from a real teacher']];
     return `<section class="trial-hero">
       <div class="t-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
