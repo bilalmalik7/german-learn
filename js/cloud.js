@@ -236,7 +236,7 @@
 
   function updateNav() {
     const t = $('#navTeacher'), a = $('#navAdmin');
-    if (t) { t.classList.toggle('hidden', !Cloud.ready || Cloud.owner); const n = Cloud.unread(); $('.nb', t).textContent = n || ''; $('.nb', t).classList.toggle('hidden', !n); }
+    if (t) { t.classList.toggle('hidden', !Cloud.ready || Cloud.owner || !!(GL.Plans && GL.Plans.lockReason('teacher'))); const n = Cloud.unread(); $('.nb', t).textContent = n || ''; $('.nb', t).classList.toggle('hidden', !n); }
     if (a) {
       const off = Cloud.status.done && !Cloud.ready;
       a.classList.toggle('hidden', !(Cloud.owner || off));
@@ -341,7 +341,7 @@
     return `<details class="card add-stu" ${(addOpen == null ? open : addOpen) || lastCred ? 'open' : ''}><summary><h3 style="display:inline;margin:0">➕ Add students – create their login</h3> <span class="muted">${count ? `${count} on your list` : 'start here'}</span></summary>
       <ol class="add-steps">
         <li><b>Create a login</b> for the student:
-          <form id="newLogin" class="inv-form" autocomplete="off"><input class="txt-in" name="name" placeholder="Student’s name *" maxlength="80" required><input class="txt-in" name="username" placeholder="Username * (e.g. ayesha)" maxlength="30" autocapitalize="none" spellcheck="false" required><input class="txt-in" name="email" type="email" placeholder="Email (optional)" maxlength="120"><input class="txt-in" name="password" placeholder="Password (leave empty = automatic)" maxlength="60" autocapitalize="none" spellcheck="false"><button class="btn green" type="submit">➕ Create login</button><span class="muted" id="invInfo"></span></form>
+          <form id="newLogin" class="inv-form" autocomplete="off"><input class="txt-in" name="name" placeholder="Student’s name *" maxlength="80" required><input class="txt-in" name="username" placeholder="Username * (e.g. ayesha)" maxlength="30" autocapitalize="none" spellcheck="false" required><input class="txt-in" name="email" type="email" placeholder="Email (optional)" maxlength="120"><input class="txt-in" name="password" placeholder="Password (leave empty = automatic)" maxlength="60" autocapitalize="none" spellcheck="false"><select class="txt-in" name="plan" title="Plan">${GL.Plans.PLANS.map((p) => `<option value="${p.id}" ${p.id === 'standard' ? 'selected' : ''}>${p.icon} ${p.name} · ${GL.Plans.money(p.price)}</option>`).join('')}<option value="">– no plan yet –</option></select><button class="btn green" type="submit">➕ Create login</button><span class="muted" id="invInfo"></span></form>
           ${credHTML()}</li>
         <li><b>Send them the login</b> – website address, username and password. Use the <b>Copy</b> or <b>WhatsApp</b> button that appears.</li>
         <li><b>The student logs in</b> in any browser – Chrome, Safari, on the phone or a computer – and fills in a short registration once (contact, goals).</li>
@@ -473,12 +473,12 @@
   }
   function csvExport(learners, nm) {
     const week = lastNDays(7);
-    const rows = [['Name', SA ? 'Username' : 'Claude account', 'Email', 'Phone', 'Status', 'Registered', 'Level at start', 'Goals', 'Current day', 'Days done', 'XP', 'Streak', 'Minutes last 7 days', 'Total minutes', 'Avg exercise score', 'Writing texts', 'Avg writing score', 'Sentences spoken', 'Speaking accuracy', 'Mistakes in notebook', 'Last active', 'Learning status', 'Days behind plan', 'Daily goal reached (last 7 days)', 'Study minutes last 7 days by area', 'Teacher notes']];
+    const rows = [['Name', SA ? 'Username' : 'Claude account', 'Email', 'Phone', 'Status', 'Registered', 'Level at start', 'Goals', 'Current day', 'Days done', 'XP', 'Streak', 'Minutes last 7 days', 'Total minutes', 'Avg exercise score', 'Writing texts', 'Avg writing score', 'Sentences spoken', 'Speaking accuracy', 'Mistakes in notebook', 'Last active', 'Learning status', 'Days behind plan', 'Daily goal reached (last 7 days)', 'Study minutes last 7 days by area', 'Plan', 'Paid until', 'Total paid', 'Teacher notes']];
     learners.forEach((l) => {
       const p = l.profile || {}, r = Cloud.roster[l.id] || {}, ii = insight(l);
       rows.push([p.name || '', nm(l.id, true), p.email || '', p.phone || '', statusOf(l.id), p.registeredAt ? new Date(p.registeredAt).toISOString().slice(0, 10) : '', p.level || '', (p.goals || []).map((g) => GOAL_L[g] || g).join('; '),
         l.currentDay || 1, (l.done || []).length, l.xp || 0, l.streak || 0, sumMin(l, week), l.totalMin || 0, avgScore(l) == null ? '' : avgScore(l),
-        l.studio ? l.studio.texts : 0, l.studio ? l.studio.avg : '', l.speak ? l.speak.n : 0, l.speak && l.speak.avg != null ? l.speak.avg : '', l.mistakes || 0, l.lastActive || '', LSTAT[ii.key][1], Math.max(0, ii.behind), ii.goal ? ii.goalDays + '/7' : '', Object.entries(l.areas7 || {}).map(([k, v]) => k + ' ' + v).join(', '), r.note || '']);
+        l.studio ? l.studio.texts : 0, l.studio ? l.studio.avg : '', l.speak ? l.speak.n : 0, l.speak && l.speak.avg != null ? l.speak.avg : '', l.mistakes || 0, l.lastActive || '', LSTAT[ii.key][1], Math.max(0, ii.behind), ii.goal ? ii.goalDays + '/7' : '', Object.entries(l.areas7 || {}).map(([k, v]) => k + ' ' + v).join(', '), ...(() => { const u = saUsers.find((x) => x.uid === l.id) || {}; return [(GL.Plans.byId(u.plan) || {}).name || '', u.paidUntil || '', (u.payments || []).reduce((a, x) => a + (x.amount || 0), 0)]; })(), r.note || '']);
     });
     const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
     GL.saveFile(`students-${GL.todayStr()}.csv`, new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }), 'text/csv');
@@ -510,6 +510,18 @@
     </svg><div class="chart-tip" hidden></div></div>`;
   }
 
+  let payInfoText = null;
+  function wirePayInfo(root) {
+    const b = $('#payInfoSave', root);
+    if (!b) return;
+    const det = $('.pay-settings', root); if (det && payOpen) det.open = true; if (det) det.ontoggle = () => { payOpen = det.open; };
+    b.onclick = async () => {
+      const msg = $('#payInfoMsg', root); msg.textContent = 'Saving…';
+      try { const r = await D30.call('settings.set', { payInfo: $('#payInfoTxt', root).value }); payInfoText = r.payInfo; msg.textContent = '✅ Saved – students see this on their Plans page.'; GL.sfx('ok'); }
+      catch (e) { msg.textContent = e.message || 'Could not save.'; }
+    };
+  }
+  let payOpen = false;
   /* Stand-alone website: create logins, new passwords, block / unblock. */
   function wireSA(root, render, invites) {
     const rf = $('#admRefresh', root);
@@ -530,7 +542,7 @@
       f.onsubmit = async (e) => {
         e.preventDefault();
         const info = $('#invInfo', root), btn = $('button[type=submit]', f);
-        const body = { name: nameIn.value.trim(), username: userIn.value.trim(), email: f.elements.email.value.trim(), password: f.elements.password.value.trim() };
+        const body = { name: nameIn.value.trim(), username: userIn.value.trim(), email: f.elements.email.value.trim(), password: f.elements.password.value.trim(), plan: f.elements.plan.value };
         if (!body.name || !body.username) { info.textContent = 'Enter a name and a username.'; return; }
         btn.disabled = true; info.textContent = 'Creating…';
         try {
@@ -581,7 +593,7 @@
             if (!root.isConnected) return;
             const everyone = Cloud.all.filter((l) => l.id !== Cloud.uid).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
             const ids = everyone.map((l) => l.id);
-            if (SA) saUsers = await D30.users();
+            if (SA) { saUsers = await D30.users(); if (payInfoText == null) payInfoText = await D30.call('settings.get').then((r) => r.payInfo).catch(() => ''); }
             if (!root.isConnected) return;
             const ps = ids.length ? await Cloud.user.profiles(ids) : {};
             const nm = (id, account) => { if (account && SA) return (ps[id] && ps[id].username) || ''; const l = everyone.find((x) => x.id === id); if (!account && l && l.profile && l.profile.name) return l.profile.name; return (ps[id] && ps[id].name) || (id === Cloud.uid ? 'You' : 'Student'); };
@@ -607,17 +619,21 @@
                 <div class="stat"><span class="s-ico">🟢</span><div><b>${active}</b><span>active in the last 7 days</span></div></div>
                 <div class="stat"><span class="s-ico">⏱️</span><div><b>${fmtMin(weekMin)}</b><span>study time, last 7 days</span></div></div>
                 <div class="stat"><span class="s-ico">📨</span><div><b>${open}</b><span>open messages</span></div></div>
+                ${SA ? (() => { const rv = GL.Plans.revenue(saUsers.filter((u) => !u.disabled)); return `<div class="stat"><span class="s-ico">💰</span><div><b>${GL.Plans.money(rv.month)}</b><span>payments this month</span></div></div>`; })() : ''}
               </div>
-              ${(() => { const att = learners.map((l) => [l, insight(l)]).filter(([, ii]) => ['help', 'behind', 'inactive'].includes(ii.key)); return att.length ? `<div class="card attn-card"><h3 style="margin-top:0">⚠️ Needs your attention</h3>${att.map(([l, ii]) => `<div class="attn-row" data-id="${attr(l.id)}">${lchip(ii.key)} <b class="who" data-name="${attr(l.id)}"></b> <span class="muted">${esc(({ help: [/^Weak/], behind: [/behind the plan/, /Last studied/, /daily goal/], inactive: [/Last studied/] })[ii.key].map((re) => ii.reasons.find((r) => re.test(r))).find(Boolean) || LSTAT[ii.key][2])}</span></div>`).join('')}</div>` : ''; })()}
+              ${(() => { const att = learners.map((l) => [l, insight(l)]).filter(([, ii]) => ['help', 'behind', 'inactive'].includes(ii.key)); const dues = SA ? saUsers.filter((u) => !u.disabled && ['overdue', 'soon', 'unset'].includes(GL.Plans.payState(u).key) && everyone.some((l) => l.id === u.uid)) : [];
+                return att.length || dues.length ? `<div class="card attn-card"><h3 style="margin-top:0">⚠️ Needs your attention</h3>${dues.map((u) => `<div class="attn-row" data-id="${attr(u.uid)}"><span class="lst-chip pay-chip-${GL.Plans.payState(u).key}">💳 ${esc(GL.Plans.payState(u).label)}</span> <b>${esc(u.name)}</b> <span class="muted">${esc((GL.Plans.byId(u.plan) || {}).name || '')} · ${GL.Plans.money((GL.Plans.byId(u.plan) || {}).price || 0)} / month</span></div>`).join('')}${att.map(([l, ii]) => `<div class="attn-row" data-id="${attr(l.id)}">${lchip(ii.key)} <b class="who" data-name="${attr(l.id)}"></b> <span class="muted">${esc(({ help: [/^Weak/], behind: [/behind the plan/, /Last studied/, /daily goal/], inactive: [/Last studied/] })[ii.key].map((re) => ii.reasons.find((r) => re.test(r))).find(Boolean) || LSTAT[ii.key][2])}</span></div>`).join('')}</div>` : ''; })()}
               ${addStudentsHTML(everyone.length + pending.length === 0, invites.length)}
+              ${SA ? GL.Plans.payInfoHTML(payInfoText) : ''}
               ${everyone.length || pending.length ? `<div class="card"><div class="row"><h3 style="margin:0">👥 Students</h3><span class="spacer"></span>
                 <div class="chips" id="stuFilter">${[['current', 'Current'], ['finished', 'Finished'], ['archived', 'Archived'], ['all', 'All']].map(([k, lb]) => `<button class="chip ${stuFilter === k ? 'on' : ''}" data-f="${k}">${lb} <small>${counts[k]}</small></button>`).join('')}</div>
                 ${SA ? '<button class="btn small ghost" id="admRefresh" title="Load the newest data">🔄 Refresh</button>' : ''}<button class="btn small ghost" id="admCsv">⬇ Export CSV</button></div>
-                <div class="gtable-wrap" style="margin-top:10px"><table class="gtable adm-table"><thead><tr><th>Student</th><th>Learning</th><th>Status</th><th>Registered</th><th>Day</th><th>Done</th><th>Today</th><th>7 days</th><th>Total time</th><th>Avg. score</th><th>Last active</th><th>Open</th></tr></thead><tbody>
-                ${showPending ? pending.map((v) => `<tr class="inv-row" data-inv="${attr(v.id)}"><td><b>${esc(v.name)}</b>${v.email ? `<br><small class="muted">${esc(v.email)}</small>` : ''}</td><td><span class="st-chip st-invited">✉️ ${v.username ? 'Login created' : 'Invited'}</span></td><td colspan="9" class="muted">Added ${new Date(v.createdAt).toLocaleDateString('de-DE')}${v.username ? ` · username <b class="mono">${esc(v.username)}</b>` : ''} · hasn’t logged in yet${v.note ? ' · ' + esc(v.note) : ''}</td><td class="nowrap">${v.username ? `<button class="btn tiny ghost acc-pw" data-u="${attr(v.username)}" title="Set a new password">🔑</button>` : ''}<button class="btn tiny ghost inv-del" data-inv="${attr(v.id)}" title="Remove from list">✖</button></td></tr>`).join('') : ''}
+                <div class="gtable-wrap" style="margin-top:10px"><table class="gtable adm-table"><thead><tr><th>Student</th><th>Learning</th>${SA ? '<th>Plan</th>' : ''}<th>Status</th><th>Registered</th><th>Day</th><th>Done</th><th>Today</th><th>7 days</th><th>Total time</th><th>Avg. score</th><th>Last active</th><th>Open</th></tr></thead><tbody>
+                ${showPending ? pending.map((v) => `<tr class="inv-row" data-inv="${attr(v.id)}"><td><b>${esc(v.name)}</b>${v.email ? `<br><small class="muted">${esc(v.email)}</small>` : ''}</td><td><span class="st-chip st-invited">✉️ ${v.username ? 'Login created' : 'Invited'}</span></td><td colspan="${SA ? 10 : 9}" class="muted">Added ${new Date(v.createdAt).toLocaleDateString('de-DE')}${v.username ? ` · username <b class="mono">${esc(v.username)}</b>` : ''} · hasn’t logged in yet${v.note ? ' · ' + esc(v.note) : ''}</td><td class="nowrap">${v.username ? `<button class="btn tiny ghost acc-pw" data-u="${attr(v.username)}" title="Set a new password">🔑</button>` : ''}<button class="btn tiny ghost inv-del" data-inv="${attr(v.id)}" title="Remove from list">✖</button></td></tr>`).join('') : ''}
                 ${learners.map((l) => { const o = Object.values(l.messages || {}).filter((m) => m.status === 'open').length; const av = avgScore(l); const st = STATUS[statusOf(l.id)]; const p = l.profile; return `<tr class="${l.id === selected ? 'sel' : ''}" data-id="${attr(l.id)}" tabindex="0">
                   <td><b class="who" data-name="${attr(l.id)}"></b>${p ? `<br><small class="muted who-acc" data-acc="${attr(l.id)}"></small>` : '<br><span class="path-tag warn-tag">not registered</span>'}</td>
                   <td>${(() => { const ii = insight(l); return lchip(ii.key) + (ii.behind > 0 ? `<br><small class="muted">${ii.behind} day${ii.behind > 1 ? 's' : ''} behind</small>` : ''); })()}</td>
+                  ${SA ? `<td>${GL.Plans.planChip(saUsers.find((u) => u.uid === l.id))}</td>` : ''}
                   <td><span class="st-chip st-${statusOf(l.id)}">${st[0]} ${st[1]}</span></td><td>${p && p.registeredAt ? new Date(p.registeredAt).toLocaleDateString('de-DE') : '–'}</td>
                   <td>${l.currentDay || 1}</td><td>${(l.done || []).length}/30</td>
                   <td>${((l.time || {})[GL.todayStr()] || 0)} min</td><td>${fmtMin(sumMin(l, week))}</td><td>${fmtMin(l.totalMin || 0)}</td>
@@ -626,6 +642,7 @@
                 </tbody></table></div>${learners.length || (showPending && pending.length) ? '' : '<p class="muted">No students in this list.</p>'}<p class="muted" style="margin:8px 0 0">Click a student for their profile, activity timeline and progress. Time counts only while the course is open and being used.</p></div>` : ''}
               ${sel ? `<div class="card" id="admDetail"><div class="row"><h3 style="margin:0">📈 <span class="who" data-name="${attr(sel.id)}"></span></h3><span class="spacer"></span><button class="btn tiny ghost" id="admClose">✖ Close</button></div>
                 ${learningHTML(sel)}
+                ${SA ? GL.Plans.planBoxHTML(saUsers.find((u) => u.uid === sel.id)) : ''}
                 ${profileHTML(sel)}
                 <h4>🕒 Activity – who did what</h4><div class="tl-wrap">${timelineHTML(sel)}</div>
                 <h4>Minutes studied per day · last 14 days</h4>${barChart(sel)}
@@ -646,7 +663,7 @@
                 </div>`).join('') : `<p class="muted">${inboxFilter === 'open' ? 'No open messages. 🎉' : 'Nothing here yet.'}</p>`}</div></div>`;
             $$('[data-name]', root).forEach((el) => { el.textContent = nm(el.dataset.name); });
             $$('[data-acc]', root).forEach((el) => { el.textContent = SA ? '👤 ' + nm(el.dataset.acc, true) : 'claude.ai: ' + nm(el.dataset.acc, true); });
-            if (SA) wireSA(root, render, invites);
+            if (SA) { wireSA(root, render, invites); GL.Plans.wirePlanBox(root, () => render()); wirePayInfo(root); }
             $$('#stuFilter .chip', root).forEach((b) => (b.onclick = () => { stuFilter = b.dataset.f; render(); }));
             const csvB = $('#admCsv'); if (csvB) csvB.onclick = () => csvExport(everyone, nm);
             const det = $('.add-stu', root); if (det) det.ontoggle = () => { addOpen = det.open; };
@@ -722,7 +739,7 @@
             if (!root.isConnected) { off(); return; }
             // don't wipe a reply the teacher is typing
             const ae = document.activeElement;
-            const typing = ae && ((ae.classList.contains('rep-in') && ae.value) || ae.id === 'tchNote' || (ae.closest && ae.closest('#invForm, #newLogin') && ae.value));
+            const typing = ae && ((ae.classList.contains('rep-in') && ae.value) || ae.id === 'tchNote' || ae.id === 'payInfoTxt' || (ae.closest && ae.closest('.plan-box')) || (ae.closest && ae.closest('#invForm, #newLogin') && ae.value));
             if (typing) { clearTimeout(pending); pending = setTimeout(() => Cloud.on && render(), 15000); return; }
             render();
           });
@@ -734,7 +751,7 @@
   /* Send a writing text to the teacher from a lesson. */
   GL.sendToTeacherButton = function (slot, getText, context) {
     Cloud.init.then(() => {
-      if (!Cloud.ready || Cloud.owner || !slot.isConnected) return;
+      if (!Cloud.ready || Cloud.owner || !slot.isConnected || (GL.Plans && GL.Plans.lockReason('teacher'))) return;
       slot.innerHTML = `<button class="btn ghost" type="button">📨 Send to my teacher</button><span class="muted" style="margin-left:8px"></span>`;
       const b = $('button', slot), info = $('span', slot);
       b.onclick = async () => {

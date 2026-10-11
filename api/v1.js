@@ -150,7 +150,10 @@ function ownerOf(sess, p) {
 const bucketKey = (owner) => `b/${owner}.json`;
 const ACC = 'accounts.json';
 const accounts = async (maxAge = 20000) => { const r = await store.read(ACC, maxAge); return (r && r.data) || { users: {} }; };
-const publicUser = (u) => ({ uid: u.uid, username: u.username, name: u.name, email: u.email || '', disabled: !!u.disabled, createdAt: u.createdAt });
+const PLANS = ['basic', 'standard', 'plus'];
+const publicUser = (u) => ({ uid: u.uid, username: u.username, name: u.name, email: u.email || '', disabled: !!u.disabled, createdAt: u.createdAt, plan: u.plan || '', paidUntil: u.paidUntil || '', payments: u.payments || [] });
+const isDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d || ''));
+const addMonth = (d) => { const x = new Date(d + 'T12:00:00Z'); const day = x.getUTCDate(); x.setUTCMonth(x.getUTCMonth() + 1); if (x.getUTCDate() < day) x.setUTCDate(0); return x.toISOString().slice(0, 10); };
 const genPassword = () => { const w = 'abcdefghjkmnpqrstuvwxyz23456789'; let s = ''; const r = crypto.randomBytes(9); for (let i = 0; i < 9; i++) s += w[r[i] % w.length]; return s.slice(0, 3) + '-' + s.slice(3, 6) + '-' + s.slice(6); };
 
 async function session(req) {
@@ -277,9 +280,22 @@ const ops = {
     }
     const rec = validUser(u) ? acc.users[u] : null;
     if (!rec || rec.disabled || !checkPw(pw, rec)) return fail();
-    return { token: makeToken({ uid: rec.uid, role: 'student', u, name: rec.name, pv: rec.pv || 0 }), user: { uid: rec.uid, role: 'student', username: u, name: rec.name } };
+    return { token: makeToken({ uid: rec.uid, role: 'student', u, name: rec.name, pv: rec.pv || 0 }), user: { uid: rec.uid, role: 'student', username: u, name: rec.name, plan: rec.plan || '', paidUntil: rec.paidUntil || '' } };
   },
-  async me(req) { const s = await session(req); return { uid: s.uid, role: s.role, username: s.u, name: s.name }; },
+  async me(req) {
+    const s = await session(req);
+    const acc = await accounts();
+    const rec = s.role === 'student' ? acc.users[s.u] || {} : {};
+    return { uid: s.uid, role: s.role, username: s.u, name: rec.name || s.name, plan: rec.plan || '', paidUntil: rec.paidUntil || '', payInfo: (acc.settings && acc.settings.payInfo) || '' };
+  },
+  /* teacher: payment instructions shown to students on the plans page */
+  async 'settings.set'(req, b) {
+    teacherOnly(await session(req));
+    const payInfo = String(b.payInfo || '').slice(0, 1500);
+    await store.mutate(ACC, (cur) => { const acc = cur || { users: {} }; acc.users = acc.users || {}; acc.settings = Object.assign({}, acc.settings, { payInfo }); return acc; });
+    return { ok: true, payInfo };
+  },
+  async 'settings.get'(req) { teacherOnly(await session(req)); const acc = await accounts(0); return { payInfo: (acc.settings && acc.settings.payInfo) || '' }; },
   /* read documents and collections in one request: {docs:[paths], cols:[paths], fresh} */
   async pull(req, b) {
     const s = await session(req);
@@ -308,7 +324,8 @@ const ops = {
     if (!validUser(username) || username === TEACHER) throw new HttpError(400, 'invalid_argument', 'Username: 3–30 small letters, numbers, dots or dashes (no spaces).');
     if (password.length < 6) throw new HttpError(400, 'invalid_argument', 'Password: at least 6 characters.');
     const uid = 'u_' + crypto.randomBytes(10).toString('hex');
-    const rec = Object.assign({ uid, username, name, email, role: 'student', createdAt: Date.now(), pv: 0 }, newPwRecord(password));
+    const plan = PLANS.includes(b.plan) ? b.plan : '';
+    const rec = Object.assign({ uid, username, name, email, role: 'student', createdAt: Date.now(), pv: 0, plan }, newPwRecord(password));
     let taken = false;
     await store.mutate(ACC, (cur) => {
       const acc = cur || { users: {} };
@@ -340,6 +357,16 @@ const ops = {
       if (password) { Object.assign(rec, newPwRecord(password)); rec.pv = (rec.pv || 0) + 1; }
       if (typeof b.disabled === 'boolean' && b.disabled !== !!rec.disabled) { rec.disabled = b.disabled; rec.pv = (rec.pv || 0) + 1; }
       if (b.name) rec.name = String(b.name).trim().slice(0, 80);
+      if (typeof b.plan === 'string' && (b.plan === '' || PLANS.includes(b.plan))) rec.plan = b.plan;
+      if (typeof b.paidUntil === 'string' && (b.paidUntil === '' || isDate(b.paidUntil))) rec.paidUntil = b.paidUntil;
+      if (b.addPayment && typeof b.addPayment === 'object') {
+        const pm = b.addPayment, date = isDate(pm.date) ? pm.date : new Date().toISOString().slice(0, 10);
+        const amount = Math.max(0, Math.min(10000000, Math.round(+pm.amount || 0)));
+        rec.payments = (rec.payments || []).concat([{ id: crypto.randomBytes(4).toString('hex'), date, amount, plan: PLANS.includes(pm.plan) ? pm.plan : rec.plan || '', method: String(pm.method || '').slice(0, 30), note: String(pm.note || '').slice(0, 200), at: Date.now() }]).slice(-120);
+        // a payment extends the plan by one month from the later of today / the current end date
+        if (pm.extend !== false) { const today = new Date().toISOString().slice(0, 10); const from = rec.paidUntil && rec.paidUntil > today ? rec.paidUntil : date > today ? date : today; rec.paidUntil = addMonth(from); }
+      }
+      if (b.removePayment) rec.payments = (rec.payments || []).filter((x) => x.id !== b.removePayment);
       out = rec;
       return cur;
     });

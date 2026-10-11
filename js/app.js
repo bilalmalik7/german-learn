@@ -68,7 +68,7 @@
     s.textContent = sv;
   };
   /* ---------- mobile: bottom tab bar with a "More" sheet ---------- */
-  const MORE_PAGES = ['grammar', 'trainer', 'writing', 'review', 'sounds', 'settings', 'profile', 'teacher', 'admin'];
+  const MORE_PAGES = ['grammar', 'trainer', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
   const TOP_LABELS = { admin: ['📊', 'Teacher portal'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
   const moreBtn = $('#navMore'), sheet = $('#moreSheet'), backdrop = $('#moreBackdrop');
   function closeMore() {
@@ -120,8 +120,10 @@
     if (moreBtn) moreBtn.classList.toggle('active', MORE_PAGES.includes(page));
     let html;
     try {
+      let planLock = null;
       if (lockedFor(page)) html = viewLocked();
-      else if (GL.Accounts && GL.Accounts.needsRegistration() && page !== 'settings') html = GL.viewRegister();
+      else if (GL.Plans && (planLock = GL.Plans.lockReason(page))) html = GL.Plans.viewLockedPlan(page, planLock);
+      else if (GL.Accounts && GL.Accounts.needsRegistration() && page !== 'settings' && page !== 'plans') html = GL.viewRegister();
       else switch (page) {
         case '': case undefined: case 'home': html = viewHome(); break;
         case 'plan': html = viewPlan(); break;
@@ -138,6 +140,7 @@
         case 'profile': html = GL.viewProfile(); break;
         case 'sounds': html = viewSounds(); break;
         case 'settings': html = viewSettings(); break;
+        case 'plans': html = GL.Plans.viewPlans(); break;
         default: html = viewHome();
       }
     } catch (e) {
@@ -156,7 +159,7 @@
   GL.render = route;
 
   /* Website version: visitors without a login may look at the start page and the 30-day plan only. */
-  const OPEN_PAGES = ['', 'home', 'plan'];
+  const OPEN_PAGES = ['', 'home', 'plan', 'plans'];
   const lockedFor = (page) => !!(window.D30 && D30.standalone && !D30.session()) && !OPEN_PAGES.includes(page || '');
   function viewLocked() {
     return {

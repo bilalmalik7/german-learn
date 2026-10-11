@@ -70,7 +70,9 @@
     }
     try {
       const me = await call('me');
-      if (me.name && me.name !== sess.user.name) { sess.user.name = me.name; ls.set(SKEY, JSON.stringify(sess)); }
+      Object.assign(sess.user, { name: me.name || sess.user.name, plan: me.plan || '', paidUntil: me.paidUntil || '' });
+      D30.payInfo = me.payInfo || '';
+      ls.set(SKEY, JSON.stringify(sess));
     } catch (e) {
       if (e.status === 401) return; // expired() already shows the login screen
       resolveCaps(null);

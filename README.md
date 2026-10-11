@@ -47,6 +47,21 @@ stores every student’s progress, activity, messages and a private backup on th
 Saving is deliberately frugal (routine progress is sent every 10 minutes and when the page is closed; messages,
 registrations and teacher actions immediately), so 5–10 students fit comfortably into the free Blob allowance.
 
+### Plans & payments (website version)
+
+Three monthly plans, defined in `js/plans.js` (names, prices, features, which pages they open):
+
+| Plan | Price | Opens |
+|---|---|---|
+| 🌱 Basic | Rs 5,000 | 30 daily lessons, grammar A–Z, trainer, review, sounds |
+| 🚀 Standard | Rs 7,000 | + real-life scenes, speaking practice, writing studio |
+| 👑 Plus | Rs 10,000 | + messages/corrections from the teacher, AI tutor and AI writing analysis |
+
+The teacher picks a plan when creating a login and records payments in the student’s detail view (each payment
+extends the plan by one month). Students see their plan and the teacher’s payment instructions on **💳 Plans**.
+Three days after a missed payment, lessons pause until the next payment is recorded. Without a plan everything stays open.
+Payments themselves happen outside the site (cash, bank transfer, JazzCash / EasyPaisa).
+
 ### As a plain static copy
 
 Without the server function everything still works except logins, the teacher portal and AI.
@@ -86,6 +101,7 @@ js/scenarios.js       real-life scene player, camera & animated backgrounds
 js/writing.js         writing studio: AI analysis, quick check, history
 js/cloud.js           study-time tracking, activity log, teacher inbox, dashboard (claude.ai db)
 js/accounts.js        student registration, account page, cloud backup of progress
+js/plans.js           plans & prices, plan page, plan locks, payment tools for the teacher portal
 js/app.js             router and all pages
 js/data/grammar*.js   grammar topics (Weeks 1–2, 3–4, reference)
 js/data/week1-4.js    the 30 daily lessons
