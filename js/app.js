@@ -122,7 +122,7 @@
     try {
       let planLock = null;
       if (lockedFor(page)) html = viewLocked();
-      else if (GL.Plans && (planLock = GL.Plans.lockReason(page))) html = GL.Plans.viewLockedPlan(page, planLock);
+      else if (GL.Plans && (planLock = GL.Plans.lockReason(page, a))) html = GL.Plans.viewLockedPlan(page, planLock, a);
       else if (GL.Accounts && GL.Accounts.needsRegistration() && page !== 'settings' && page !== 'plans') html = GL.viewRegister();
       else switch (page) {
         case '': case undefined: case 'home': html = viewHome(); break;
@@ -150,6 +150,7 @@
     app.innerHTML = `<div class="view">${html.html}</div>`;
     window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     html.mount && html.mount();
+    if (GL.Plans) { GL.Plans.decorate(); setTimeout(() => GL.Plans.decorate(), 500); }
     const steps = $('.steps'), act = $('.step.active');
     if (steps && act) steps.scrollLeft = act.offsetLeft - steps.clientWidth / 2 + act.clientWidth / 2;
     app.focus({ preventScroll: true });
@@ -160,7 +161,7 @@
 
   /* Website version: visitors without a login may look at the start page and the 30-day plan only. */
   const OPEN_PAGES = ['', 'home', 'plan', 'plans'];
-  const lockedFor = (page) => !!(window.D30 && D30.standalone && !D30.session()) && !OPEN_PAGES.includes(page || '');
+  const lockedFor = (page) => !!(window.D30 && D30.standalone && !D30.session() && !D30.guest()) && !OPEN_PAGES.includes(page || '');
   function viewLocked() {
     return {
       html: `<div class="card lock-card">

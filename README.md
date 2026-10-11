@@ -59,7 +59,11 @@ Three monthly plans, defined in `js/plans.js` (names, prices, features, which pa
 
 The teacher picks a plan when creating a login and records payments in the student’s detail view (each payment
 extends the plan by one month). Students see their plan and the teacher’s payment instructions on **💳 Plans**.
-Three days after a missed payment, lessons pause until the next payment is recorded. Without a plan everything stays open.
+Three days after a missed payment, lessons pause until the next payment is recorded.
+
+**Free trial:** visitors without a login and students without a plan can browse the course (30-day plan, scenes list,
+grammar index, writing tasks) but only *play* **Day 1** and the scene **“Im Supermarkt”**; everything else shows a lock with
+the WhatsApp contact (+49 155 67783533, set in `js/plans.js`).
 Payments themselves happen outside the site (cash, bank transfer, JazzCash / EasyPaisa).
 
 ### As a plain static copy

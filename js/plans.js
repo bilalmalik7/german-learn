@@ -7,6 +7,12 @@
   const { $, $$, esc, attr } = GL;
 
   const CURRENCY = 'Rs';
+  /* WhatsApp contact for joining / payments */
+  const WA = '4915567783533', WA_SHOW = '+49 155 67783533';
+  const waLink = (text) => `https://wa.me/${WA}?text=${encodeURIComponent(text || 'Hallo! I would like to join the German course (Deutsch30).')}`;
+  /* free trial for visitors and students without a plan */
+  const FREE_SCENE = 'supermarkt';
+  const BROWSE = ['scenes', 'writing', 'grammar']; // overview pages that can be looked at without a plan
   const PLANS = [
     { id: 'basic', name: 'Basic', icon: '🌱', price: 5000, color: '#22b573', tagline: 'The complete 30-day course',
       features: ['All 30 daily lessons – vocabulary, grammar, dialogues, exercises', 'Grammar A–Z reference (62 topics)', 'Grammar trainer: verbs, articles & cases, adjective endings', 'Review: flashcards, mistakes notebook, quizzes', 'Pronunciation guide (sounds)', 'Progress & study time saved to your account'],
@@ -33,18 +39,50 @@
   }
   function daysLeft(paidUntil) { return paidUntil ? Math.round((new Date(paidUntil + 'T12:00') - new Date(today() + 'T12:00')) / 864e5) : null; }
   function expired() { const m = mine(); if (!m || !m.paidUntil) return false; return daysLeft(m.paidUntil) < -GRACE_DAYS; }
-  /* null = allowed, otherwise the reason it is locked */
+  /* who may open what: null = no limits (claude.ai, plain copy, teacher) */
   const PLAN_PAGES = ['day', 'grammar', 'trainer', 'review', 'sounds', 'scenes', 'talk', 'writing', 'teacher'];
-  function lockReason(page) {
+  function access() {
+    if (!(window.D30 && D30.standalone)) return null;
+    const s = D30.session && D30.session();
+    if (s && s.user.role === 'teacher') return null;
+    if (!s) return D30.guest && D30.guest() ? { tier: 'free', guest: true } : null;
     const m = mine();
-    if (!m || !PLAN_PAGES.includes(page)) return null;
-    if (expired()) return 'expired';
-    if (!m.plan) return null; // no plan assigned yet: the teacher decides – keep everything open
-    return m.plan.pages.includes(page) ? null : 'upgrade';
+    if (expired()) return { tier: 'expired' };
+    if (!m || !m.plan) return { tier: 'free' };
+    return { tier: 'plan', plan: m.plan };
+  }
+  const isFree = (page, a) => (page === 'day' && (+a || 1) === 1) || (page === 'scenes' && a === FREE_SCENE) || (BROWSE.includes(page) && !a);
+  /* null = allowed, otherwise the reason it is locked: 'free' | 'expired' | 'upgrade' */
+  function lockReason(page, a) {
+    if (!PLAN_PAGES.includes(page)) return null;
+    const ac = access();
+    if (!ac) return null;
+    if (ac.tier === 'plan') return ac.plan.pages.includes(page) ? null : 'upgrade';
+    return isFree(page, a) ? null : ac.tier;
+  }
+  /* mark locked / free links on the current page */
+  function decorate() {
+    const ac = access();
+    if (!ac) return;
+    // trial users: show the free scene first in the scenes list
+    if (ac.tier !== 'plan') { const fs = $(`#app a[href="#/scenes/${FREE_SCENE}"]`); if (fs && fs.parentElement && fs.parentElement.firstElementChild !== fs && !fs.closest('.lock-card, .trial-card')) fs.parentElement.prepend(fs); }
+    $$('#app a[href^="#/"]').forEach((el) => {
+      // badges only on cards / tiles, not on buttons or links inside a sentence
+      if (el.closest('.lock-card, .trial-card, .note, p, li') || el.classList.contains('node') || el.classList.contains('btn') || el.classList.contains('chip') || getComputedStyle(el).display === 'inline') return;
+      const [page, a] = el.getAttribute('href').slice(2).split('/');
+      const locked = !!lockReason(page, a);
+      const free = !locked && ac.tier !== 'plan' && ((page === 'day' && (+a || 1) === 1 && a) || (page === 'scenes' && a === FREE_SCENE));
+      const old = el.querySelector(':scope > .lock-badge');
+      if (old) old.remove();
+      el.classList.toggle('plan-locked', locked);
+      if (!locked && !free) return;
+      if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+      el.insertAdjacentHTML('beforeend', `<span class="lock-badge ${free ? 'free' : ''}" aria-label="${free ? 'free' : 'locked'}">${free ? 'FREE' : '🔒'}</span>`);
+    });
   }
   function needed(page) { return PLANS.find((p) => p.pages.includes(page)) || PLANS[PLANS.length - 1]; }
   // AI features are part of Plus
-  (function gateAI() { const m = mine(); if (m && m.plan && !m.plan.ai) GL.AI.disabled = true; if (m && expired()) GL.AI.disabled = true; })();
+  (function gateAI() { const ac = access(); if (ac && !(ac.tier === 'plan' && ac.plan.ai)) GL.AI.disabled = true; })();
 
   function cardsHTML(current, opts) {
     opts = opts || {};
@@ -53,50 +91,72 @@
       <div class="plan-ico">${p.icon}</div><h3>${esc(p.name)}</h3><p class="muted plan-tag">${esc(p.tagline)}</p>
       <div class="plan-price">${money(p.price)}<small> / month</small></div>
       <ul class="plan-feat">${p.features.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>
-      ${opts.buttons ? (current === p.id ? '<button class="btn ghost" disabled>✓ Your current plan</button>' : `<button class="btn plan-pick" data-plan="${p.id}" style="background:${p.color}">${current && byId(current) && byId(current).price > p.price ? 'Switch' : 'Choose'} ${esc(p.name)}</button>`) : ''}
+      ${opts.buttons ? (current === p.id ? '<button class="btn ghost" disabled>✓ Your current plan</button>' : `<a class="btn plan-pick" data-plan="${p.id}" style="background:${p.color}" target="_blank" rel="noopener" href="${attr(waLink(`Hallo! I would like the ${p.name} plan (${money(p.price)} / month) for the German course Deutsch30.`))}">💬 ${current && byId(current) && byId(current).price > p.price ? 'Switch to' : 'Get'} ${esc(p.name)}</a>`) : ''}
     </div>`).join('')}</div>`;
   }
 
+  const waCard = (title, text) => `<div class="wa-card"><div class="wa-ico">💬</div><div><b>${title}</b><br><span class="muted">${text}</span></div>
+    <a class="btn wa-btn" target="_blank" rel="noopener" href="${attr(waLink())}">WhatsApp ${WA_SHOW}</a></div>`;
+  const trialHTML = () => { const sc = (GL.scenarios || []).find((x) => x.id === FREE_SCENE); return `<div class="trial-card"><b>🎁 Free trial</b> – try <a href="#/day/1">📅 Day 1</a> and the real-life scene <a href="#/scenes/${FREE_SCENE}">${sc ? sc.icon + ' ' + esc(sc.title) : 'Supermarket'}</a> for free. Everything else you can look at – it opens with a plan.</div>`; };
+
   /* ---------- student / visitor page: #/plans ---------- */
   function viewPlans() {
-    const m = mine(), s = sess();
+    const m = mine(), s = sess(), ac = access();
     const cur = m && m.plan ? m.plan.id : '';
     const left = m ? daysLeft(m.paidUntil) : null;
-    const status = !m ? '' : !m.plan ? '<div class="note">Your teacher hasn’t assigned a plan to your account yet. Choose one below and pay as described – your teacher then activates it.</div>'
+    const status = !m ? '' : !m.plan ? '<div class="note">You don’t have a plan yet – you are on the free trial. Choose a plan below and pay as described; your teacher then activates it.</div>'
       : `<div class="plan-status ${left != null && left < 0 ? 'late' : left != null && left <= 5 ? 'soon' : ''}"><span class="plan-ico">${m.plan.icon}</span><div><b>Your plan: ${esc(m.plan.name)}</b> · ${money(m.plan.price)} / month<br>
         <span class="muted">${!m.paidUntil ? 'Payment period not set yet' : left >= 0 ? `Paid until <b>${fmtD(m.paidUntil)}</b> (${left} day${left === 1 ? '' : 's'} left)` : `Payment was due on <b>${fmtD(m.paidUntil)}</b>${expired() ? ' – lessons are paused until your teacher records the payment' : ` – please pay within ${GRACE_DAYS + left + 1} day(s)`}`}</span></div></div>`;
     return {
       html: `<h1>💳 Plans & payment</h1>
         <p class="muted">One price per month, no hidden costs. ${s ? '' : 'Log in to see your own plan.'}</p>
+        ${waCard('Join the course or ask a question', 'Message me on WhatsApp – I’ll set up your login and plan.')}
         ${status}
-        ${cardsHTML(cur, { buttons: !!m })}
+        ${ac && ac.tier !== 'plan' ? trialHTML() : ''}
+        ${cardsHTML(cur, { buttons: !s || s.user.role !== 'teacher' })}
         <div class="card"><h3 style="margin-top:0">💸 How to pay</h3>
           ${window.D30 && D30.payInfo ? `<div class="pay-info">${esc(D30.payInfo).replace(/\n/g, '<br>')}</div>` : '<p>Please pay your teacher directly (cash, bank transfer, JazzCash / EasyPaisa). Your teacher records the payment and your plan is activated right away.</p>'}
-          <p class="muted" style="margin-bottom:0">After paying, tell your teacher which plan you chose (the buttons above send them a message). Your plan runs for one month from the payment.</p></div>
+          <p class="muted" style="margin-bottom:0">After paying, send a message on <a target="_blank" rel="noopener" href="${attr(waLink('Hallo! I have paid for my Deutsch30 plan.'))}">WhatsApp ${WA_SHOW}</a> with the plan you chose. Your plan runs for one month from the payment.</p></div>
         <div id="planInfo" class="muted"></div>`,
       mount() {
-        $$('.plan-pick').forEach((b) => (b.onclick = async () => {
+        // the plan buttons open WhatsApp; logged-in students also leave the request in the teacher's inbox
+        $$('.plan-pick').forEach((b) => b.addEventListener('click', async () => {
           const p = byId(b.dataset.plan), info = $('#planInfo');
-          b.disabled = true;
+          if (!m) return;
           try {
             await GL.Cloud.init;
-            if (!GL.Cloud.ready) throw new Error('offline');
+            if (!GL.Cloud.ready) return;
             await GL.Cloud.send('other', `I would like the ${p.name} plan (${money(p.price)} / month).`, 'Plan request');
-            info.innerHTML = `✅ Your teacher got your request for <b>${esc(p.name)}</b>. Pay as described above – the plan is activated when the payment is recorded.`;
-            GL.toast(`✅ Request for ${esc(p.name)} sent to your teacher`, 'ok');
-          } catch (e) { info.textContent = 'Could not send the request – please tell your teacher directly.'; b.disabled = false; }
+            info.innerHTML = `✅ Your request for <b>${esc(p.name)}</b> is also in your teacher’s inbox.`;
+          } catch (e) { /* WhatsApp is enough */ }
         }));
       },
     };
   }
 
-  function viewLockedPlan(page, reason) {
-    const need = needed(page), m = mine();
+  function lockedWhat(page, a) {
+    if (page === 'day') { const d = GL.days[(+a || 1) - 1]; return d ? `📅 Day ${d.day}: ${d.title}` : 'This lesson'; }
+    if (page === 'scenes') { const sc = GL.scenarios.find((x) => x.id === a); return sc ? `${sc.icon} ${sc.title} – ${sc.en}` : 'This scene'; }
+    return ({ grammar: '📘 Grammar topics', trainer: '🏋️ Grammar trainer', review: '🔁 Review & flashcards', sounds: '🗣️ Pronunciation guide', talk: '🎤 Speaking practice', writing: '✍️ Writing studio', teacher: '📨 Messages to your teacher' })[page] || 'This part of the course';
+  }
+  function viewLockedPlan(page, reason, a) {
+    const need = needed(page), m = mine(), ac = access() || {};
+    if (reason === 'free') {
+      return {
+        html: `<div class="card lock-card">${GL.charSVG('bruno', 'idle thinking')}
+          <h1>🔒 Part of the full course</h1>
+          <p class="lock-what">${esc(lockedWhat(page, a))}</p>
+          <p>${ac.guest ? 'You are trying the course without a login.' : 'You are on the free trial.'} Free to try: <b>Day 1</b> and the real-life scene <b>“Im Supermarkt”</b>. Everything else opens with a plan – from <b>${money(PLANS[0].price)} / month</b>.</p>
+          <div class="row" style="justify-content:center"><a class="btn wa-btn big" target="_blank" rel="noopener" href="${attr(waLink(`Hallo! I would like to join the German course Deutsch30 (I was looking at: ${lockedWhat(page, a)}).`))}">💬 WhatsApp ${WA_SHOW}</a><a class="btn ghost" href="#/plans">💳 See plans</a></div>
+          <div class="row" style="justify-content:center;margin-top:8px"><a class="btn small ghost" href="#/day/1">▶ Try Day 1 free</a><a class="btn small ghost" href="#/scenes/${FREE_SCENE}">🎬 Try the free scene</a>${ac.guest ? '<button class="btn small ghost" id="lockLogin2" type="button">🔐 Log in</button>' : ''}</div></div>`,
+        mount() { const b = $('#lockLogin2'); if (b) b.onclick = () => D30.showLogin(); },
+      };
+    }
     return {
       html: `<div class="card lock-card">${GL.charSVG('bruno', 'idle thinking')}
         ${reason === 'expired' ? `<h1>⏸️ Your plan has ended</h1><p>Your payment period ended on <b>${fmtD(m.paidUntil)}</b>. Please pay for the next month – as soon as your teacher records it, everything opens again. Your progress is safe.</p>`
           : `<h1>${need.icon} Part of the ${esc(need.name)} plan</h1><p>This part of the course is included from the <b>${esc(need.name)}</b> plan (${money(need.price)} / month). Your plan: <b>${esc(m.plan.name)}</b>.</p>`}
-        <div class="row" style="justify-content:center"><a class="btn green big" href="#/plans">💳 See plans & how to pay</a><a class="btn ghost" href="#/">🏠 Home</a></div></div>`,
+        <div class="row" style="justify-content:center"><a class="btn green big" href="#/plans">💳 See plans & how to pay</a><a class="btn wa-btn" target="_blank" rel="noopener" href="${attr(waLink(reason === 'expired' ? 'Hallo! I would like to renew my Deutsch30 plan.' : `Hallo! I would like to upgrade to the ${need.name} plan (Deutsch30).`))}">💬 WhatsApp</a></div></div>`,
     };
   }
 
@@ -126,7 +186,7 @@
         <label>Paid until<input class="txt-in" type="date" id="pbUntil" value="${attr(u.paidUntil || '')}"></label>
         <button class="btn small" id="pbSave" type="button">💾 Save</button>
       </div>
-      <p class="muted" style="margin:4px 0 10px">Status: <b class="pay-${ps.key}">${esc(ps.label)}</b>${p ? '' : ' – without a plan the student can open everything.'}</p>
+      <p class="muted" style="margin:4px 0 10px">Status: <b class="pay-${ps.key}">${esc(ps.label)}</b>${p ? '' : ' – without a plan the student only has the free trial (Day 1 + one scene).'}</p>
       <details class="pay-add" ${ps.key === 'overdue' || ps.key === 'unset' ? 'open' : ''}><summary><b>➕ Record a payment</b> <span class="muted">(extends the plan by 1 month)</span></summary>
         <div class="plan-form">
           <label>Amount (${CURRENCY})<input class="txt-in" type="number" min="0" step="100" id="pbAmount" value="${p ? p.price : ''}"></label>
@@ -162,8 +222,8 @@
       <label class="muted" for="payInfoTxt">How students should pay you (bank account, JazzCash / EasyPaisa number, cash …)</label>
       <textarea class="txt-in" id="payInfoTxt" rows="4" style="width:100%;margin-top:4px" maxlength="1500" placeholder="e.g. JazzCash 0300-1234567 (Bilal Malik)&#10;Bank: Meezan Bank, IBAN PK00 MEZN 0000 0000 0000 0000&#10;Please send a screenshot after paying.">${esc(text || '')}</textarea>
       <div class="row" style="margin-top:8px"><button class="btn small green" id="payInfoSave" type="button">💾 Save instructions</button><span class="muted" id="payInfoMsg"></span></div>
-      <p class="muted" style="margin:8px 0 0">Prices: Basic ${money(5000)}, Standard ${money(7000)}, Plus ${money(10000)} per month. Without a plan a student can open everything; after a missed payment there are ${GRACE_DAYS} days of grace before lessons pause.</p></details>`;
+      <p class="muted" style="margin:8px 0 0">Prices: Basic ${money(5000)}, Standard ${money(7000)}, Plus ${money(10000)} per month. Without a plan a student only has the free trial (Day 1 and the scene “Im Supermarkt”) – the same as visitors without a login; after a missed payment there are ${GRACE_DAYS} days of grace before lessons pause.</p></details>`;
   }
 
-  GL.Plans = { PLANS, byId, money, mine, lockReason, viewPlans, viewLockedPlan, payState, planChip, revenue, planBoxHTML, wirePlanBox, payInfoHTML, cardsHTML, CURRENCY, fmtD };
+  GL.Plans = { WA, WA_SHOW, waLink, FREE_SCENE, access, decorate, PLANS, byId, money, mine, lockReason, viewPlans, viewLockedPlan, payState, planChip, revenue, planBoxHTML, wirePlanBox, payInfoHTML, cardsHTML, CURRENCY, fmtD };
 })();
