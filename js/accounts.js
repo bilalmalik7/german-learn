@@ -185,7 +185,7 @@
         if (!slot.isConnected) return;
         if (!Cloud.ready) {
           if (Cloud.status.done && Cloud.status.framed) slot.innerHTML = `<a class="conn-banner" href="#/admin">🔌 <span><b>Login & teacher portal are not connected in this view.</b> Tap to see why and how to fix it.</span></a>`;
-          else if (Cloud.status.done && window.D30 && D30.standalone) { slot.innerHTML = `<a class="conn-banner" href="#" id="homeLogin">🔐 <span><b>${D30.guest() ? 'You are not logged in' : 'Not connected to the server'}</b> – your progress is only kept in this browser. Tap to log in.</span></a>`; $('#homeLogin', slot).onclick = (e) => { e.preventDefault(); D30.showLogin(); }; }
+          else if (Cloud.status.done && window.D30 && D30.standalone) { slot.innerHTML = `<a class="conn-banner" href="#" id="homeLogin">🔐 <span>${D30.guest() ? '<b>You are not logged in.</b> You can look at the course plan – lessons open after you log in. Tap here to log in.' : '<b>Not connected to the server</b> – your progress is only kept in this browser. Tap to log in.'}</span></a>`; $('#homeLogin', slot).onclick = (e) => { e.preventDefault(); D30.showLogin(); }; }
           return;
         }
         if (Cloud.owner) {

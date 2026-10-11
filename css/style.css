@@ -1058,3 +1058,6 @@ body.login-open { overflow: hidden; }
 .setup-warn ul { margin: 6px 0; padding-left: 18px; }
 .setup-warn li { margin: 4px 0; }
 .setup-warn code { font-size: .85em; }
+.lock-card { text-align: center; max-width: 620px; margin: 24px auto; padding: 26px 22px; }
+.lock-card svg { width: 120px; height: 120px; }
+.lock-card h1 { margin: 6px 0 8px; }

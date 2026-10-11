@@ -62,7 +62,7 @@
     let health = null;
     try { const r = await fetch(API + '?op=health', { cache: 'no-store' }); if (r.ok) health = await r.json(); } catch (e) { /* no server */ }
     D30.health = health;
-    if (!health || !health.ok) { D30.standalone = false; resolveCaps(null); return; } // plain static copy: the course works, without accounts
+    if (!health || !health.ok) { D30.standalone = false; resolveCaps(null); if (!sess) whenDom(() => window.GL && GL.render && GL.render()); return; } // plain static copy: the course works, without accounts
     if (!sess) {
       if (ss.get(GUEST) === '1') { resolveCaps(null); return; }
       whenDom(() => showLogin());
@@ -295,7 +295,7 @@
       </form>
       <p class="muted login-help">No login yet? Your teacher creates it for you in the teacher portal.</p>
       ${D30.health && D30.health.configured === false ? setupHTML(D30.health.missing || ['SESSION_SECRET', 'TEACHER_PASSWORD']) : ''}
-      <button type="button" class="login-guest" id="d30Guest">Just look around without an account →</button>
+      <button type="button" class="login-guest" id="d30Guest">Just look at the course plan first (lessons need a login) →</button>
     </div>`;
     document.body.appendChild(box);
     document.body.classList.add('login-open');
@@ -325,6 +325,8 @@
       if (sess) { location.reload(); return; }
       box.remove(); document.body.classList.remove('login-open');
       resolveCaps(null);
+      if (!/^#\/?(plan)?$/.test(location.hash)) location.hash = '#/';
+      if (window.GL && GL.render) GL.render();
     };
   }
   let expiredShown = false;

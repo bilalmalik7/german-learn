@@ -120,7 +120,8 @@
     if (moreBtn) moreBtn.classList.toggle('active', MORE_PAGES.includes(page));
     let html;
     try {
-      if (GL.Accounts && GL.Accounts.needsRegistration() && page !== 'settings') html = GL.viewRegister();
+      if (lockedFor(page)) html = viewLocked();
+      else if (GL.Accounts && GL.Accounts.needsRegistration() && page !== 'settings') html = GL.viewRegister();
       else switch (page) {
         case '': case undefined: case 'home': html = viewHome(); break;
         case 'plan': html = viewPlan(); break;
@@ -153,6 +154,21 @@
   }
 
   GL.render = route;
+
+  /* Website version: visitors without a login may look at the start page and the 30-day plan only. */
+  const OPEN_PAGES = ['', 'home', 'plan'];
+  const lockedFor = (page) => !!(window.D30 && D30.standalone && !D30.session()) && !OPEN_PAGES.includes(page || '');
+  function viewLocked() {
+    return {
+      html: `<div class="card lock-card">
+        ${GL.charSVG('bruno', 'idle waving')}
+        <h1>🔒 Please log in</h1>
+        <p>The lessons, exercises, grammar, scenes, speaking and writing practice are for registered students.<br>Log in with the <b>username</b> and <b>password</b> from your teacher to open them.</p>
+        <div class="row" style="justify-content:center"><button class="btn green big" id="lockLogin" type="button">🔐 Log in</button><a class="btn ghost" href="#/plan">🗺️ See the 30-day plan</a></div>
+        <p class="muted" style="margin-bottom:0">No login yet? Ask your teacher – they create it for you.</p></div>`,
+      mount() { $('#lockLogin').onclick = () => D30.showLogin(); },
+    };
+  }
 
   /* ======================================================
      HOME
