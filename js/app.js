@@ -217,7 +217,7 @@
         <div class="stat"><span class="s-ico">⭐</span><div><b>${st.xp}</b><span>XP earned</span></div></div>
         <div class="stat"><span class="s-ico">✅</span><div><b>${done}/${GL.days.length}</b><span>days completed</span></div></div>
         <div class="stat"><span class="s-ico">📚</span><div><b>${words}</b><span>words learned</span></div></div>
-        <div class="stat"><span class="s-ico">⏱️</span><div><b>${GL.minutesOn(GL.todayStr())} min</b><span>studied today</span></div></div>
+        <div class="stat"><span class="s-ico">⏱️</span><div><b>${GL.minutesOn(GL.todayStr())} min</b><span title="Only practice time counts – answering, typing, speaking and listening, not scrolling">practised today</span></div></div>
       </div>
 
       <div class="card">

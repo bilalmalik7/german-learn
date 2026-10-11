@@ -3,15 +3,32 @@
   'use strict';
   const { $, $$, esc, attr, Store, toast } = GL;
 
-  /* ---------- study time: counts 15-second ticks while the page is visible and used ---------- */
-  let lastAct = Date.now();
-  ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach((ev) => document.addEventListener(ev, () => (lastAct = Date.now()), { passive: true }));
+  /* ---------- study time: only real practice counts ----------
+     A 15-second tick is counted when the student is on a learning page (lesson, grammar, trainer, scenes,
+     speaking, writing, review, sounds), the page is visible, and they did something that is studying in the
+     last 2 minutes: answering, clicking an exercise, typing, recording, playing audio. Scrolling or leaving the
+     page open does not count. Time is also split by area so the teacher sees where it goes. */
+  const AREAS = { day: 'lesson', grammar: 'grammar', trainer: 'trainer', scenes: 'scenes', talk: 'speaking', writing: 'writing', review: 'review', sounds: 'sounds' };
+  GL.STUDY_AREAS = { lesson: '📖 Lessons', grammar: '📘 Grammar', trainer: '🏋️ Trainer', scenes: '🎬 Real-life scenes', speaking: '🎤 Speaking', writing: '✍️ Writing', review: '🔁 Review', sounds: '🗣️ Sounds' };
+  const areaNow = () => AREAS[location.hash.replace(/^#\/?/, '').split(/[/#]/)[0]] || null;
+  let lastStudy = 0;
+  GL.studyPing = () => { lastStudy = Date.now(); };
+  const STUDY_TARGETS = 'button, input, textarea, select, label, summary, [data-say], [role=button], .opt, .card-flip, a.btn, canvas, svg';
+  document.addEventListener('pointerdown', (e) => { const t = e.target; if (t && t.closest && t.closest('#app') && t.closest(STUDY_TARGETS)) lastStudy = Date.now(); }, { passive: true });
+  document.addEventListener('keydown', (e) => { const t = e.target; if (t && t.closest && t.closest('#app')) lastStudy = Date.now(); });
   setInterval(() => {
-    const speaking = window.speechSynthesis && speechSynthesis.speaking;
-    if (document.hidden || (Date.now() - lastAct > 90000 && !speaking)) return;
-    const t = (Store.state.time = Store.state.time || {});
-    const d = GL.todayStr();
+    const area = areaNow();
+    if (!area || document.hidden) return;
+    const audio = (window.speechSynthesis && speechSynthesis.speaking) || (GL.Rec && GL.Rec.active);
+    if (!audio && Date.now() - lastStudy > 120000) return;
+    const st = Store.state, d = GL.todayStr();
+    const t = (st.time = st.time || {});
     t[d] = (t[d] || 0) + 15;
+    const ta = (st.timeAreas = st.timeAreas || {});
+    const day = (ta[d] = ta[d] || {});
+    day[area] = (day[area] || 0) + 15;
+    const keys = Object.keys(ta);
+    if (keys.length > 70) keys.sort().slice(0, keys.length - 70).forEach((k) => delete ta[k]);
     Store.save();
   }, 15000);
   GL.minutesOn = (d) => Math.round(((Store.state.time || {})[d] || 0) / 60);
@@ -40,6 +57,10 @@
     let total = 0;
     Object.entries(st.time || {}).forEach(([d, sec]) => { total += sec; });
     for (let i = 0; i < 60; i++) { const d = GL.todayStr(new Date(Date.now() - i * 864e5)); if (st.time && st.time[d]) time[d] = Math.round(st.time[d] / 60); }
+    const week = Array.from({ length: 7 }, (_, i) => GL.todayStr(new Date(Date.now() - i * 864e5)));
+    const areas7 = {}, areasAll = {};
+    Object.entries(st.timeAreas || {}).forEach(([d, o]) => Object.entries(o || {}).forEach(([k, sec]) => { areasAll[k] = (areasAll[k] || 0) + sec; if (week.includes(d)) areas7[k] = (areas7[k] || 0) + sec; }));
+    const toMin = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round(v / 60)]).filter(([, v]) => v > 0));
     const tr = {};
     ['verbs', 'articles', 'adjectives'].forEach((k) => { const x = (st.trainer || {})[k]; if (x) tr[k] = { right: x.right || 0, total: x.total || 0 }; });
     return {
@@ -50,6 +71,7 @@
       studio: studioSummary(st.studio),
       speak: GL.Speak ? GL.Speak.summary() : null,
       activity: (st.events || []).slice(-150),
+      areas7: toMin(areas7), areasAll: toMin(areasAll), timeMode: 'study',
     };
   }
 
@@ -347,6 +369,86 @@
         <li><b>Follow them here:</b> as soon as they log in, “✉️ Invited” changes to their live progress – lessons, time, scores and a timeline of everything they do.</li>
       </ol></details>`;
   }
+  /* ---------- how each student is learning ---------- */
+  const LSTAT = {
+    inactive: ['😴', 'Inactive', 'Not studied for more than a week'],
+    help: ['🆘', 'Needs help', 'Low scores – check the weak areas'],
+    behind: ['🐢', 'Falling behind', 'Slower than the 30-day plan or studying less'],
+    excellent: ['🌟', 'Excellent', 'On time, high scores, studying regularly'],
+    ontrack: ['✅', 'On track', 'Studying regularly'],
+    new: ['🆕', 'Just started', 'Not enough activity yet to judge'],
+  };
+  const pct = (t) => (t && t.total >= 10 ? Math.round((t.right / t.total) * 100) : null);
+  function insight(l) {
+    const p = l.profile || {};
+    const last = daysAgo(l.lastActive), av = avgScore(l), week = lastNDays(7);
+    const start = p.registeredAt || null;
+    const sinceStart = start ? Math.floor((new Date(GL.todayStr()) - new Date(GL.todayStr(new Date(start)))) / 864e5) : null;
+    const expected = sinceStart == null ? null : Math.min(30, sinceStart + 1);
+    const doneN = (l.done || []).length;
+    const behind = expected == null ? 0 : expected - Math.min(30, doneN + 1);
+    const goal = +p.minutes || 0;
+    const mins = week.map((d) => (l.time || {})[d] || 0);
+    const goalDays = goal ? mins.filter((m) => m >= goal).length : null;
+    const studyDays = mins.filter((m) => m > 0).length;
+    const weekMin = mins.reduce((a, b) => a + b, 0);
+    const skills = [];
+    const add = (label, v, n) => { if (v != null) skills.push({ label, v, n }); };
+    add('Exercises (lesson tests)', av, Object.keys(l.best || {}).length);
+    add('Verbs (trainer)', pct((l.trainer || {}).verbs));
+    add('Articles & cases (trainer)', pct((l.trainer || {}).articles));
+    add('Adjective endings (trainer)', pct((l.trainer || {}).adjectives));
+    if (l.speak && l.speak.n >= 10 && l.speak.avg != null) add('Pronunciation', l.speak.avg);
+    if (l.studio && l.studio.texts >= 2) add('Writing', l.studio.avg);
+    const strong = skills.filter((x) => x.v >= 80).sort((a, b) => b.v - a.v);
+    const weak = skills.filter((x) => x.v < 65).sort((a, b) => a.v - b.v);
+    const lowAvg = skills.length ? Math.round(skills.reduce((a, x) => a + x.v, 0) / skills.length) : null;
+    const reasons = [];
+    let key;
+    const fresh = (sinceStart != null && sinceStart <= 2 && doneN <= 1) || (doneN === 0 && !skills.length && weekMin < 20);
+    if (!l.lastActive || fresh) key = last > 7 ? 'inactive' : 'new';
+    else if (last > 7) key = 'inactive';
+    else if (weak.length >= 2 || (lowAvg != null && lowAvg < 60)) key = 'help';
+    else if (behind >= 3 || last >= 4 || ((sinceStart == null || sinceStart >= 7) && goal && goalDays != null && goalDays <= 1 && studyDays <= 2)) key = 'behind';
+    else if (lowAvg != null && lowAvg >= 85 && behind <= 1 && last <= 2) key = 'excellent';
+    else key = 'ontrack';
+    if (last > 1 && last !== Infinity) reasons.push(`Last studied ${agoText(l.lastActive)}`);
+    if (expected != null) reasons.push(behind > 0 ? `${behind} day${behind > 1 ? 's' : ''} behind the plan (should be on Day ${expected}, is on Day ${Math.min(30, doneN + 1)})` : behind < 0 ? `${-behind} day${behind < -1 ? 's' : ''} ahead of the plan` : 'Exactly on schedule');
+    if (goal) reasons.push(`Reached the daily goal (${goal} min) on ${goalDays} of the last 7 days`);
+    reasons.push(`Studied on ${studyDays} of the last 7 days · ${fmtMin(weekMin)} in total`);
+    weak.forEach((x) => reasons.push(`Weak: ${x.label} ${x.v}%`));
+    return { key, behind, expected, goal, goalDays, mins, studyDays, weekMin, strong, weak, reasons, skills };
+  }
+  const lchip = (k) => `<span class="lst-chip lst-${k}" title="${attr(LSTAT[k][2])}">${LSTAT[k][0]} ${LSTAT[k][1]}</span>`;
+  function learningHTML(l) {
+    const i = insight(l), A = GL.STUDY_AREAS;
+    const areas = Object.entries(l.areas7 || {}).sort((a, b) => b[1] - a[1]);
+    const maxA = Math.max(1, ...areas.map(([, v]) => v));
+    const week = lastNDays(7);
+    const topCats = l.studio && Object.keys(l.studio.cats || {}).length ? Object.entries(l.studio.cats).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, n]) => `${({ grammar: 'grammar', case: 'cases', verb: 'verb forms', word_order: 'word order', spelling: 'spelling', vocabulary: 'word choice', punctuation: 'commas', style: 'style' })[k] || k} (${n}×)`) : [];
+    return `<div class="learn-box"><div class="row"><h4 style="margin:0">📊 How ${esc(((l.profile && l.profile.name) || 'this student').split(' ')[0])} is learning</h4>${lchip(i.key)}</div>
+      <div class="grid grid-2" style="margin-top:10px">
+        <div>
+          <div class="pace"><div class="pace-bar"><span class="pace-done" style="width:${((l.done || []).length / 30) * 100}%"></span>${i.expected ? `<span class="pace-exp" style="left:${(i.expected / 30) * 100}%" title="Where the plan expects them today: Day ${i.expected}"></span>` : ''}</div>
+            <small class="muted">${(l.done || []).length} of 30 days finished${i.expected ? ` · ▼ = today’s target (Day ${i.expected})` : ''}</small></div>
+          <ul class="learn-reasons">${i.reasons.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>
+          ${i.goal ? `<div class="goal-dots" title="Days the daily goal was reached">${week.map((d, k) => `<span class="${i.mins[k] >= i.goal ? 'hit' : i.mins[k] > 0 ? 'some' : ''}" title="${attr(d.slice(8) + '.' + d.slice(5, 7) + '.: ' + i.mins[k] + ' / ' + i.goal + ' min')}">${'MTWTFSS'[(new Date(d + 'T12:00').getDay() + 6) % 7]}</span>`).join('')}</div>` : ''}
+        </div>
+        <div>
+          <h5 style="margin:0 0 6px">⏱️ Study time by area – last 7 days</h5>
+          ${areas.length ? areas.map(([k, v]) => `<div class="area-row"><span>${esc(A[k] || k)}</span><span class="area-bar"><i style="width:${(v / maxA) * 100}%"></i></span><b>${fmtMin(v)}</b></div>`).join('') : '<p class="muted" style="margin:0">No study time recorded in the last 7 days.</p>'}
+          <p class="muted" style="margin:6px 0 0;font-size:.85rem">Only real practice counts (answering, typing, speaking, listening) – not scrolling or an open tab.</p>
+        </div>
+      </div>
+      <div class="grid grid-2" style="margin-top:8px">
+        <div><h5 style="margin:6px 0">💪 Strong</h5>${i.strong.length ? i.strong.map((x) => `<div class="kv"><span>${esc(x.label)}</span><b class="good">${x.v}%</b></div>`).join('') : '<p class="muted" style="margin:0">Not enough results yet.</p>'}</div>
+        <div><h5 style="margin:6px 0">🎯 Needs practice</h5>${i.weak.length ? i.weak.map((x) => `<div class="kv"><span>${esc(x.label)}</span><b class="bad">${x.v}%</b></div>`).join('') : '<p class="muted" style="margin:0">Nothing below 65% – 👍</p>'}
+          ${topCats.length ? `<div class="kv"><span>Most frequent writing mistakes</span><b>${esc(topCats.join(', '))}</b></div>` : ''}
+          ${l.speak && (l.speak.weak || []).length ? `<div class="kv"><span>Hard words to pronounce</span><b>${l.speak.weak.slice(0, 4).map(esc).join(', ')}</b></div>` : ''}
+          ${l.mistakes ? `<div class="kv"><span>Open mistakes in their notebook</span><b>${l.mistakes}</b></div>` : ''}</div>
+      </div></div>`;
+  }
+
   function profileHTML(l) {
     const p = l.profile, r = Cloud.roster[l.id] || {};
     const week = lastNDays(7), avgDay = Math.round(sumMin(l, week) / 7);
@@ -371,12 +473,12 @@
   }
   function csvExport(learners, nm) {
     const week = lastNDays(7);
-    const rows = [['Name', SA ? 'Username' : 'Claude account', 'Email', 'Phone', 'Status', 'Registered', 'Level at start', 'Goals', 'Current day', 'Days done', 'XP', 'Streak', 'Minutes last 7 days', 'Total minutes', 'Avg exercise score', 'Writing texts', 'Avg writing score', 'Sentences spoken', 'Speaking accuracy', 'Mistakes in notebook', 'Last active', 'Teacher notes']];
+    const rows = [['Name', SA ? 'Username' : 'Claude account', 'Email', 'Phone', 'Status', 'Registered', 'Level at start', 'Goals', 'Current day', 'Days done', 'XP', 'Streak', 'Minutes last 7 days', 'Total minutes', 'Avg exercise score', 'Writing texts', 'Avg writing score', 'Sentences spoken', 'Speaking accuracy', 'Mistakes in notebook', 'Last active', 'Learning status', 'Days behind plan', 'Daily goal reached (last 7 days)', 'Study minutes last 7 days by area', 'Teacher notes']];
     learners.forEach((l) => {
-      const p = l.profile || {}, r = Cloud.roster[l.id] || {};
+      const p = l.profile || {}, r = Cloud.roster[l.id] || {}, ii = insight(l);
       rows.push([p.name || '', nm(l.id, true), p.email || '', p.phone || '', statusOf(l.id), p.registeredAt ? new Date(p.registeredAt).toISOString().slice(0, 10) : '', p.level || '', (p.goals || []).map((g) => GOAL_L[g] || g).join('; '),
         l.currentDay || 1, (l.done || []).length, l.xp || 0, l.streak || 0, sumMin(l, week), l.totalMin || 0, avgScore(l) == null ? '' : avgScore(l),
-        l.studio ? l.studio.texts : 0, l.studio ? l.studio.avg : '', l.speak ? l.speak.n : 0, l.speak && l.speak.avg != null ? l.speak.avg : '', l.mistakes || 0, l.lastActive || '', r.note || '']);
+        l.studio ? l.studio.texts : 0, l.studio ? l.studio.avg : '', l.speak ? l.speak.n : 0, l.speak && l.speak.avg != null ? l.speak.avg : '', l.mistakes || 0, l.lastActive || '', LSTAT[ii.key][1], Math.max(0, ii.behind), ii.goal ? ii.goalDays + '/7' : '', Object.entries(l.areas7 || {}).map(([k, v]) => k + ' ' + v).join(', '), r.note || '']);
     });
     const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
     GL.saveFile(`students-${GL.todayStr()}.csv`, new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }), 'text/csv');
@@ -506,14 +608,16 @@
                 <div class="stat"><span class="s-ico">⏱️</span><div><b>${fmtMin(weekMin)}</b><span>study time, last 7 days</span></div></div>
                 <div class="stat"><span class="s-ico">📨</span><div><b>${open}</b><span>open messages</span></div></div>
               </div>
+              ${(() => { const att = learners.map((l) => [l, insight(l)]).filter(([, ii]) => ['help', 'behind', 'inactive'].includes(ii.key)); return att.length ? `<div class="card attn-card"><h3 style="margin-top:0">⚠️ Needs your attention</h3>${att.map(([l, ii]) => `<div class="attn-row" data-id="${attr(l.id)}">${lchip(ii.key)} <b class="who" data-name="${attr(l.id)}"></b> <span class="muted">${esc(({ help: [/^Weak/], behind: [/behind the plan/, /Last studied/, /daily goal/], inactive: [/Last studied/] })[ii.key].map((re) => ii.reasons.find((r) => re.test(r))).find(Boolean) || LSTAT[ii.key][2])}</span></div>`).join('')}</div>` : ''; })()}
               ${addStudentsHTML(everyone.length + pending.length === 0, invites.length)}
               ${everyone.length || pending.length ? `<div class="card"><div class="row"><h3 style="margin:0">👥 Students</h3><span class="spacer"></span>
                 <div class="chips" id="stuFilter">${[['current', 'Current'], ['finished', 'Finished'], ['archived', 'Archived'], ['all', 'All']].map(([k, lb]) => `<button class="chip ${stuFilter === k ? 'on' : ''}" data-f="${k}">${lb} <small>${counts[k]}</small></button>`).join('')}</div>
                 ${SA ? '<button class="btn small ghost" id="admRefresh" title="Load the newest data">🔄 Refresh</button>' : ''}<button class="btn small ghost" id="admCsv">⬇ Export CSV</button></div>
-                <div class="gtable-wrap" style="margin-top:10px"><table class="gtable adm-table"><thead><tr><th>Student</th><th>Status</th><th>Registered</th><th>Day</th><th>Done</th><th>Today</th><th>7 days</th><th>Total time</th><th>Avg. score</th><th>Last active</th><th>Open</th></tr></thead><tbody>
-                ${showPending ? pending.map((v) => `<tr class="inv-row" data-inv="${attr(v.id)}"><td><b>${esc(v.name)}</b>${v.email ? `<br><small class="muted">${esc(v.email)}</small>` : ''}</td><td><span class="st-chip st-invited">✉️ ${v.username ? 'Login created' : 'Invited'}</span></td><td colspan="8" class="muted">Added ${new Date(v.createdAt).toLocaleDateString('de-DE')}${v.username ? ` · username <b class="mono">${esc(v.username)}</b>` : ''} · hasn’t logged in yet${v.note ? ' · ' + esc(v.note) : ''}</td><td class="nowrap">${v.username ? `<button class="btn tiny ghost acc-pw" data-u="${attr(v.username)}" title="Set a new password">🔑</button>` : ''}<button class="btn tiny ghost inv-del" data-inv="${attr(v.id)}" title="Remove from list">✖</button></td></tr>`).join('') : ''}
+                <div class="gtable-wrap" style="margin-top:10px"><table class="gtable adm-table"><thead><tr><th>Student</th><th>Learning</th><th>Status</th><th>Registered</th><th>Day</th><th>Done</th><th>Today</th><th>7 days</th><th>Total time</th><th>Avg. score</th><th>Last active</th><th>Open</th></tr></thead><tbody>
+                ${showPending ? pending.map((v) => `<tr class="inv-row" data-inv="${attr(v.id)}"><td><b>${esc(v.name)}</b>${v.email ? `<br><small class="muted">${esc(v.email)}</small>` : ''}</td><td><span class="st-chip st-invited">✉️ ${v.username ? 'Login created' : 'Invited'}</span></td><td colspan="9" class="muted">Added ${new Date(v.createdAt).toLocaleDateString('de-DE')}${v.username ? ` · username <b class="mono">${esc(v.username)}</b>` : ''} · hasn’t logged in yet${v.note ? ' · ' + esc(v.note) : ''}</td><td class="nowrap">${v.username ? `<button class="btn tiny ghost acc-pw" data-u="${attr(v.username)}" title="Set a new password">🔑</button>` : ''}<button class="btn tiny ghost inv-del" data-inv="${attr(v.id)}" title="Remove from list">✖</button></td></tr>`).join('') : ''}
                 ${learners.map((l) => { const o = Object.values(l.messages || {}).filter((m) => m.status === 'open').length; const av = avgScore(l); const st = STATUS[statusOf(l.id)]; const p = l.profile; return `<tr class="${l.id === selected ? 'sel' : ''}" data-id="${attr(l.id)}" tabindex="0">
                   <td><b class="who" data-name="${attr(l.id)}"></b>${p ? `<br><small class="muted who-acc" data-acc="${attr(l.id)}"></small>` : '<br><span class="path-tag warn-tag">not registered</span>'}</td>
+                  <td>${(() => { const ii = insight(l); return lchip(ii.key) + (ii.behind > 0 ? `<br><small class="muted">${ii.behind} day${ii.behind > 1 ? 's' : ''} behind</small>` : ''); })()}</td>
                   <td><span class="st-chip st-${statusOf(l.id)}">${st[0]} ${st[1]}</span></td><td>${p && p.registeredAt ? new Date(p.registeredAt).toLocaleDateString('de-DE') : '–'}</td>
                   <td>${l.currentDay || 1}</td><td>${(l.done || []).length}/30</td>
                   <td>${((l.time || {})[GL.todayStr()] || 0)} min</td><td>${fmtMin(sumMin(l, week))}</td><td>${fmtMin(l.totalMin || 0)}</td>
@@ -521,6 +625,7 @@
                   <td><span class="act ${daysAgo(l.lastActive) <= 1 ? 'on' : daysAgo(l.lastActive) <= 6 ? 'mid' : 'off'}"></span>${agoText(l.lastActive)}</td><td>${o ? `<span class="nb-inline">${o}</span>` : '–'}</td></tr>`; }).join('')}
                 </tbody></table></div>${learners.length || (showPending && pending.length) ? '' : '<p class="muted">No students in this list.</p>'}<p class="muted" style="margin:8px 0 0">Click a student for their profile, activity timeline and progress. Time counts only while the course is open and being used.</p></div>` : ''}
               ${sel ? `<div class="card" id="admDetail"><div class="row"><h3 style="margin:0">📈 <span class="who" data-name="${attr(sel.id)}"></span></h3><span class="spacer"></span><button class="btn tiny ghost" id="admClose">✖ Close</button></div>
+                ${learningHTML(sel)}
                 ${profileHTML(sel)}
                 <h4>🕒 Activity – who did what</h4><div class="tl-wrap">${timelineHTML(sel)}</div>
                 <h4>Minutes studied per day · last 14 days</h4>${barChart(sel)}
@@ -572,6 +677,7 @@
               tr.onclick = go; tr.onkeydown = (e) => { if (e.key === 'Enter') go(); };
             });
             const close = $('#admClose'); if (close) close.onclick = () => { selected = null; render(); };
+            $$('.attn-row', root).forEach((r) => (r.onclick = () => { selected = r.dataset.id; render().then(() => { const d = $('#admDetail'); d && d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); }));
             $$('#admFilter .chip', root).forEach((b) => (b.onclick = () => { inboxFilter = b.dataset.f; render(); }));
             // chart tooltip
             const cw = $('.chart-wrap', root);
