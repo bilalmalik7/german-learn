@@ -64,11 +64,12 @@
   function decorate() {
     const ac = access();
     if (!ac) return;
+    animateTrial();
     // trial users: show the free scene first in the scenes list
-    if (ac.tier !== 'plan') { const fs = $(`#app a[href="#/scenes/${FREE_SCENE}"]`); if (fs && fs.parentElement && fs.parentElement.firstElementChild !== fs && !fs.closest('.lock-card, .trial-card')) fs.parentElement.prepend(fs); }
+    if (ac.tier !== 'plan') { const fs = $$(`#app a[href="#/scenes/${FREE_SCENE}"]`).find((x) => !x.closest('.trial-hero, .lock-card, .trial-card')); if (fs && fs.parentElement && fs.parentElement.firstElementChild !== fs && !fs.closest('.lock-card, .trial-card, .trial-hero')) fs.parentElement.prepend(fs); }
     $$('#app a[href^="#/"]').forEach((el) => {
       // badges only on cards / tiles, not on buttons or links inside a sentence
-      if (el.closest('.lock-card, .trial-card, .note, p, li') || el.classList.contains('node') || el.classList.contains('btn') || el.classList.contains('chip') || getComputedStyle(el).display === 'inline') return;
+      if (el.closest('.lock-card, .trial-card, .trial-hero, .note, p, li') || el.classList.contains('node') || el.classList.contains('btn') || el.classList.contains('chip') || getComputedStyle(el).display === 'inline') return;
       const [page, a] = el.getAttribute('href').slice(2).split('/');
       const locked = !!lockReason(page, a);
       const free = !locked && ac.tier !== 'plan' && ((page === 'day' && (+a || 1) === 1 && a) || (page === 'scenes' && a === FREE_SCENE));
@@ -143,13 +144,17 @@
     const need = needed(page), m = mine(), ac = access() || {};
     if (reason === 'free') {
       return {
-        html: `<div class="card lock-card">${GL.charSVG('bruno', 'idle thinking')}
-          <h1>🔒 Part of the full course</h1>
-          <p class="lock-what">${esc(lockedWhat(page, a))}</p>
+        html: `<div class="card lock-card lock-rich">
+          <span class="lock-big" aria-hidden="true">🔒</span>
+          <h1>Part of the full course</h1>
+          ${previewHTML(page, a) || `<p class="lock-what">${esc(lockedWhat(page, a))}</p>`}
           <p>${ac.guest ? 'You are trying the course without a login.' : 'You are on the free trial.'} Free to try: <b>Day 1</b> and the real-life scene <b>“Im Supermarkt”</b>. Everything else opens with a plan – from <b>${money(PLANS[0].price)} / month</b>.</p>
           <div class="row" style="justify-content:center"><a class="btn wa-btn big" target="_blank" rel="noopener" href="${attr(waLink(`Hallo! I would like to join the German course Deutsch30 (I was looking at: ${lockedWhat(page, a)}).`))}">💬 WhatsApp ${WA_SHOW}</a><a class="btn ghost" href="#/plans">💳 See plans</a></div>
           <div class="row" style="justify-content:center;margin-top:8px"><a class="btn small ghost" href="#/day/1">▶ Try Day 1 free</a><a class="btn small ghost" href="#/scenes/${FREE_SCENE}">🎬 Try the free scene</a>${ac.guest ? '<button class="btn small ghost" id="lockLogin2" type="button">🔐 Log in</button>' : ''}</div></div>`,
-        mount() { const b = $('#lockLogin2'); if (b) b.onclick = () => D30.showLogin(); },
+        mount() {
+          const b = $('#lockLogin2'); if (b) b.onclick = () => D30.showLogin();
+          $$('.pv-word').forEach((w) => w.addEventListener('click', () => w.classList.add('said'))); // audio: the global [data-say] handler
+        },
       };
     }
     return {
@@ -225,5 +230,127 @@
       <p class="muted" style="margin:8px 0 0">Prices: Basic ${money(5000)}, Standard ${money(7000)}, Plus ${money(10000)} per month. Without a plan a student only has the free trial (Day 1 and the scene “Im Supermarkt”) – the same as visitors without a login; after a missed payment there are ${GRACE_DAYS} days of grace before lessons pause.</p></details>`;
   }
 
-  GL.Plans = { WA, WA_SHOW, waLink, FREE_SCENE, access, decorate, PLANS, byId, money, mine, lockReason, viewPlans, viewLockedPlan, payState, planChip, revenue, planBoxHTML, wirePlanBox, payInfoHTML, cardsHTML, CURRENCY, fmtD };
+  /* ======================================================
+     FREE TRIAL – make the free part feel like the real thing
+     ====================================================== */
+  const isTrial = () => { const ac = access(); return !!ac && ac.tier === 'free'; };
+  const freeScene = () => (GL.scenarios || []).find((x) => x.id === FREE_SCENE);
+  const sceneThumb = (sc) => { const bg = (sc.scenes.find((x) => !['home', 'phone'].includes(x.bg)) || sc.scenes[0]).bg; return GL.sceneBG && GL.sceneBG[bg] ? `<svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">${GL.sceneBG[bg]()}</svg>` : ''; };
+  const courseStats = () => ({ days: GL.days.length, words: GL.days.reduce((a, d) => a + (d.vocab || []).length, 0), grammar: Object.keys(GL.grammar || {}).length, scenes: (GL.scenarios || []).length, exercises: GL.days.reduce((a, d) => a + (d.exercises || []).length, 0) });
+  function trialProgress() {
+    const st = GL.Store.state, d1 = (st.days || {})[1] || {}, sc = (st.scenes || {})[FREE_SCENE] || {};
+    const steps = Object.keys(d1.steps || {}).length;
+    return { dayDone: !!d1.done, daySteps: steps, sceneDone: !!sc.done, sceneBest: sc.best };
+  }
+  function trialHomeHTML() {
+    if (!isTrial()) return '';
+    const d1 = GL.days[0], sc = freeScene(), pr = trialProgress(), cs = courseStats();
+    const ring = (pct) => `<svg class="t-ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" class="t-ring-bg"/><circle cx="18" cy="18" r="15.9" class="t-ring-fg" stroke-dasharray="${Math.round(pct)} 100"/></svg>`;
+    const dayPct = pr.dayDone ? 100 : Math.min(95, (pr.daySteps / 8) * 100);
+    const locked = (GL.scenarios || []).filter((x) => x.id !== FREE_SCENE).slice(0, 8);
+    const features = [['🎤', 'Speaking coach', 'Your pronunciation scored word by word'], ['✍️', 'Writing studio', '20 tasks with instant corrections'], ['🏋️', 'Grammar trainer', 'Unlimited drills: verbs, cases, endings'], ['🤖', 'AI tutor', 'Ask anything, practise conversations'], ['👩‍🏫', 'Your teacher', 'Questions & corrections from a real teacher']];
+    return `<section class="trial-hero">
+      <div class="t-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="t-head">
+        <div class="t-bruno">${GL.charSVG('bruno', 'idle waving')}</div>
+        <div>
+          <span class="t-pill">🎁 FREE TRIAL</span>
+          <h2 class="t-title">Try the course – <span>free</span>, no payment.</h2>
+          <p class="t-sub">Play the complete <b>Day 1</b> and the animated scene <b>“${esc(sc ? sc.title : 'Im Supermarkt')}”</b>. If you like it, everything else is waiting for you.</p>
+        </div>
+      </div>
+      <div class="t-free">
+        <a class="t-card t-day" href="#/day/1">
+          <div class="t-card-top"><span class="t-free-tag">FREE</span>${ring(dayPct)}<span class="t-card-ico">📅</span></div>
+          <b>Day 1 · ${esc(d1.level)}</b><span>${esc(d1.title)}</span>
+          <small>${d1.vocab.length} words · grammar · dialogue · exercises · speaking</small>
+          <ul class="t-goals">${(d1.goals || []).slice(0, 3).map((g) => `<li>${g}</li>`).join('')}</ul>
+          <span class="t-go">${pr.dayDone ? '✅ Finished – play again' : pr.daySteps ? '▶ Continue Day 1' : '▶ Start Day 1'}</span>
+        </a>
+        ${sc ? `<a class="t-card t-scene" href="#/scenes/${FREE_SCENE}">
+          <div class="t-thumb">${sceneThumb(sc)}<span class="t-free-tag">FREE</span><span class="t-play">▶</span></div>
+          <b>${sc.icon} ${esc(sc.title)} · ${esc(sc.level)}</b><span>${esc(sc.en)} – ${esc(sc.intro[1])}</span>
+          <span class="t-go">${pr.sceneDone ? `✅ Done (${pr.sceneBest}%) – play again` : '🎬 Play the scene'}</span>
+        </a>` : ''}
+      </div>
+      <div class="t-stats">${[[cs.days, 'days'], [cs.words, 'words with audio'], [cs.grammar, 'grammar topics'], [cs.scenes, 'real-life scenes'], [cs.exercises, 'exercises']].map(([n, l]) => `<div><b class="t-count" data-to="${n}">0</b><span>${l}</span></div>`).join('')}</div>
+      <h3 class="t-h3">🔒 Waiting for you in the full course</h3>
+      <div class="t-strip">${locked.map((x) => `<a class="t-lock-tile" href="#/scenes/${x.id}">${sceneThumb(x)}<span class="t-lock-ico">🔒</span><span class="t-lock-name">${x.icon} ${esc(x.title)}</span></a>`).join('')}
+        ${features.map(([i, t, d]) => `<a class="t-feat" href="#/plans"><span class="t-feat-ico">${i}</span><b>${t}</b><small>${d}</small><span class="t-lock-ico">🔒</span></a>`).join('')}</div>
+      <div class="t-cta"><a class="btn wa-btn big t-pulse" target="_blank" rel="noopener" href="${attr(waLink('Hallo! I tried Deutsch30 and would like to join the course.'))}">💬 Join on WhatsApp</a><a class="btn ghost" href="#/plans">💳 Plans from ${money(PLANS[0].price)} / month</a></div>
+    </section>`;
+  }
+  /* count-up numbers and reveal animations */
+  function animateTrial() {
+    const els = $$('.t-count:not([data-done])');
+    if (!els.length) return;
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    els.forEach((el) => {
+      el.dataset.done = '1';
+      const to = +el.dataset.to;
+      if (reduce) { el.textContent = to.toLocaleString('en-US'); return; }
+      const t0 = performance.now(), dur = 1400;
+      const step = (t) => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(to * e).toLocaleString('en-US'); if (k < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    });
+  }
+  /* a taste of the locked content */
+  function previewHTML(page, a) {
+    if (page === 'day') {
+      const d = GL.days[(+a || 1) - 1];
+      if (!d) return '';
+      const words = d.vocab.slice(0, 6);
+      return `<div class="pv pv-day"><div class="pv-head"><span class="pv-day-no">${d.day}</span><div><small>DAY ${d.day} · ${esc(d.level)}</small><b>${esc(d.title)}</b><span class="muted">${esc(d.subtitle || '')}</span></div></div>
+        <ul class="pv-goals">${(d.goals || []).slice(0, 3).map((g) => `<li>${g}</li>`).join('')}</ul>
+        <p class="pv-label">🔤 ${d.vocab.length} new words – tap to hear a few:</p>
+        <div class="pv-words">${words.map((w, i) => `<button type="button" class="pv-word" data-say="${attr(w[0])}" style="animation-delay:${i * 0.07}s"><b>${esc(w[0])}</b><small>${esc(w[2])}</small></button>`).join('')}<span class="pv-more">+${Math.max(0, d.vocab.length - words.length)} more 🔒</span></div></div>`;
+    }
+    if (page === 'scenes') {
+      const sc = GL.scenarios.find((x) => x.id === a);
+      if (!sc) return '';
+      return `<div class="pv pv-scene"><div class="pv-thumb">${sceneThumb(sc)}<span class="pv-scene-ico">${sc.icon}</span><span class="pv-lock">🔒</span></div>
+        <div class="row" style="gap:6px;margin-top:10px"><span class="level ${sc.level}">${sc.level}</span><span class="path-tag">≈ ${sc.minutes} min · ${sc.scenes.length} scenes</span></div>
+        <b class="pv-scene-title">${esc(sc.title)}</b><p class="muted" style="margin:2px 0 0">${esc(sc.en)} – ${esc(sc.intro[1])}</p></div>`;
+    }
+    const F = { grammar: ['📘', 'All 62 grammar topics', ['Clear rules with tables', 'Examples with audio', 'Mini quiz for every topic']], trainer: ['🏋️', 'Grammar trainer', ['Verb forms in every tense', 'Articles in all four cases', 'Adjective endings until they are automatic']], talk: ['🎤', 'Speaking coach', ['Your pronunciation scored word by word', 'Shadowing with native-speed audio', '“Say it in German” challenges']], writing: ['✍️', 'Writing studio', ['20 real-life writing tasks', 'Every mistake marked and explained', 'Model answers to learn from']], review: ['🔁', 'Smart review', ['Flashcards that come back when you need them', 'Your personal mistakes notebook', 'Quick quizzes']], sounds: ['🗣️', 'Pronunciation guide', ['Every German sound with audio', 'ä, ö, ü, ch, r explained', 'Practise with your microphone']], teacher: ['👩‍🏫', 'Your personal teacher', ['Send questions any time', 'Get your texts corrected', 'Priority answers']] }[page];
+    return F ? `<div class="pv pv-feat"><span class="pv-feat-ico">${F[0]}</span><b>${F[1]}</b><ul>${F[2].map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
+  }
+  /* celebrate the end of the free Day 1 / free scene – once each */
+  const CEL_KEY = 'd30:trialCelebrated';
+  function celebrated() { try { return JSON.parse(localStorage.getItem(CEL_KEY) || '{}'); } catch (e) { return {}; } }
+  function checkCelebrate() {
+    if (!isTrial() || document.querySelector('.trial-modal')) return;
+    const pr = trialProgress(), c = celebrated();
+    const what = pr.dayDone && !c.day ? 'day' : pr.sceneDone && !c.scene ? 'scene' : null;
+    if (!what) return;
+    c[what] = Date.now();
+    try { localStorage.setItem(CEL_KEY, JSON.stringify(c)); } catch (e) { /* private mode */ }
+    setTimeout(() => showCelebration(what, pr), 1600);
+  }
+  function showCelebration(what, pr) {
+    const d2 = GL.days[1], sc = freeScene();
+    const other = what === 'day' ? (!pr.sceneDone && sc ? `<a class="btn ghost" href="#/scenes/${FREE_SCENE}">🎬 Now play the free scene “${esc(sc.title)}”</a>` : '') : (!pr.dayDone ? '<a class="btn ghost" href="#/day/1">📅 Now try Day 1 – free</a>' : '');
+    const box = document.createElement('div');
+    box.className = 'trial-modal';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.innerHTML = `<div class="tm-box">
+      <button class="tm-x" type="button" aria-label="Close">✖</button>
+      <div class="tm-bruno">${GL.charSVG('bruno', 'idle waving')}</div>
+      <h2>${what === 'day' ? '🎉 Super! You finished Day 1!' : `🎉 Bravo! You did “${esc(sc ? sc.title : '')}”!`}</h2>
+      <p>${what === 'day' ? `You can already greet people, introduce yourself and use <b>sein</b>. <b>Day 2</b> is next: <i>${esc(d2.title)}</i>.` : 'You just handled a real situation in German. 21 more scenes are waiting – the doctor, the Bahnhof, a job interview …'}</p>
+      <div class="tm-next">${[2, 3, 4].map((n) => `<span><b>Day ${n}</b>${esc(GL.days[n - 1].title.split(/[–:!]/)[0])}</span>`).join('')}<span class="tm-more">+${GL.days.length - 4} more days</span></div>
+      <div class="tm-cta"><a class="btn wa-btn big" target="_blank" rel="noopener" href="${attr(waLink(`Hallo! I finished the free ${what === 'day' ? 'Day 1' : 'scene'} of Deutsch30 and would like to continue.`))}">💬 Continue – message on WhatsApp</a><a class="btn" href="#/plans">💳 See plans</a>${other}</div>
+    </div>`;
+    document.body.appendChild(box);
+    try { GL.confetti(); GL.sfx('done'); } catch (e) { /* no audio */ }
+    const close = () => box.remove();
+    box.querySelector('.tm-x').onclick = close;
+    box.addEventListener('click', (e) => { if (e.target === box || e.target.closest('a')) close(); });
+    document.addEventListener('keydown', function esc1(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc1); } });
+  }
+  const origSave = GL.Store.save;
+  GL.Store.save = function () { const r = origSave.apply(this, arguments); try { checkCelebrate(); } catch (e) { /* never block saving */ } return r; };
+
+  GL.Plans = { trialHomeHTML, animateTrial, previewHTML, isTrial, showCelebration, WA, WA_SHOW, waLink, FREE_SCENE, access, decorate, PLANS, byId, money, mine, lockReason, viewPlans, viewLockedPlan, payState, planChip, revenue, planBoxHTML, wirePlanBox, payInfoHTML, cardsHTML, CURRENCY, fmtD };
 })();

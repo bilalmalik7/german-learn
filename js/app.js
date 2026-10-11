@@ -203,6 +203,7 @@
     return {
       html: `
       <div id="homeAcct"></div>
+      ${GL.Plans ? GL.Plans.trialHomeHTML() : ''}
       <section class="card hero">
         <div>${GL.charSVG('bruno', 'idle waving')}</div>
         <div>
