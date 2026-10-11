@@ -140,7 +140,7 @@
         case 'profile': html = GL.viewProfile(); break;
         case 'sounds': html = viewSounds(); break;
         case 'settings': html = viewSettings(); break;
-        case 'plans': html = GL.Plans.viewPlans(); break;
+        case 'plans': html = GL.Plans.ENABLED ? GL.Plans.viewPlans() : viewHome(); break;
         default: html = viewHome();
       }
     } catch (e) {

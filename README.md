@@ -47,7 +47,11 @@ stores every student’s progress, activity, messages and a private backup on th
 Saving is deliberately frugal (routine progress is sent every 10 minutes and when the page is closed; messages,
 registrations and teacher actions immediately), so 5–10 students fit comfortably into the free Blob allowance.
 
-### Plans & payments (website version)
+### Plans & payments (website version) – currently switched off
+
+The course is **free for everyone** right now (`ENABLED = false` in `js/plans.js`). Set it to `true` to bring back
+the plans, the free-trial limits and the payment tools described below.
+
 
 Three monthly plans, defined in `js/plans.js` (names, prices, features, which pages they open):
 

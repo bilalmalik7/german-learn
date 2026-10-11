@@ -185,7 +185,7 @@
         if (!slot.isConnected) return;
         if (!Cloud.ready) {
           if (Cloud.status.done && Cloud.status.framed) slot.innerHTML = `<a class="conn-banner" href="#/admin">🔌 <span><b>Login & teacher portal are not connected in this view.</b> Tap to see why and how to fix it.</span></a>`;
-          else if (Cloud.status.done && window.D30 && D30.standalone) { slot.innerHTML = `<a class="conn-banner" href="#" id="homeLogin">🔐 <span>${D30.guest() ? '<b>Free trial:</b> try Day 1 and the scene “Im Supermarkt”. Everything else opens with a plan – tap here to log in, or see 💳 Plans.' : '<b>Not connected to the server</b> – your progress is only kept in this browser. Tap to log in.'}</span></a>`; $('#homeLogin', slot).onclick = (e) => { e.preventDefault(); D30.showLogin(); }; }
+          else if (Cloud.status.done && window.D30 && D30.standalone) { slot.innerHTML = `<a class="conn-banner" href="#" id="homeLogin">🔐 <span>${D30.guest() ? '<b>You are using the course without an account</b> – your progress stays in this browser only. Tap here to log in, so it is saved and your teacher can follow it.' : '<b>Not connected to the server</b> – your progress is only kept in this browser. Tap to log in.'}</span></a>`; $('#homeLogin', slot).onclick = (e) => { e.preventDefault(); D30.showLogin(); }; }
           return;
         }
         if (Cloud.owner) {
@@ -199,7 +199,7 @@
           const add = $('#portalAdd', slot); if (add) add.onclick = () => { GL._openAddStudents = true; };
         } else if (profile()) {
           const me = await Cloud.user.me();
-          slot.innerHTML = `<div class="login-status"><img src="${attr(me.avatarUrl)}" alt=""><span>✅ Logged in as <b></b> · progress saved to your account</span><span class="spacer"></span><a href="#/profile">👤 My account</a>${GL.Plans && GL.Plans.lockReason('teacher') ? '' : '<a href="#/teacher">📨 My teacher</a>'}${GL.SA && GL.Plans && GL.Plans.mine() ? (() => { const m = GL.Plans.mine(), ps = m.plan ? GL.Plans.payState(Object.assign({ plan: m.plan.id, paidUntil: m.paidUntil })) : null; return `<a href="#/plans">${m.plan ? m.plan.icon + ' ' + m.plan.name : '💳 Plans'}${ps && ['overdue', 'soon'].includes(ps.key) ? ` <span class="pay-${ps.key}">(${ps.label})</span>` : ''}</a>`; })() : ''}${GL.SA ? '<a href="#" class="home-out">🚪 Log out</a>' : ''}</div>`;
+          slot.innerHTML = `<div class="login-status"><img src="${attr(me.avatarUrl)}" alt=""><span>✅ Logged in as <b></b> · progress saved to your account</span><span class="spacer"></span><a href="#/profile">👤 My account</a>${GL.Plans && GL.Plans.lockReason('teacher') ? '' : '<a href="#/teacher">📨 My teacher</a>'}${GL.SA && GL.Plans && GL.Plans.ENABLED && GL.Plans.mine() ? (() => { const m = GL.Plans.mine(), ps = m.plan ? GL.Plans.payState(Object.assign({ plan: m.plan.id, paidUntil: m.paidUntil })) : null; return `<a href="#/plans">${m.plan ? m.plan.icon + ' ' + m.plan.name : '💳 Plans'}${ps && ['overdue', 'soon'].includes(ps.key) ? ` <span class="pay-${ps.key}">(${ps.label})</span>` : ''}</a>`; })() : ''}${GL.SA ? '<a href="#" class="home-out">🚪 Log out</a>' : ''}</div>`;
           const ho = $('.home-out', slot); if (ho) ho.onclick = (e) => { e.preventDefault(); D30.logout(); };
           $('b', slot).textContent = profile().name;
         }

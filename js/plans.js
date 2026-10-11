@@ -6,6 +6,8 @@
   'use strict';
   const { $, $$, esc, attr } = GL;
 
+  /* Master switch: false = the whole course is free for everyone (no plans, no locks, no payment tools). */
+  const ENABLED = false;
   const CURRENCY = 'Rs';
   /* WhatsApp contact for joining / payments */
   const WA = '4915567783533', WA_SHOW = '+49 155 67783533';
@@ -42,7 +44,7 @@
   /* who may open what: null = no limits (claude.ai, plain copy, teacher) */
   const PLAN_PAGES = ['day', 'grammar', 'trainer', 'review', 'sounds', 'scenes', 'talk', 'writing', 'teacher'];
   function access() {
-    if (!(window.D30 && D30.standalone)) return null;
+    if (!ENABLED || !(window.D30 && D30.standalone)) return null;
     const s = D30.session && D30.session();
     if (s && s.user.role === 'teacher') return null;
     if (!s) return D30.guest && D30.guest() ? { tier: 'free', guest: true } : null;
@@ -352,5 +354,5 @@
   const origSave = GL.Store.save;
   GL.Store.save = function () { const r = origSave.apply(this, arguments); try { checkCelebrate(); } catch (e) { /* never block saving */ } return r; };
 
-  GL.Plans = { trialHomeHTML, animateTrial, previewHTML, isTrial, showCelebration, WA, WA_SHOW, waLink, FREE_SCENE, access, decorate, PLANS, byId, money, mine, lockReason, viewPlans, viewLockedPlan, payState, planChip, revenue, planBoxHTML, wirePlanBox, payInfoHTML, cardsHTML, CURRENCY, fmtD };
+  GL.Plans = { ENABLED, trialHomeHTML, animateTrial, previewHTML, isTrial, showCelebration, WA, WA_SHOW, waLink, FREE_SCENE, access, decorate, PLANS, byId, money, mine, lockReason, viewPlans, viewLockedPlan, payState, planChip, revenue, planBoxHTML, wirePlanBox, payInfoHTML, cardsHTML, CURRENCY, fmtD };
 })();

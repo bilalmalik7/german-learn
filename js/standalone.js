@@ -297,7 +297,7 @@
       </form>
       <p class="muted login-help">No login yet? Message us on <a target="_blank" rel="noopener" href="https://wa.me/4915567783533?text=${encodeURIComponent('Hallo! I would like to join the German course Deutsch30.')}">💬 WhatsApp +49 155 67783533</a> – we create your login.</p>
       ${D30.health && D30.health.configured === false ? setupHTML(D30.health.missing || ['SESSION_SECRET', 'TEACHER_PASSWORD']) : ''}
-      <button type="button" class="login-guest" id="d30Guest">Try it free first – Day 1 and one real-life scene →</button>
+      <button type="button" class="login-guest" id="d30Guest">Use the course without an account (progress stays on this device) →</button>
     </div>`;
     document.body.appendChild(box);
     document.body.classList.add('login-open');
