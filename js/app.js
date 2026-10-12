@@ -129,7 +129,8 @@
       else switch (page) {
         case '': case undefined: case 'home': html = viewHome(); break;
         case 'plan': html = viewPlan(); break;
-        case 'day': html = viewDay(+a || 1, b || 'intro'); break;
+        case 'day': html = viewDay(+a || 1, b || (GL.Resume ? GL.Resume.lastStep(+a || 1) : 'intro')); break;
+        case 'restore': html = GL.Resume.viewRestore(a); break;
         case 'grammar': html = a ? viewTopic(decodeURIComponent(a)) : viewGrammar(); break;
         case 'review': html = viewReview(a || 'cards'); break;
         case 'trainer': html = GL.viewTrainer(a, b); break;
@@ -154,6 +155,7 @@
     window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     html.mount && html.mount();
     if (GL.Plans) { GL.Plans.decorate(); setTimeout(() => GL.Plans.decorate(), 500); }
+    if (GL.Resume) { GL.Resume.visit(page, a, page === 'day' ? (b || GL.Resume.lastStep(+a || 1)) : b); GL.Resume.wireHome(app); if (page === 'settings') GL.Resume.wireLinkCard(app); }
     const steps = $('.steps'), act = $('.step.active');
     if (steps && act) steps.scrollLeft = act.offsetLeft - steps.clientWidth / 2 + act.clientWidth / 2;
     app.focus({ preventScroll: true });
@@ -223,6 +225,7 @@
     return {
       html: `
       <div id="homeAcct"></div>
+      ${GL.Resume ? GL.Resume.homeHTML() : ''}
       ${GL.Plans ? GL.Plans.trialHomeHTML() : ''}
       <section class="card hero">
         <div>${GL.charSVG('bruno', 'idle waving')}</div>
@@ -231,7 +234,7 @@
           <h1>Learn German in <span class="flag-word">30 days</span> – step by step.</h1>
           <p>Every day: new words with audio, a complete grammar lesson, an animated dialogue, exercises, speaking practice with your microphone and a writing task. Plan for 2–3 hours a day.</p>
           <div class="row">
-            <a class="btn gold big" href="#/day/${next}">${first ? '🚀 Start Day 1' : `▶ Continue: Day ${next}`}</a>
+            <a class="btn gold big" href="#/day/${next}">${first ? '🚀 Start Day 1' : `▶ Continue: Day ${next}${GL.Resume && GL.Resume.lastStep(next) !== 'intro' ? ' · ' + (STEPS.find((x) => x[0] === GL.Resume.lastStep(next)) || [, , ''])[2] : ''}`}</a>
             <a class="btn ghost" href="#/plan" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.35);box-shadow:none">🗺️ See the 30-day plan</a>
           </div>
         </div>
@@ -1037,6 +1040,7 @@
     const s = Store.state.settings;
     return {
       html: `<h1>⚙️ Settings</h1>
+      ${GL.Resume ? GL.Resume.linkCardHTML() : ''}
       <div class="card">
         <h2>🔊 Audio</h2>
         <div class="set-row"><label><b>German voice</b><small id="voiceInfo"></small></label><select id="sVoice"></select></div>
