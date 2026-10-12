@@ -121,7 +121,8 @@
     let html;
     try {
       let planLock = null;
-      if (lockedFor(page)) html = viewLocked();
+      if (window.D30 && D30.publicMode && ['admin', 'teacher', 'profile', 'register', 'plans'].includes(page)) html = viewHome(); // public website: no accounts or portal
+      else if (lockedFor(page)) html = viewLocked();
       else if (jobLocked(page, a)) html = viewJobLocked();
       else if (GL.Plans && (planLock = GL.Plans.lockReason(page, a))) html = GL.Plans.viewLockedPlan(page, planLock, a);
       else if (GL.Accounts && GL.Accounts.needsRegistration() && page !== 'settings' && page !== 'plans') html = GL.viewRegister();
@@ -163,9 +164,9 @@
 
   /* Website version: visitors without a login may look at the start page and the 30-day plan only. */
   const OPEN_PAGES = ['', 'home', 'plan', 'plans'];
-  const lockedFor = (page) => !!(window.D30 && D30.standalone && !D30.session() && !D30.guest()) && !OPEN_PAGES.includes(page || '');
+  const lockedFor = (page) => !!(window.D30 && D30.standalone && !D30.publicMode && !D30.session() && !D30.guest()) && !OPEN_PAGES.includes(page || '');
   /* Job German is for logged-in students only (website version) */
-  const jobLocked = (page, a) => (page === 'job' || (page === 'scenes' && /^job-/.test(a || ''))) && !!(window.D30 && D30.standalone && !D30.session());
+  const jobLocked = (page, a) => (page === 'job' || (page === 'scenes' && /^job-/.test(a || ''))) && !!(window.D30 && D30.standalone && !D30.publicMode && !D30.session());
   function viewJobLocked() {
     const j = GL.job, wa = GL.Plans ? GL.Plans.waLink('Hallo! I would like a login for Job German (Sales Advisor) in Deutsch30.') : '';
     return {
@@ -332,7 +333,7 @@
     return {
       html: `
       <div class="row" style="align-items:flex-end;margin-bottom:10px">
-        <div><h1>🗺️ Your 30-day plan</h1><p class="muted">From your first “Hallo” to relative clauses and the passive. Each day ≈ 2½–3 hours. Days unlock one after another${st.settings.unlockAll ? ' (all unlocked in Settings)' : ' – or unlock everything in Settings'}.</p></div>
+        <div><h1>🗺️ Your 30-day plan</h1><p class="muted">From your first “Hallo” to relative clauses and the passive. Each day ≈ 2½–3 hours. ${st.settings.unlockAll ? 'All days are open – start anywhere, or follow the order day by day.' : 'Days unlock one after another (step-by-step mode in Settings).'}</p></div>
       </div>
       ${GL.weeks.map((w) => `
         <section class="week-block" id="w${w.n}">
@@ -1044,7 +1045,7 @@
       </div>
       <div class="card">
         <h2>🎓 Learning</h2>
-        <div class="set-row"><label><b>Unlock all days</b><small>Normally each day unlocks after the previous one.</small></label><label class="switch"><input type="checkbox" id="sUnlock" ${s.unlockAll ? 'checked' : ''}><span></span></label></div>
+        <div class="set-row"><label><b>Unlock all days</b><small>On: open any day. Off: step-by-step – each day unlocks after the previous one.</small></label><label class="switch"><input type="checkbox" id="sUnlock" ${s.unlockAll ? 'checked' : ''}><span></span></label></div>
         <div class="set-row"><label><b>Show English translations in dialogues</b><small>Turn off to challenge yourself (hover to peek).</small></label><label class="switch"><input type="checkbox" id="sEn" ${s.showEn ? 'checked' : ''}><span></span></label></div>
         <div class="set-row"><label><b>Sound effects</b><small>Short sounds for right and wrong answers.</small></label><label class="switch"><input type="checkbox" id="sSfx" ${s.sfx ? 'checked' : ''}><span></span></label></div>
         <div class="set-row"><label><b>Theme</b></label><select id="sTheme">${[['auto', 'Automatic'], ['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<option value="${v}" ${s.theme === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>

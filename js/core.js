@@ -89,7 +89,7 @@ GL.grammar = GL.grammar || {};
     writing: {},
     mistakes: {},
     trainer: {},
-    settings: { rate: 0.9, voice: '', unlockAll: false, showEn: true, theme: 'auto', recLang: 'de-DE', sfx: true, name: '' },
+    settings: { rate: 0.9, voice: '', unlockAll: true, allOpen: true, showEn: true, theme: 'auto', recLang: 'de-DE', sfx: true, name: '' },
     created: todayStr(),
   });
   let state = defaults();
@@ -101,6 +101,8 @@ GL.grammar = GL.grammar || {};
       state.settings = Object.assign(defaults().settings, parsed.settings || {});
     }
   } catch (e) { /* private mode or corrupted – start fresh */ }
+  // the course is open for everyone: unlock all days once for people who saved the old step-by-step default
+  if (!state.settings.allOpen) { state.settings.unlockAll = true; state.settings.allOpen = true; }
 
   const Store = {
     get state() { return state; },

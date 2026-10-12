@@ -29,7 +29,15 @@ An animated, beginner-friendly website that takes you from your first „Hallo�
 
 ## How to run it
 
-### As a website with logins (recommended – works in any browser)
+### As a public website (current setup)
+
+The website is **open for everyone**: no login, no teacher portal, all 30 days, all scenes and Job German open.
+Progress is saved in each visitor’s browser (Settings → Export / Import moves it to another device).
+This is controlled by `PUBLIC = true` in `js/standalone.js`; set it to `false` to bring back the logins and the
+teacher portal described below (the server code in `api/v1.js` is kept). Anyone who was logged in keeps their
+progress – it is moved into normal browser storage automatically.
+
+### With logins and teacher portal (switched off)
 
 The repository is ready for **Vercel** (free plan): static pages plus one small server function, `api/v1.js`.
 It adds real logins – the teacher creates a username and password for each student in the teacher portal – and

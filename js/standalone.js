@@ -9,6 +9,9 @@
   const API = 'api/v1';
   const SKEY = 'd30:session', GUEST = 'd30:guest';
   const FLUSH_MS = 10 * 60000;
+  /* PUBLIC: the website is open for everyone – no logins, no teacher portal; progress stays in each browser.
+     (Set to false to bring back logins and the teacher portal; the server code in api/v1.js is kept.) */
+  const PUBLIC = true;
   const ls = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } },
@@ -22,6 +25,19 @@
   let sess = null;
   try { sess = JSON.parse(ls.get(SKEY) || 'null'); } catch (e) { sess = null; }
   if (!sess || !sess.token || !sess.user || !sess.user.uid) sess = null;
+  if (PUBLIC) {
+    // someone who was logged in on this device keeps their progress: move it to the normal browser storage
+    if (sess) {
+      try {
+        const mine = ls.get('deutsch30:v1:' + sess.user.uid), gen = ls.get('deutsch30:v1');
+        if (mine && (!gen || (JSON.parse(mine).xp || 0) >= (JSON.parse(gen).xp || 0))) ls.set('deutsch30:v1', mine);
+      } catch (e) { /* keep what is there */ }
+      ls.del(SKEY);
+    }
+    const no = () => Promise.resolve();
+    window.D30 = { standalone: false, publicMode: true, session: () => null, guest: () => true, showLogin: no, logout: no, refresh: no, flush: no, users: async () => [], call: () => Promise.reject({ code: 'disabled', message: 'Accounts are switched off.' }) };
+    return;
+  }
   // every account keeps its own progress in this browser (several students can share one device)
   if (sess) window.D30_STORE_KEY = 'deutsch30:v1:' + sess.user.uid;
 
@@ -55,6 +71,7 @@
     standalone: true, health: null, call, showLogin, logout, changePassword,
     session: () => sess, users: async () => [], refresh: () => Promise.resolve(), flush: () => Promise.resolve(),
     guest: () => !sess && ss.get(GUEST) === '1',
+    publicMode: false,
   });
   window.claude = { __standalone: true, use: (name) => capsReady.then((c) => (c && c[name]) || null) };
 

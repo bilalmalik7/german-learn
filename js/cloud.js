@@ -180,6 +180,9 @@
   /* Help card shown wherever the login / portal would be when the connection is missing. */
   GL.connectionHelpHTML = (where) => {
     const S = Cloud.status;
+    if (window.D30 && D30.publicMode) {
+      return `<div class="card conn-card"><h2 style="margin-top:0">🌍 Open for everyone</h2><p>This course is free and open – no account needed. Your progress is saved in this browser (move it to another device with <a href="#/settings">Settings → Export / Import</a>).</p><p><a class="btn" href="#/">🏠 Start learning</a></p></div>`;
+    }
     if (window.D30 && D30.standalone) {
       return `<div class="card conn-card"><h2 style="margin-top:0">🔐 ${where === 'admin' ? 'Teacher portal' : 'Student login'}</h2>
         <p>${!S.done ? 'Connecting…' : D30.guest() ? 'You are looking around without an account, so nothing is saved for your teacher.' : 'No connection to the server right now – your progress is kept in this browser.'}</p>
@@ -238,7 +241,7 @@
     const t = $('#navTeacher'), a = $('#navAdmin');
     if (t) { t.classList.toggle('hidden', !Cloud.ready || Cloud.owner || !!(GL.Plans && GL.Plans.lockReason('teacher'))); const n = Cloud.unread(); $('.nb', t).textContent = n || ''; $('.nb', t).classList.toggle('hidden', !n); }
     if (a) {
-      const off = Cloud.status.done && !Cloud.ready;
+      const off = Cloud.status.done && !Cloud.ready && !(window.D30 && D30.publicMode);
       a.classList.toggle('hidden', !(Cloud.owner || off));
       a.classList.toggle('conn-off', off);
       $('.adm-lbl', a).textContent = off ? 'Login & portal' : 'Teacher portal';
