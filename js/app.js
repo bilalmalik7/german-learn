@@ -68,7 +68,7 @@
     s.textContent = sv;
   };
   /* ---------- mobile: bottom tab bar with a "More" sheet ---------- */
-  const MORE_PAGES = ['grammar', 'trainer', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
+  const MORE_PAGES = ['grammar', 'trainer', 'exam', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
   const TOP_LABELS = { admin: ['📊', 'Teacher portal'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
   const moreBtn = $('#navMore'), sheet = $('#moreSheet'), backdrop = $('#moreBackdrop');
   function closeMore() {
@@ -114,7 +114,7 @@
     const [path, anchor] = (location.hash.replace(/^#\/?/, '') || '').split('#');
     GL._anchor = anchor || '';
     const parts = path.split('/');
-    const [page, a, b] = parts;
+    const [page, a, b, c] = parts;
     $$('[data-nav]').forEach((l) => l.classList.toggle('active', l.dataset.nav === (page || 'home') || (page === 'day' && l.dataset.nav === 'plan')));
     closeMore();
     if (moreBtn) moreBtn.classList.toggle('active', MORE_PAGES.includes(page));
@@ -138,6 +138,7 @@
         case 'scenes': html = GL.viewScenes(a); break;
         case 'writing': html = GL.viewWriting(a, b); break;
         case 'job': html = GL.viewJob(a, b); break;
+        case 'exam': html = GL.viewExam(a, b, c); break;
         case 'teacher': html = GL.viewTeacher(); break;
         case 'admin': html = GL.viewAdmin(); break;
         case 'register': html = GL.viewRegister(); break;

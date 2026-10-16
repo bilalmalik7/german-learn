@@ -7,12 +7,13 @@
 
   /* ---------- 1. where did the learner stop? ---------- */
   const STEP_NAMES = { intro: 'Overview', vocab: 'Vocabulary', grammar: 'Grammar', dialogue: 'Dialogue', practice: 'Exercises', speaking: 'Speaking', writing: 'Writing', done: 'Finish' };
-  const STUDY = ['day', 'grammar', 'scenes', 'trainer', 'talk', 'writing', 'review', 'sounds', 'job'];
+  const STUDY = ['day', 'grammar', 'scenes', 'trainer', 'talk', 'writing', 'review', 'sounds', 'job', 'exam'];
   function label(page, a, b) {
     if (page === 'day') return `📅 Day ${+a || 1} · ${STEP_NAMES[b] || 'Overview'}`;
     if (page === 'scenes') { const s = a && GL.scenarios.find((x) => x.id === a); return s ? `🎬 ${s.title}` : '🎬 Real-life scenes'; }
     if (page === 'grammar') { const t = a && GL.grammar[decodeURIComponent(a)]; return t ? `📘 ${t.title}` : '📘 Grammar A–Z'; }
     if (page === 'job') return a === 'day' ? `💼 Job German · Day ${b}` : a === 'interview' ? '💼 Job German · Interview' : '💼 Job German';
+    if (page === 'exam') return GL.Exam ? GL.Exam.label(a, b) : '🎓 Exam prep';
     return ({ trainer: '🏋️ Grammar trainer', talk: '🎤 Speaking practice', writing: '✍️ Writing studio', review: '🔁 Review', sounds: '🗣️ Sounds' })[page] || '';
   }
   function visit(page, a, b) {
@@ -35,13 +36,14 @@
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then((p) => { if (!p) navigator.storage.persist().catch(() => {}); }).catch(() => {}); } catch (e) { /* not supported */ }
 
   /* ---------- 4. progress link (no account needed) ---------- */
-  const KEEP = ['days', 'xp', 'streak', 'activity', 'srs', 'scenes', 'trainer', 'speak', 'time', 'timeAreas', 'last', 'created', 'mistakes'];
+  const KEEP = ['days', 'xp', 'streak', 'activity', 'srs', 'scenes', 'trainer', 'speak', 'time', 'timeAreas', 'last', 'created', 'mistakes', 'exam'];
   const b64u = (bytes) => { let s = ''; bytes.forEach((x) => (s += String.fromCharCode(x))); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
   const unb64u = (str) => { const s = atob(str.replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(s, (c) => c.charCodeAt(0)); };
   async function pack() {
     const st = Store.state, o = {};
     KEEP.forEach((k) => { if (st[k] != null) o[k] = st[k]; });
     o.settings = { unlockAll: st.settings.unlockAll, name: st.settings.name, showEn: st.settings.showEn, theme: st.settings.theme, rate: st.settings.rate };
+    if (o.exam) o.exam = Object.assign({}, o.exam, { texts: undefined }); // exam writing drafts stay on this device (keeps the link short)
     let json = JSON.stringify(o);
     if (json.length > 60000 && o.mistakes) { delete o.mistakes; json = JSON.stringify(o); }
     const raw = new TextEncoder().encode(json);
@@ -98,6 +100,7 @@
             <div class="row" style="justify-content:center"><button class="btn green big" id="rsLoad" type="button">✅ Load my progress here</button><a class="btn ghost" href="#/">Cancel</a></div>`;
           $('#rsLoad').onclick = () => {
             const settings = Object.assign({}, Store.state.settings, o.settings || {});
+            if (o.exam && Store.state.exam && Store.state.exam.texts) o.exam.texts = Store.state.exam.texts;
             const next = Object.assign({}, Store.state, o, { settings });
             Store.importJSON(next);
             toast('✅ Progress loaded – welcome back!', 'ok'); GL.confetti && GL.confetti();

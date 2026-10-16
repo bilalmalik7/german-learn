@@ -8,8 +8,8 @@
      speaking, writing, review, sounds), the page is visible, and they did something that is studying in the
      last 2 minutes: answering, clicking an exercise, typing, recording, playing audio. Scrolling or leaving the
      page open does not count. Time is also split by area so the teacher sees where it goes. */
-  const AREAS = { day: 'lesson', grammar: 'grammar', trainer: 'trainer', scenes: 'scenes', talk: 'speaking', writing: 'writing', review: 'review', sounds: 'sounds', job: 'job' };
-  GL.STUDY_AREAS = { lesson: '📖 Lessons', grammar: '📘 Grammar', trainer: '🏋️ Trainer', scenes: '🎬 Real-life scenes', speaking: '🎤 Speaking', writing: '✍️ Writing', review: '🔁 Review', sounds: '🗣️ Sounds', job: '💼 Job German' };
+  const AREAS = { day: 'lesson', grammar: 'grammar', trainer: 'trainer', scenes: 'scenes', talk: 'speaking', writing: 'writing', review: 'review', sounds: 'sounds', job: 'job', exam: 'exam' };
+  GL.STUDY_AREAS = { lesson: '📖 Lessons', grammar: '📘 Grammar', trainer: '🏋️ Trainer', scenes: '🎬 Real-life scenes', speaking: '🎤 Speaking', writing: '✍️ Writing', review: '🔁 Review', sounds: '🗣️ Sounds', job: '💼 Job German', exam: '🎓 Exam prep' };
   const areaNow = () => AREAS[location.hash.replace(/^#\/?/, '').split(/[/#]/)[0]] || null;
   let lastStudy = 0;
   GL.studyPing = () => { lastStudy = Date.now(); };

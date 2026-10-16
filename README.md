@@ -17,6 +17,7 @@ An animated, beginner-friendly website that takes you from your first „Hallo�
 | 📖 **Stories** | 4 graded listening & reading stories (A1 → B1) read aloud sentence by sentence, with comprehension questions. |
 | 🎤 **Speak** | A daily 10-minute speaking workout (sounds → shadowing → say it in German → real-life lines → answer questions), **shadowing** of every lesson, scene and story sentence (normal / slow / hidden text), **“Say it in German”** with 300+ sentences (English prompt → you speak → every wrong word and ending is marked: einen ≠ einem), a question drill, pronunciation tips for missed sounds, your tricky words, and a daily goal with streak. No speech recognition? Record yourself and compare with the model, or say it and self-check. On claude.ai: **AI conversations** with 8 characters, now with a hands-free **📞 call mode**. |
 | ✨ **AI tutor (claude.ai only)** | Bruno corrects your writing tasks and free-speaking answers (score, mistakes with rules, corrected version) and answers questions about any grammar topic. Hidden automatically elsewhere. |
+| 🎓 **Exam prep – telc & Goethe** | A 12-week roadmap from zero to **B1** (A1 → A2 → B1, 168 day-by-day steps, A1/A2/B1 milestones), the official exam formats explained (Goethe-Zertifikat A1/A2/B1, telc Deutsch A1/A2/B1), **49 practice tests** for every exam part in the official task formats plus **4 timed mock exams** (A1, A2, Goethe B1, telc B1 – 39 more parts), listening with the exam’s play limit and transcripts, 763 exam words in 18 topics with English, 70 irregular verbs, 45 verbs with prepositions, connectors, 140 useful phrases and 12 printable notes sheets. |
 | 🎬 **Real-life scenes** | 22 animated situations: airport, first day at the office, Bürgeramt, restaurant, train station, hotel, supermarket, doctor & pharmacy, bank, job interview, clothes shop, post office, police (stolen bike), dinner at friends’, flat viewing, hairdresser, phone contract, emergency call 112 & emergency room, immigration office, gym, a noisy neighbour and the farmers’ market. 43 animated places with passers-by, lighting moods, a camera that follows the speaker, announcements and narration. Learn the phrases first, then **say your lines out loud** (speak mode) at 167 “your turn” moments – or choose them. |
 | 👤 **Student login & teacher portal (claude.ai)** | The teacher gets a **Teacher portal** button and a portal card on the home page: add students to a list (name, email), follow the step-by-step sharing guide, preview the student login, and see each invited student switch from “✉️ Invited” to live progress once they log in. Students sign in with their claude.ai account (no extra password) and complete the **Student login** once: name, email / WhatsApp, native language, goals, level and daily time. Their progress is backed up privately to their account and restored automatically on any new device. |
 | 📊 **Teacher dashboard (claude.ai)** | The course owner sees every student: registration details, status (active / paused / finished / archived), private teacher notes, an **activity timeline – who did what and when** (lessons, finished days, scenes, writing scores, speaking workouts, messages), current day, scores, XP, streak, study time (today / 7 days / total, chart per day), trainer accuracy, scenes, stories, writing and speaking stats – plus CSV export of all students and an inbox to answer questions and correct texts (with an optional AI draft). |
@@ -78,13 +79,36 @@ grammar index, writing tasks) but only *play* **Day 1** and the scene **“Im Su
 the WhatsApp contact (+49 155 67783533, set in `js/plans.js`).
 Payments themselves happen outside the site (cash, bank transfer, JazzCash / EasyPaisa).
 
-### 💼 Job German – Sales Advisor (website: logged-in students only)
+### 💼 Job German – Sales Advisor (open for everyone)
 
 Prepared for a part-time Sales Advisor job in a fashion store (e.g. H&M Osnabrück): how the application works,
 16 typical interview questions with model answers (listen + speak), questions to ask, rescue phrases, tips –
 and **15 days in the job**, each with 10 key phrases and an animated scene where the learner is the new Sales Advisor
 (first day, greeting customers, directions, sizes, fitting room, styling, backstage, till, returns, complaints,
 pick-ups & phone, shift plan, Saturday rush, sale & recycling, feedback & closing). Plus an interview scene.
+
+### 🎓 Exam prep – telc & Goethe, A1 → B1 in 12 weeks (`#/exam`)
+
+- **Roadmap:** 12 weeks, about 2–3 hours a day, Monday to Saturday (Sunday: review). Each week has can-do goals,
+  a plan per day that links the 30 course days, grammar topics, exam words, notes sheets, scenes and exam tasks,
+  and checkboxes. Course days, scenes and exam tasks tick themselves when they are done. Week 4 = A1 mock,
+  week 8 = A2 mock, week 12 = B1 mocks. An optional exam date shows a countdown.
+- **Formats:** Goethe and telc side by side for A1, A2 and B1 (parts, timing, points, pass marks) with strategies.
+- **Practice tests:** 49 tasks covering every part of Start Deutsch 1 (Goethe & telc A1), Goethe A2, Goethe B1
+  and telc B1 (Lesen, Hören, Schreiben, Sprechen, telc Sprachbausteine). Listening is read by the browser’s voices
+  and can be played only as often as in the exam; the transcript appears after checking. Every answer has an
+  English explanation; a/b/c options appear in a fixed shuffled order. Writing tasks have a word counter, content
+  points, a quick check, useful phrases and a model answer; speaking tasks have cards, a preparation timer and a
+  model answer to listen to and repeat (with speech scoring).
+- **Mock exams:** timed parts (e.g. Goethe B1: Lesen 65 min, Hören 40 min, Schreiben 60 min) that submit themselves
+  when the time is up, a score per part against the 60 % pass mark, and a results history.
+- **Exam words & notes:** 18 topics (A1–B1) with article, plural and English, a quiz, irregular verbs, verbs with
+  prepositions, connectors by word order, phrases for writing and speaking, and 12 one-page notes sheets (printable).
+
+All practice texts are original – written for this course in the official task formats, not copied from exam
+papers. Exam formats follow the descriptions by Goethe-Institut and telc (2025/26); learners should check
+goethe.de / telc.net before their exam and also do the free official model tests (linked in the app).
+Progress is saved in `Store.state.exam` and travels with the progress link.
 
 ### As a plain static copy
 
@@ -135,6 +159,9 @@ js/data/scenarios*.js the 22 real-life scenes
 js/data/writing.js    writing studio tasks and model answers
 js/data/jobs.js       Job German: Sales Advisor track – interview questions, 15 work days, 16 scenes
 js/job.js             Job German pages (overview, interview preparation, day pages)
+js/data/exam.js       Exam prep: exam formats, the 12-week roadmap, notes sheets
+js/data/exam-*.js     Exam prep: practice tests and mock exams (a1, a2, b1, b1-mock, telc) and exam words
+js/exam.js            Exam prep pages: roadmap, weeks, formats, task trainer, mock exams, words, notes
 ```
 
 ### Adding or editing content
