@@ -259,8 +259,8 @@
         <div>${GL.charSVG('bruno', 'idle waving')}</div>
         <div>
           <div class="bubble"><p class="b-de">${bubbleDe} <button class="say-btn" data-say="${attr(bubbleDe)}" data-char="bruno" aria-label="Listen">🔊</button></p><p class="b-en">${bubbleEn}</p></div>
-          <h1>Learn German in <span class="flag-word">30 days</span> – step by step.</h1>
-          <p>Every day: new words with audio, a complete grammar lesson, an animated dialogue, exercises, speaking practice with your microphone and a writing task. Plan for 2–3 hours a day.</p>
+          <h1>${first ? 'Learn German free – <span class="flag-word">from zero to B1</span>' : 'Learn German in <span class="flag-word">30 days</span> – step by step.'}</h1>
+          <p>${first ? 'Lessons with audio, speaking practice with your microphone, games and Goethe &amp; telc exam prep. No sign-up – start in 10 seconds.' : 'Every day: new words with audio, a complete grammar lesson, an animated dialogue, exercises, speaking practice with your microphone and a writing task. Learn at your own pace.'}</p>
           <div class="row">
             <a class="btn gold big" href="#/day/${next}">${first ? '🚀 Start Day 1' : `▶ Continue: Day ${next}${GL.Resume && GL.Resume.lastStep(next) !== 'intro' ? ' · ' + (STEPS.find((x) => x[0] === GL.Resume.lastStep(next)) || [, , ''])[2] : ''}`}</a>
             <a class="btn ghost" href="#/plan" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.35);box-shadow:none">🗺️ See the 30-day plan</a>
@@ -268,9 +268,13 @@
         </div>
       </section>
 
+      ${first && GL.HomeX ? GL.HomeX.proofHTML() + GL.HomeX.goalsHTML() + GL.HomeX.tryHTML() + GL.HomeX.railHTML() + GL.HomeX.wordHTML() : ''}
+
       ${GL.Game ? GL.Game.homeHTML() : ''}
 
-      <div class="stats">
+      ${!first && GL.HomeX ? GL.HomeX.railHTML('✨ Explore more') : ''}
+
+      <div class="stats ${first ? 'hidden' : ''}">
         <div class="stat"><span class="s-ico">🔥</span><div><b>${Store.currentStreak()}</b><span>day streak</span></div></div>
         <div class="stat"><span class="s-ico">⭐</span><div><b>${st.xp}</b><span>XP earned</span></div></div>
         <div class="stat"><span class="s-ico">✅</span><div><b>${done}/${GL.days.length}</b><span>days completed</span></div></div>
@@ -315,8 +319,10 @@
         return `<a class="week-card ${w.cls}" href="#/plan#w${w.n}"><small>Week ${w.n} · ${w.level}</small><h3>${w.de}</h3><p>${w.desc}</p><div class="wk-bar"><i style="width:${ds.length ? (dn / ds.length) * 100 : 0}%"></i></div><small>${dn}/${ds.length} days</small></a>`;
       }).join('')}</div>
 
+      ${!first && GL.HomeX ? `<div class="grid grid-2 hx-pair">${GL.HomeX.wordHTML()}${GL.HomeX.tryHTML()}</div>` : ''}
+
       <div class="grid grid-2" style="margin-top:20px">
-        <div class="card">
+        <div class="card ${first ? 'hidden' : ''}">
           <h3>📈 Last 30 days</h3>
           <div class="heat">${heat.join('')}</div>
           <p class="muted" style="margin-top:10px;font-size:.9rem">Every square is a day. Keep the chain green – consistency beats intensity.</p>
@@ -353,6 +359,7 @@
       <p class="foot">Tip: speech works best in Chrome or Edge. Click any 🔊 or dotted German word to hear it.</p>`,
       mount() {
         if (GL.Accounts && GL.Accounts.mountHome) GL.Accounts.mountHome($('#homeAcct'));
+        if (GL.HomeX) GL.HomeX.mount($('#app'), first);
         $$('.meet').forEach((b) => (b.onclick = () => {
           const id = b.dataset.id, c = GL.chars[id];
           const lines = {
