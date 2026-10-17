@@ -1,0 +1,64 @@
+/* Static landing pages (SEO) – shares the colours of the app */
+:root {
+  --bg: #fffaf2; --bg2: #fdf1dc; --card: #fff; --ink: #1f2a48; --ink2: #56607c; --line: #ece3d2;
+  --brand: #1f2a48; --gold: #ffc23c; --red: #e63946; --green: #22b573; --blue: #3a86ff;
+  --font: 'Nunito', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; --display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #141a2e; --bg2: #1a2240; --card: #1f2847; --ink: #eef1fa; --ink2: #a9b2cf; --line: #2f3a62; --brand: #ffc23c; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #141a2e; --bg2: #1a2240; --card: #1f2847; --ink: #eef1fa; --ink2: #a9b2cf; --line: #2f3a62; --brand: #ffc23c; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font); color: var(--ink); background: var(--bg); line-height: 1.65; font-size: 17px; -webkit-font-smoothing: antialiased; }
+a { color: var(--blue); }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.2; margin: 0 0 .5em; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); }
+h2 { font-size: clamp(1.4rem, 3.4vw, 1.9rem); margin-top: 1.6em; }
+h3 { font-size: 1.15rem; margin-top: 1.2em; }
+.lp-top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 16px; padding: 12px clamp(16px, 4vw, 40px); background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.lp-logo { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-family: var(--display); font-size: 1.35rem; font-weight: 600; }
+.lp-logo b { color: var(--red); }
+.lp-flag { display: grid; grid-template-rows: repeat(3, 1fr); width: 28px; height: 20px; border-radius: 4px; overflow: hidden; }
+.lp-flag i:nth-child(1) { background: #222; } .lp-flag i:nth-child(2) { background: #d00; } .lp-flag i:nth-child(3) { background: #ffce00; }
+.lp-top nav { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.lp-top nav a { color: var(--ink2); text-decoration: none; font-weight: 700; padding: 6px 10px; border-radius: 10px; font-size: .95rem; }
+.lp-top nav a:hover { background: var(--bg2); color: var(--ink); }
+.lp-cta { background: var(--brand) !important; color: var(--bg) !important; }
+.lp-wrap { max-width: 920px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 32px) 40px; }
+.lp-hero { padding: clamp(32px, 7vw, 64px) 0 12px; }
+.lp-kicker { display: inline-block; font-size: .8rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--red); background: color-mix(in srgb, var(--red) 10%, transparent); padding: 4px 10px; border-radius: 99px; margin-bottom: 12px; }
+.lp-lead { font-size: 1.15rem; color: var(--ink2); max-width: 720px; }
+.lp-btns { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 8px; }
+.lp-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 14px; font-weight: 800; text-decoration: none; background: var(--card); color: var(--ink); border: 2px solid var(--line); }
+.lp-btn.primary { background: var(--green); color: #fff; border-color: transparent; box-shadow: 0 4px 0 #17895a; }
+.lp-btn:hover { filter: brightness(1.04); }
+.lp-trust { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--ink2); font-size: .92rem; font-weight: 700; margin-top: 10px; }
+.lp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 18px 0; }
+.lp-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: 0 4px 18px rgba(31, 42, 72, .06); }
+.lp-card h3 { margin-top: 0; }
+.lp-card p { margin: 0; color: var(--ink2); font-size: .97rem; }
+.lp-card a { font-weight: 800; text-decoration: none; }
+.lp-ico { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+table.lp-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); font-size: .96rem; }
+.lp-table th, .lp-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+.lp-table th { background: var(--bg2); font-weight: 800; }
+.lp-table .ur { font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif; direction: rtl; text-align: right; font-size: 1.05rem; }
+.lp-tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.lp-steps { counter-reset: s; list-style: none; padding: 0; }
+.lp-steps li { counter-increment: s; position: relative; padding: 0 0 14px 46px; }
+.lp-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--brand); color: var(--bg); display: grid; place-items: center; font-weight: 800; }
+.lp-faq details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; margin: 8px 0; }
+.lp-faq summary { font-weight: 800; cursor: pointer; }
+.lp-faq p { margin: .6em 0 0; color: var(--ink2); }
+.lp-note { background: var(--bg2); border-left: 4px solid var(--gold); padding: 12px 16px; border-radius: 10px; font-size: .95rem; }
+.lp-band { margin: 34px 0; padding: 26px; border-radius: 22px; background: linear-gradient(135deg, #1f2a48, #3a4f8f); color: #fff; text-align: center; }
+.lp-band h2 { margin-top: 0; color: #fff; }
+.lp-band .lp-btn { margin-top: 6px; }
+.lp-foot { border-top: 1px solid var(--line); padding: 28px clamp(16px, 4vw, 40px); color: var(--ink2); font-size: .92rem; }
+.lp-foot .cols { max-width: 920px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+.lp-foot b { color: var(--ink); display: block; margin-bottom: 6px; }
+.lp-foot a { display: block; color: var(--ink2); text-decoration: none; padding: 2px 0; }
+.lp-foot a:hover { color: var(--ink); text-decoration: underline; }
+.lp-foot small { display: block; max-width: 920px; margin: 18px auto 0; }
+@media (max-width: 640px) { .lp-top nav a:not(.lp-cta) { display: none; } body { font-size: 16px; } }

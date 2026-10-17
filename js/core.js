@@ -200,9 +200,11 @@ GL.grammar = GL.grammar || {};
     },
     /* speak(text, {char:'lena', rate:1, slow:true}) -> Promise resolved when finished. */
     _tok: 0,
+    _page: 0,
     speak(text, opts = {}) {
       if (!this.supported || !text) return Promise.resolve();
-      const my = ++this._tok;
+      const my = ++this._tok, page = this._page;
+      const NEVER = new Promise(() => {}); // playback from a page the learner has left never continues
       const clean = String(text).replace(/\s*\([^)]*\)/g, '').replace(/[“”„]/g, '').replace(/\|/g, ' ').replace(/\s*\/\s*/g, ', ').replace(/…/g, '...').replace(/\s*[–—]\s*/g, ', ');
       // Long texts are spoken sentence by sentence: some online voices stop after ~15 seconds.
       const parts = clean.length > 160 ? (clean.match(/[^.!?\n]+[.!?]*/g) || [clean]).map((p) => p.trim()).filter(Boolean) : [clean];
@@ -212,8 +214,10 @@ GL.grammar = GL.grammar || {};
         for (let i = 0; i < parts.length && my === this._tok; i++) {
           const at = clean.indexOf(parts[i], off); off = at < 0 ? off : at;
           await this._utter(parts[i], opts, i === 0, off);
+          if (page !== this._page) return NEVER;
           off += parts[i].length;
         }
+        if (page !== this._page) return NEVER;
         opts.onend && opts.onend();
       })();
     },
@@ -241,6 +245,10 @@ GL.grammar = GL.grammar || {};
       });
     },
     stop() { if (this.supported) { this._tok++; speechSynthesis.cancel(); } },
+    /* called on every page change: stops audio and halts any read-aloud loop of the old page */
+    leavePage() { this._page++; this.stop(); },
+    /* speak after a short delay – skipped if the learner has left the page meanwhile */
+    later(ms, text, opts) { const pg = this._page; setTimeout(() => { if (pg === this._page) this.speak(text, opts); }, ms); },
   };
 
   /* ---------- Speech recognition ---------- */

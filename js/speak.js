@@ -198,6 +198,7 @@
           ${cfg.hideTarget ? `<p style="margin:6px 0 0">Correct: <b>„${esc(targets[0])}“</b></p>` : ''}
           <div class="row" style="margin-top:8px"><span class="muted">How was it?</span><button class="btn tiny green sp-rate" data-r="95">😀 Same</button><button class="btn tiny ghost sp-rate" data-r="75">🙂 Close</button><button class="btn tiny ghost sp-rate" data-r="45">😕 Not yet</button></div></div>`;
         const audio = new Audio(url);
+        window.addEventListener('hashchange', () => audio.pause(), { once: true });
         const you = () => new Promise((r) => { audio.currentTime = 0; audio.onended = r; audio.play().catch(r); });
         $('.sp-cmp-m', res).onclick = () => sayT(false);
         $('.sp-cmp-y', res).onclick = () => you();
@@ -340,7 +341,7 @@
             const slot = $('.sp-slot', root);
             slot.insertAdjacentHTML('beforeend', '<button class="btn tiny ghost sp-reveal">👀 Show answer</button>');
             $('.sp-reveal', slot).onclick = (e) => { e.target.outerHTML = `<p class="sp-answer">„${esc(s.targets[0])}“ <button class="btn tiny ghost" data-say="${attr(s.targets[0])}">🔊</button></p>`; };
-          } else if (!s.q) setTimeout(() => Speech.speak(s.de, { char: s.char }), 300);
+          } else if (!s.q) Speech.later(300, s.de, { char: s.char });
           $('#wkSkip', root).onclick = () => { results[i] = results[i] || { ok: false, skipped: true }; i++; draw(); };
           next.onclick = () => { i++; draw(); };
         };

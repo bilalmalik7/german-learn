@@ -173,7 +173,7 @@
       cur = pool[r * 4]; const opts = shuffle([cur, pool[r * 4 + 1], pool[r * 4 + 2], pool[r * 4 + 3]].filter(Boolean));
       $('#bbR').textContent = r + 1;
       $('#bbSky').innerHTML = opts.map((o, i) => `<button class="bb" type="button" data-w="${attr(o.w)}" style="--x:${8 + i * 23}%;--d:${(i * 0.37) % 1.2}s;--s:${5 + (i % 3)}s">${esc(o.art)} ${esc(o.w)}</button>`).join('');
-      const t0 = Date.now(); setTimeout(() => Speech.speak(`${cur.art} ${cur.w}`), 250);
+      const t0 = Date.now(); Speech.later(250, `${cur.art} ${cur.w}`);
       $$('.bb', box).forEach((b) => (b.onclick = () => {
         if (lives <= 0 || b.classList.contains('nope') || b.classList.contains('pop')) return;
         if (b.dataset.w === cur.w) { const pts = Math.max(20, 100 - Math.round((Date.now() - t0) / 100)); score += pts; b.classList.add('pop'); floatText(b, `+${pts}`, 'ok'); GL.sfx('ok'); $('#gaPts').textContent = score; r++; setTimeout(round, 600); }

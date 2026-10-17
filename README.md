@@ -118,6 +118,13 @@ papers. Exam formats follow the descriptions by Goethe-Institut and telc (2025/2
 goethe.de / telc.net before their exam and also do the free official model tests (linked in the app).
 Progress is saved in `Store.state.exam` and travels with the progress link.
 
+### Search engines (SEO)
+- `index.html` has a keyword-focused title and description, canonical URL, Open Graph / Twitter cards (`og.png`), hreflang links and JSON-LD (WebSite, EducationalOrganization, Course).
+- Five static landing pages, readable by search engines without JavaScript, link into the app:
+  `learn-german-pakistan.html`, `german-in-urdu.html`, `german-for-work-in-germany.html`, `deutsch-lernen.html` (in German) and `goethe-telc-exam-preparation.html`. Each has its own title, description, FAQ (with FAQPage JSON-LD) and breadcrumb data. Styles: `css/landing.css`.
+- `robots.txt`, `sitemap.xml`, `site.webmanifest` and the app icons are in the root.
+- After deploying, add the site in Google Search Console and Bing Webmaster Tools and submit `https://german-30.vercel.app/sitemap.xml`. If the domain changes, replace `german-30.vercel.app` in these files.
+
 ### As a plain static copy
 
 Without the server function everything still works except logins, the teacher portal and AI.

@@ -57,7 +57,7 @@
   }
 
   let cancelToken = 0;
-  const cancelAll = () => { cancelToken++; Speech.stop(); Rec.stop(); };
+  const cancelAll = () => { cancelToken++; Speech.leavePage(); Rec.stop(); };
 
   /* ---------- top bar ---------- */
   GL.updateTopStats = function () {
@@ -78,19 +78,31 @@
     setTimeout(() => { if (!sheet.classList.contains('open')) { sheet.hidden = true; backdrop.hidden = true; } }, 220);
   }
   function openMore() {
-    const items = [...$$('.nav .nav-sec'), ...$$('.top-stats [data-nav]')].filter((a) => !a.classList.contains('hidden'));
     const cur = (location.hash.replace(/^#\/?/, '').split(/[/#]/)[0]) || 'home';
-    sheet.innerHTML = `<div class="sheet-handle" aria-hidden="true"></div><div class="more-grid">${items.map((a) => {
+    const item = (a) => {
       const k = a.dataset.nav, top = TOP_LABELS[k];
       const ico = top ? top[0] : $('.ico', a).textContent, lbl = top ? top[1] : $('.lbl', a).textContent;
       const nb = $('.nb', a), badge = nb && !nb.classList.contains('hidden') && nb.textContent ? `<span class="nb">${esc(nb.textContent)}</span>` : '';
       return `<a href="${attr(a.getAttribute('href'))}" class="more-item ${k === cur ? 'active' : ''}"><span class="mi-ico">${ico}${badge}</span><span>${esc(lbl)}</span></a>`;
-    }).join('')}</div>`;
+    };
+    const groups = $$('.nav .nav-menu').map((m) => [m.dataset.title, $$('.nav-sec', m)]);
+    groups.push(['Account', $$('.top-stats [data-nav]').filter((a) => !a.classList.contains('hidden'))]);
+    sheet.innerHTML = `<div class="sheet-handle" aria-hidden="true"></div>${groups.filter((g) => g[1].length).map(([t, items]) => `<h4 class="more-h">${esc(t)}</h4><div class="more-grid">${items.map(item).join('')}</div>`).join('')}`;
     sheet.hidden = false; backdrop.hidden = false;
     requestAnimationFrame(() => { sheet.classList.add('open'); backdrop.classList.add('open'); });
     moreBtn.setAttribute('aria-expanded', 'true');
     const first = $('.more-item', sheet); first && first.focus({ preventScroll: true });
   }
+  /* ---------- desktop: dropdown menus (hover or click) ---------- */
+  const closeDD = (except) => $$('.nav-dd.open').forEach((d) => { if (d !== except) { d.classList.remove('open'); $('.nav-ddb', d).setAttribute('aria-expanded', 'false'); } });
+  $$('.nav-dd').forEach((d) => {
+    const b = $('.nav-ddb', d);
+    b.addEventListener('click', (e) => { e.stopPropagation(); const o = !d.classList.contains('open'); closeDD(d); d.classList.toggle('open', o); b.setAttribute('aria-expanded', String(o)); if (o) { const f = $('.nav-sec', d); f && e.detail === 0 && f.focus(); } });
+    d.addEventListener('mouseleave', () => { if (d.contains(document.activeElement)) b.blur(); d.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); });
+    d.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeDD(); b.focus(); } });
+    d.addEventListener('focusout', (e) => { if (!d.contains(e.relatedTarget)) { d.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } });
+  });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.nav-dd')) closeDD(); });
   // hide the bottom tab bar while the on-screen keyboard is open (it would cover the text field)
   const isTyping = (el) => el && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && !/^(checkbox|radio|range|button|submit)$/.test(el.type)) || el.isContentEditable);
   document.addEventListener('focusin', (e) => { if (isTyping(e.target)) document.body.classList.add('kb-open'); });
@@ -117,6 +129,7 @@
     const [page, a, b, c] = parts;
     $$('[data-nav]').forEach((l) => l.classList.toggle('active', l.dataset.nav === (page || 'home') || (page === 'day' && l.dataset.nav === 'plan')));
     closeMore();
+    closeDD(); $$('.nav-dd').forEach((d) => $('.nav-ddb', d).classList.toggle('active', !!$('.nav-sec.active', d)));
     if (moreBtn) moreBtn.classList.toggle('active', MORE_PAGES.includes(page));
     let html;
     try {
@@ -160,6 +173,8 @@
       html = { html: `<div class="card"><h2>Oops</h2><p>Something went wrong: ${esc(e.message)}</p><a class="btn" href="#/">Home</a></div>` };
     }
     app.innerHTML = `<div class="view">${html.html}</div>`;
+    { const T = { plan: '30-Day German Course', grammar: 'German Grammar A–Z', trainer: 'Vocabulary Trainer', review: 'Flashcards', read: 'German Reading Texts A1–B1', listen: 'German Listening Practice', writing: 'German Writing Practice', sounds: 'German Pronunciation', talk: 'German Speaking Practice', scenes: 'Real-life German Scenes', games: 'German Learning Games', daily: 'Daily Mix', exam: 'Goethe & telc Exam Prep A1–B1', myplan: 'My Study Plan', life: 'Living in Germany', job: 'Job German', rewards: 'Rewards', settings: 'Settings' };
+      const h1 = $('h1', app); document.title = page === 'day' && h1 ? `${h1.textContent.trim()} – Day ${a} | Deutsch30` : T[page] ? `${T[page]} | Deutsch30` : 'Learn German Online Free: A1–B1 Course & Exam Prep | Deutsch30'; }
     window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     html.mount && html.mount();
     if ((page || 'home') === 'home' && GL.Planner) GL.Planner.wireHome(app);
@@ -315,8 +330,19 @@
         </div>
       </div>
 
+      <section class="why">
+        <div class="why-head"><span class="xm-pill">WHY DEUTSCH30</span><h2>Everything you need to learn German – free, in one place</h2><p class="muted">Built for beginners in Pakistan, India, Germany and everywhere else: learn at your own pace on your phone or computer, from your first “Hallo” to the B1 exam.</p></div>
+        <div class="why-grid">${[
+          ['🗣️', 'Speak from day one', 'Talk with animated characters – your microphone checks your pronunciation and answers.', '#/talk'],
+          ['🎓', 'Pass Goethe &amp; telc', '49 practice tests and 4 timed mock exams in the A1, A2 and B1 task formats.', '#/exam'],
+          ['🇩🇪', 'Ready for daily life', 'Bürgeramt, doctor, flat viewing, job interview – practise real situations before they happen.', '#/scenes'],
+          ['🧭', 'A plan that fits you', 'Tell us your exam date and daily time – get a day-by-day plan that gets you there.', '#/myplan'],
+        ].map(([i, t, d, h]) => `<a class="why-card" href="${h}"><span class="why-ico">${i}</span><b>${t}</b><span>${d}</span></a>`).join('')}</div>
+        <div class="why-stats"><span><b>30</b> days of lessons</span><span><b>62</b> grammar topics</span><span><b>790+</b> words with audio</span><span><b>84</b> listening clips</span><span><b>38</b> reading texts</span><span><b>100%</b> free</span></div>
+      </section>
+
       <div class="section-title"><span class="badge-ico">👋</span><h2 style="margin:0">Meet the characters</h2></div>
-      <div class="grid grid-4">${['bruno', 'lena', 'max', 'sofia', 'weber', 'yilmaz', 'braun'].map((id) => [id, GL.chars[id]]).map(([id, c]) => `
+      <div class="grid meet-grid">${['bruno', 'lena', 'max', 'sofia', 'weber', 'yilmaz', 'braun'].map((id) => [id, GL.chars[id]]).map(([id, c]) => `
         <button class="card center meet" data-id="${id}" style="cursor:pointer;margin:0">
           ${GL.charSVG(id, 'idle')}
           <b style="display:block;margin-top:6px">${esc(c.name)}</b><small class="muted">${esc(c.role)}</small>
@@ -1038,7 +1064,7 @@
       root.innerHTML = `<div class="row"><button class="btn round" id="mpPlay">🔊</button><span class="pill">${i + 1}/${pairs.length}</span><span class="muted">${esc(p[2] || '')}</span></div>
         <div class="opts" style="grid-template-columns:1fr 1fr;margin-top:12px">${shuffle([p[0], p[1]]).map((w) => `<button class="opt center" data-w="${attr(w)}">${esc(w)}</button>`).join('')}</div><div id="mpFb"></div>`;
       $('#mpPlay').onclick = () => Speech.speak(target);
-      setTimeout(() => Speech.speak(target), 200);
+      Speech.later(200, target);
       $$('.opt', root).forEach((b) => (b.onclick = () => {
         const ok = b.dataset.w === target;
         if (ok) score++;

@@ -208,7 +208,7 @@
         if (isL) {
           $('#lPlay', card).onclick = () => Speech.speak(q.a);
           $('#lSlow', card).onclick = () => Speech.speak(q.a, { slow: true });
-          setTimeout(() => Speech.speak(q.a), 350);
+          Speech.later(350, q.a);
         }
         setTimeout(() => inp.focus(), 60);
         const acc = Array.isArray(q.a) ? q.a : [q.a];
