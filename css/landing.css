@@ -62,3 +62,33 @@ table.lp-table { width: 100%; border-collapse: collapse; background: var(--card)
 .lp-foot a:hover { color: var(--ink); text-decoration: underline; }
 .lp-foot small { display: block; max-width: 920px; margin: 18px auto 0; }
 @media (max-width: 640px) { .lp-top nav a:not(.lp-cta) { display: none; } body { font-size: 16px; } }
+/* ---------- generated content pages (grammar, lessons, vocabulary, reading) ---------- */
+.lp-crumbs { padding-top: 18px; font-size: .88rem; color: var(--ink2); }
+.lp-crumbs a { color: var(--ink2); text-decoration: none; } .lp-crumbs a:hover { text-decoration: underline; }
+.lp-hero-sm { padding-top: 14px; }
+.lp-muted { color: var(--ink2); }
+.lp-link { text-decoration: none; color: var(--ink); transition: transform .15s, box-shadow .15s; }
+.lp-link:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(31, 42, 72, .1); }
+.lp-link h3 { margin: 0 0 4px; font-size: 1.02rem; }
+.lp-goals li { margin: 4px 0; }
+.lp-pn { display: flex; justify-content: space-between; gap: 12px; margin: 26px 0 8px; flex-wrap: wrap; }
+.lp-pn a { font-weight: 800; text-decoration: none; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); max-width: 48%; }
+.lp-gram { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: clamp(16px, 3vw, 26px); }
+.lp-gram .gtable-wrap { overflow-x: auto; margin: 12px 0; }
+.lp-gram table.gtable { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.lp-gram .gtable th, .lp-gram .gtable td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.lp-gram .gtable th { background: var(--bg2); }
+.lp-gram .note, .lp-gram .tip, .lp-gram .warn, .lp-gram .rule, .lp-gram .formula { padding: 10px 14px; border-radius: 12px; margin: 12px 0; background: var(--bg2); border-left: 4px solid var(--blue); }
+.lp-gram .tip { border-left-color: var(--green); } .lp-gram .warn { border-left-color: var(--red); } .lp-gram .rule, .lp-gram .formula { border-left-color: var(--gold); font-weight: 700; }
+.lp-gram .slots { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; } .lp-gram .slots > * { padding: 6px 10px; border-radius: 10px; background: var(--bg2); border: 1px solid var(--line); }
+.lp-gram .v, .lp-gram .v2 { color: var(--red); font-weight: 800; } .lp-gram .s { color: var(--blue); font-weight: 800; }
+.ex { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 8px 12px; margin: 6px 0; border-radius: 10px; background: var(--bg2); }
+.ex-de { font-weight: 800; } .ex-en { color: var(--ink2); }
+.g-der, .g-der b { color: #2f6fed; } .g-die, .g-die b { color: #e5386d; } .g-das, .g-das b { color: #12a189; } .g-pl { color: #8a5cf6; }
+.lp-dialog { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 6px 18px; }
+.lp-dialog p { margin: 10px 0; }
+.lp-text p { margin: 0 0 1em; font-size: 1.05rem; line-height: 1.8; }
+.lp-qs > li { margin: 12px 0; } .lp-qs ul { margin: 4px 0; color: var(--ink2); }
+.lp-qs details { margin-top: 4px; } .lp-qs summary { cursor: pointer; color: var(--blue); font-weight: 700; }
+.lp-table small { color: var(--ink2); }
+.lp-gram .slots small, .lp-gram .slots i { display: block; font-size: .72rem; font-weight: 700; color: var(--ink2); font-style: normal; }

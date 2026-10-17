@@ -122,6 +122,8 @@ Progress is saved in `Store.state.exam` and travels with the progress link.
 - `index.html` has a keyword-focused title and description, canonical URL, Open Graph / Twitter cards (`og.png`), hreflang links and JSON-LD (WebSite, EducationalOrganization, Course).
 - Five static landing pages, readable by search engines without JavaScript, link into the app:
   `learn-german-pakistan.html`, `german-in-urdu.html`, `german-for-work-in-germany.html`, `deutsch-lernen.html` (in German) and `goethe-telc-exam-preparation.html`. Each has its own title, description, FAQ (with FAQPage JSON-LD) and breadcrumb data. Styles: `css/landing.css`.
+- **150 generated content pages** (no JavaScript needed, so Google can index them): `/grammar` (62 topics), `/lessons` (30 days), `/vocabulary` (18 word lists) and `/reading` (38 texts), each with its own title, description, breadcrumbs and structured data, linking back into the app. They are built from the course data by `node scripts/build-seo.cjs` (or `npm run build:seo`) – re-run it after changing content and commit the output. The script also rewrites `sitemap.xml`.
+- `vercel.json` uses clean URLs (`/grammar/accusative` instead of `.html`).
 - `robots.txt`, `sitemap.xml`, `site.webmanifest` and the app icons are in the root.
 - After deploying, add the site in Google Search Console and Bing Webmaster Tools and submit `https://german-30.vercel.app/sitemap.xml`. If the domain changes, replace `german-30.vercel.app` in these files.
 

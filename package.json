@@ -3,6 +3,7 @@
   "private": true,
   "description": "Deutsch in 30 Tagen – animated 30-day German course with student logins and a teacher portal",
   "type": "module",
+  "scripts": { "build:seo": "node scripts/build-seo.cjs" },
   "engines": { "node": ">=20" },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
