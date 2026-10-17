@@ -589,6 +589,7 @@
           const pct = choices ? Math.round((firstTry / choices) * 100) : 100;
           const p = progressOf(sc.id);
           Store.state.scenes[sc.id] = { done: true, best: Math.max(p.best || 0, pct), at: GL.todayStr() };
+          if (GL.Game) GL.Game.count('scene', 1);
           GL.track && GL.track('scene', `Real-life scene „${sc.title}“: ${pct}% on the first try`);
           Store.addXP(30); Store.save();
           GL.confetti(); GL.sfx('done');

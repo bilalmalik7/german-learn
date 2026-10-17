@@ -68,7 +68,7 @@
     s.textContent = sv;
   };
   /* ---------- mobile: bottom tab bar with a "More" sheet ---------- */
-  const MORE_PAGES = ['grammar', 'trainer', 'exam', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
+  const MORE_PAGES = ['grammar', 'trainer', 'myplan', 'listen', 'life', 'rewards', 'daily', 'exam', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
   const TOP_LABELS = { admin: ['📊', 'Teacher portal'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
   const moreBtn = $('#navMore'), sheet = $('#moreSheet'), backdrop = $('#moreBackdrop');
   function closeMore() {
@@ -134,11 +134,16 @@
         case 'grammar': html = a ? viewTopic(decodeURIComponent(a)) : viewGrammar(); break;
         case 'review': html = viewReview(a || 'cards'); break;
         case 'trainer': html = GL.viewTrainer(a, b); break;
-        case 'talk': html = GL.viewTalk(a); break;
+        case 'talk': html = GL.viewTalk(a, b); break;
         case 'scenes': html = GL.viewScenes(a); break;
         case 'writing': html = GL.viewWriting(a, b); break;
         case 'job': html = GL.viewJob(a, b); break;
         case 'exam': html = GL.viewExam(a, b, c); break;
+        case 'listen': html = GL.viewListen(a, b); break;
+        case 'life': html = GL.viewLife(a); break;
+        case 'myplan': html = GL.viewMyPlan(a); break;
+        case 'rewards': html = GL.Game.viewRewards(); break;
+        case 'daily': html = GL.viewDaily(); break;
         case 'teacher': html = GL.viewTeacher(); break;
         case 'admin': html = GL.viewAdmin(); break;
         case 'register': html = GL.viewRegister(); break;
@@ -155,6 +160,8 @@
     app.innerHTML = `<div class="view">${html.html}</div>`;
     window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     html.mount && html.mount();
+    if ((page || 'home') === 'home' && GL.Planner) GL.Planner.wireHome(app);
+    if (GL.Game) GL.Game.paint();
     if (GL.Plans) { GL.Plans.decorate(); setTimeout(() => GL.Plans.decorate(), 500); }
     if (GL.Resume) { GL.Resume.visit(page, a, page === 'day' ? (b || GL.Resume.lastStep(+a || 1)) : b); GL.Resume.wireHome(app); if (page === 'settings') GL.Resume.wireLinkCard(app); }
     const steps = $('.steps'), act = $('.step.active');
@@ -241,6 +248,8 @@
         </div>
       </section>
 
+      ${GL.Game ? GL.Game.homeHTML() : ''}
+
       <div class="stats">
         <div class="stat"><span class="s-ico">🔥</span><div><b>${Store.currentStreak()}</b><span>day streak</span></div></div>
         <div class="stat"><span class="s-ico">⭐</span><div><b>${st.xp}</b><span>XP earned</span></div></div>
@@ -258,7 +267,9 @@
           <a href="#/trainer"><span class="t-ico">🏋️</span><div><b>Trainer</b><small>verbs · cases · endings</small></div></a>
           <a href="#/talk"><span class="t-ico">🎤</span><div><b>Speak · ${GL.Speak.today()}/${GL.Speak.GOAL}</b><small>10-minute speaking workout</small></div></a>
           <a href="#/scenes"><span class="t-ico">🎬</span><div><b>Real life</b><small>${GL.scenarios.filter((x) => !x.track).length} scenes: airport, doctor, bank …</small></div></a>
-          <a href="#/writing"><span class="t-ico">✍️</span><div><b>Writing</b><small>AI marks every mistake</small></div></a>
+          <a href="#/listen"><span class="t-ico">🎧</span><div><b>Listening</b><small>numbers, dictation, real audio</small></div></a>
+          <a href="#/life"><span class="t-ico">🇩🇪</span><div><b>Life in Germany</b><small>offices, doctor, flat, work</small></div></a>
+          <a href="#/writing"><span class="t-ico">✍️</span><div><b>Writing</b><small>the coach marks every mistake</small></div></a>
         </div>
       </div>
 
@@ -928,6 +939,7 @@
         const cur = srs[w.de] || { box: 0 };
         let box = g === 0 ? 1 : Math.min(6, cur.box + (g === 2 ? 2 : 1));
         srs[w.de] = { box, due: Date.now() + (g === 0 ? 0 : INTERVALS[box] * 864e5 - 36e5) };
+        if (GL.Game) GL.Game.count('cards', 1);
         if (g === 0) deck.push(w); else { known++; Store.addXP(1); }
         Store.save();
         i++;

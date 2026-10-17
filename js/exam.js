@@ -27,6 +27,7 @@
     x.results[id] = r;
     Store.addXP(first ? 15 : 5);
     Store.save();
+    if (GL.Game) GL.Game.count('exam', 1);
     const t = task(id);
     GL.track && GL.track('exam', `Exam ${t ? t.level + ' · ' + t.title : id}${pct != null ? `: ${pct}%` : ''}`);
     return pct;
@@ -249,36 +250,52 @@
     html(t, p) {
       const saved = S().texts[t.id] || '';
       return `<div class="xm-task-card"><div>${paras(t.task)}</div>
-          <ul class="xm-points">${t.points.map((pt, i) => `<li><label><input type="checkbox" class="xm-pt" data-i="${i}"> <span><b>${esc(pt)}</b>${t.pointsEn ? `<small>${esc(t.pointsEn[i])}</small>` : ''}</span></label></li>`).join('')}</ul>
+          <ul class="xm-points">${t.points.map((pt, i) => `<li data-i="${i}"><span class="xm-pmark">${i + 1}</span><span><b>${esc(pt)}</b>${t.pointsEn ? `<small>${esc(t.pointsEn[i])}</small>` : ''}</span></li>`).join('')}</ul>
           <details class="xm-en"><summary>🇬🇧 Task in English</summary>${paras(t.taskEn)}</details></div>
         <div class="xm-write"><textarea class="txt-in xm-ta" rows="9" placeholder="Schreib hier … (write here)" spellcheck="false" data-p="${attr(p)}">${esc(saved)}</textarea>
+          <div class="umlauts xm-uml">${['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü', '„', '“'].map((c) => `<button type="button" class="btn tiny ghost" data-c="${c}">${c}</button>`).join('')}</div>
           <div class="xm-wc"><span class="xm-wcn">0</span> / ≈ ${t.count} words <span class="xm-wcbar"><i></i></span></div></div>
-        <p class="muted xm-selfnote">✔ Tick each point above when your text answers it – in the exam a missing point costs the most.</p>
-        ${t.redemittel ? `<details class="xm-more"><summary>💬 Useful phrases (${t.redemittel.length})</summary><div class="xm-phr">${t.redemittel.map(([de, en]) => `<button class="xm-g" type="button" data-say="${attr(de)}"><b>${esc(de)}</b><small>${esc(en)}</small></button>`).join('')}</div></details>` : ''}
+        ${t.redemittel ? `<details class="xm-more"><summary>💬 Useful phrases – tap ＋ to put one into your text (${t.redemittel.length})</summary><div class="xm-phrows">${t.redemittel.map(([de, en]) => `<div class="xm-phrow"><button class="say-btn sm" type="button" data-say="${attr(de)}" aria-label="Listen">🔊</button><span><b>${esc(de)}</b><small>${esc(en)}</small></span><button class="btn tiny ghost xm-ins" type="button" data-t="${attr(de.replace(/…/g, '').replace(/\s+$/, '') + ' ')}" title="Insert">＋</button></div>`).join('')}</div></details>` : ''}
         ${t.check ? `<details class="xm-more"><summary>✅ Check your text</summary><ul class="xm-checklist">${t.check.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></details>` : ''}
-        <div class="xm-model hidden"><h4>⭐ Model answer</h4><div class="xm-model-de">${paras(t.model)}</div><button class="btn small ghost" type="button" data-say="${attr(t.model.replace(/\n/g, ' '))}">🔊 Listen</button><details class="xm-en"><summary>🇬🇧 English</summary>${paras(t.modelEn)}</details></div>
-        <div class="xm-quick"></div>`;
+        <div class="xm-coach"></div>
+        <div class="xm-model hidden"><h4>⭐ Model answer</h4><div class="xm-model-de">${paras(t.model)}</div><button class="btn small ghost" type="button" data-say="${attr(t.model.replace(/\n/g, ' '))}">🔊 Listen</button><details class="xm-en"><summary>🇬🇧 English</summary>${paras(t.modelEn)}</details></div>`;
     },
     wire(root, t) {
       const ta = $('.xm-ta', root), n = $('.xm-wcn', root), bar = $('.xm-wcbar i', root);
       const upd = () => { const c = wc(ta.value); n.textContent = c; bar.style.width = Math.min(100, (c / t.count) * 100) + '%'; bar.parentElement.classList.toggle('full', c >= t.count * 0.85); };
       ta.oninput = () => { upd(); S().texts[t.id] = ta.value; clearTimeout(ta._s); ta._s = setTimeout(() => Store.save(), 600); };
       upd();
+      const insert = (txt) => {
+        const s0 = ta.selectionStart, e0 = ta.selectionEnd, before = ta.value.slice(0, s0);
+        const pre = before && !/[\s\n]$/.test(before) ? ' ' : '';
+        ta.value = before + pre + txt + ta.value.slice(e0);
+        ta.focus(); ta.selectionStart = ta.selectionEnd = s0 + pre.length + txt.length;
+        ta.dispatchEvent(new Event('input'));
+      };
+      const uml = $('.xm-uml', root);
+      if (uml) uml.onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; const s0 = ta.selectionStart; ta.value = ta.value.slice(0, s0) + b.dataset.c + ta.value.slice(ta.selectionEnd); ta.focus(); ta.selectionStart = ta.selectionEnd = s0 + 1; ta.dispatchEvent(new Event('input')); };
+      $$('.xm-ins', root).forEach((b) => (b.onclick = () => { insert(b.dataset.t); b.classList.add('done'); GL.sfx('pop'); }));
+      let last = null;
+      const coach = () => (last = GL.Checker ? GL.Checker.analyze(ta.value, { level: t.level, points: t.points, count: t.count, task: t.task, letter: true, formal: /Sehr geehrte|Sie\b/.test(t.task) && !/Liebe|Lieber|Freund/.test(t.task) }) : null);
       return {
         grade() {
-          const pts = $$('.xm-pt', root).filter((c) => c.checked).length;
-          const enough = wc(ta.value) >= t.count * 0.85 ? 1 : 0;
-          return { score: pts + enough, max: t.points.length + 1, auto: false, empty: wc(ta.value) < 5 };
+          const r = coach();
+          if (!r) { const enough = wc(ta.value) >= t.count * 0.85 ? 1 : 0; return { score: enough, max: 1, auto: false, empty: wc(ta.value) < 5 }; }
+          return { score: r.score, max: 100, auto: false, coach: true, empty: wc(ta.value) < 5 };
         },
         reveal() {
           $('.xm-model', root).classList.remove('hidden');
-          const q = $('.xm-quick', root);
-          if (GL.Writing && wc(ta.value) >= 5) {
-            try {
-              const ms = GL.Writing.quickCheck(ta.value, { level: t.level });
-              q.innerHTML = `<div class="card xm-qc"><h4 style="margin-top:0">⚡ Quick check of your text</h4>${ms.length ? `<div class="wr-pane">${GL.Writing.markedHTML(ta.value, ms)}</div><ol class="wr-mlist">${ms.map((m) => `<li><b>${esc(m.rule)}</b>: <span class="m-wrong">${esc(m.wrong)}</span>${m.right ? ` → <span class="m-right">${esc(m.right)}</span>` : ''}</li>`).join('')}</ol>` : '<p>✅ No typical mistakes found. Compare your text with the model answer.</p>'}<p class="muted" style="margin-bottom:0">For a full correction with a score: <a href="#/writing">✍️ Writing studio</a> (AI feedback) or show it to a teacher.</p></div>`;
-            } catch (e) { /* quick check is optional */ }
-          }
+          const r = last || coach(); if (!r || wc(ta.value) < 5) return;
+          (r.coverage || []).forEach((c, i) => { const li = $(`.xm-points li[data-i="${i}"]`, root); if (li) { li.classList.add(c.done ? 'ok' : 'no'); $('.xm-pmark', li).textContent = c.done ? '✔' : '✘'; } });
+          const box = $('.xm-coach', root);
+          box.innerHTML = `<div class="card xm-qc"><div class="row"><div class="wr-ring ${r.score >= 85 ? '' : r.score >= 60 ? 'mid' : 'low'}" style="--p:${r.score}"><b>${r.score}</b><small>/100</small></div><div style="flex:1;min-width:200px"><span class="ai-badge ck-badge-off">✅ Writing coach</span> <span class="level ${r.level}">≈ ${r.level}</span><p style="margin:.4em 0 0">${esc(r.summary)}</p></div></div>
+            ${GL.Checker.criteriaHTML(r)}
+            ${r.mistakes.length ? `<div class="wr-pane">${GL.Writing.markedHTML(ta.value, r.mistakes)}</div><ol class="wr-mlist">${r.mistakes.map((m) => `<li><b>${esc(m.rule)}</b>: <span class="m-wrong">${esc(m.wrong)}</span>${m.right ? ` → <span class="m-right">${esc(m.right)}</span>` : ''}<br><small class="muted">${m.explanation}</small></li>`).join('')}</ol>
+              <details class="xm-more"><summary>✅ Your text, corrected</summary><div class="ck-diff">${GL.Writing.diffHTML(ta.value, r.corrected)}</div><div class="row" style="margin-top:8px"><button class="btn tiny ghost" type="button" data-say="${attr(r.corrected)}">🔊 Listen</button><button class="btn tiny ghost xm-usecorr" type="button">Use the corrected text</button></div></details>` : '<p>✅ No typical mistakes found. Compare your text with the model answer below.</p>'}
+            ${r.tips.length ? `<h4>🎯 To get more points</h4><ul>${r.tips.map((x) => `<li>${x}</li>`).join('')}</ul>` : ''}
+            <p class="muted" style="margin-bottom:0">The coach checks grammar rules and the task points automatically – an examiner also looks at meaning and style.</p></div>`;
+          const use = $('.xm-usecorr', box); if (use) use.onclick = () => { ta.value = r.corrected; ta.dispatchEvent(new Event('input')); toast('Corrected text loaded ✍️'); };
+          if (GL.Game) GL.Game.count('write', wc(ta.value));
         },
       };
     },
@@ -378,7 +395,7 @@
               <div class="row"><button class="btn small xm-again" type="button">↻ Try again</button>${next ? `<a class="btn small green" href="#/exam/task/${next.id}">Next task →</a>` : ''}</div></div></div>`;
             GL.sfx(pass ? 'done' : 'pop'); if (pct >= 90) GL.confetti();
           } else {
-            out.innerHTML = `<div class="xm-score hi"><span class="xm-big">${t.kind === 'write' ? '📝' : '🗣️'}</span><div><h3 style="margin:0">Gut gemacht! Saved.</h3><p class="muted" style="margin:.2em 0 .6em">${t.kind === 'write' ? 'Compare your text with the model answer: did you answer every point? Copy two good phrases from the model into your notebook.' : 'Speak the model 3 times, then without looking. Record yourself and listen back.'}</p><div class="row"><button class="btn small xm-again" type="button">↻ Again</button>${next ? `<a class="btn small green" href="#/exam/task/${next.id}">Next task →</a>` : ''}</div></div></div>`;
+            out.innerHTML = `<div class="xm-score ${t.kind === 'write' && g.coach ? pctCls(pct) : 'hi'}">${t.kind === 'write' && g.coach ? `<div class="xm-ring" style="--p:${pct}"><b>${pct}</b></div>` : `<span class="xm-big">${t.kind === 'write' ? '📝' : '🗣️'}</span>`}<div><h3 style="margin:0">${t.kind === 'write' && g.coach ? `Coach score: ${pct}/100 ${pct >= 60 ? '👍' : '💪'}` : 'Gut gemacht! Saved.'}</h3><p class="muted" style="margin:.2em 0 .6em">${t.kind === 'write' ? 'Read the coach’s notes above, fix your text and check again. Then compare with the model answer and copy two good phrases into your notebook.' : 'Speak the model 3 times, then without looking. Record yourself and listen back.'}</p><div class="row"><button class="btn small xm-again" type="button">↻ Again</button>${next ? `<a class="btn small green" href="#/exam/task/${next.id}">Next task →</a>` : ''}</div></div></div>`;
             GL.sfx('done');
           }
           out.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -426,7 +443,7 @@
       return {
         html: `<p class="xm-crumbs"><a href="#/exam">🎓 Exam prep</a> › <a href="#/exam/mock/${lv}">Mock exam ${esc(lv)}</a></p>
           <div class="xm-mockbar"><b>🏁 ${esc(M.title)} · ${esc(P.name)}</b><span class="spacer"></span><span class="xm-clock">⏱️ ${P.min}:00</span><button class="btn small green xm-submit" type="button">Submit</button></div>
-          <div class="xm-mock-intro card"><p style="margin:0">⏱️ <b>${P.min} minutes</b>, like in the real exam. ${P.k === 'hoeren' ? 'Listening texts can only be played as often as in the exam. ' : ''}${P.k === 'schreiben' ? 'Your texts are not marked automatically: tick the points you answered (self-check), then compare with the model answers. ' : ''}When the time is up, your answers are submitted automatically.</p>${ts.length < P.tasks.length ? '<p class="warn">Some parts of this mock are still missing.</p>' : ''}</div>
+          <div class="xm-mock-intro card"><p style="margin:0">⏱️ <b>${P.min} minutes</b>, like in the real exam. ${P.k === 'hoeren' ? 'Listening texts can only be played as often as in the exam. ' : ''}${P.k === 'schreiben' ? 'Your texts are scored by the writing coach when you submit (task points, grammar, vocabulary, structures). ' : ''}When the time is up, your answers are submitted automatically.</p>${ts.length < P.tasks.length ? '<p class="warn">Some parts of this mock are still missing.</p>' : ''}</div>
           ${ts.map((t, i) => `<div class="card xm-task xm-mt" data-t="${attr(t.id)}">${taskHead(t, 2)}${glossHTML(t)}<div class="xm-body">${R[t.kind].html(t, 'm' + i + '_')}</div></div>`).join('')}
           <p style="text-align:center"><button class="btn green big xm-submit2" type="button">✅ Submit ${esc(P.name)}</button></p><div class="xm-res"></div>`,
         mount() {
@@ -442,8 +459,8 @@
             clearInterval($('.xm-clock')._t);
             const out = $('.xm-res');
             out.innerHTML = `<div class="card xm-score ${pctCls(pct)}"><div class="xm-ring" style="--p:${pct}"><b>${pct}%</b></div><div><h3 style="margin:0">${esc(P.name)}: ${pct >= 60 ? 'bestanden ✅' : 'nicht bestanden ❌'}</h3>
-              <ul class="xm-partlist">${rows.map(([t, g]) => `<li>${esc(t.title)}: <b>${g.score}/${g.max}</b>${g.auto ? '' : ' <small>(self-check)</small>'}</li>`).join('')}</ul>
-              <p class="muted">${self ? 'Writing is self-checked here – a real examiner also marks grammar and vocabulary. ' : ''}Scroll up: every answer now shows an explanation${P.k === 'hoeren' ? ' and the transcript' : ''}.</p>
+              <ul class="xm-partlist">${rows.map(([t, g]) => `<li>${esc(t.title)}: <b>${g.score}/${g.max}</b>${g.auto ? '' : g.coach ? ' <small>(writing coach)</small>' : ' <small>(self-check)</small>'}</li>`).join('')}</ul>
+              <p class="muted">${self ? 'Writing is scored by the offline writing coach (grammar rules + task points) – a real examiner also judges meaning and style. ' : ''}Scroll up: every answer now shows an explanation${P.k === 'hoeren' ? ' and the transcript' : ''}.</p>
               <div class="row"><a class="btn small green" href="#/exam/mock/${lv}">Back to the mock overview</a></div></div></div>`;
             GL.sfx(pct >= 60 ? 'done' : 'pop'); if (pct >= 80) GL.confetti();
             out.scrollIntoView({ behavior: 'smooth' });
@@ -696,7 +713,7 @@
     if (a === 'notes') return viewNotes(b);
     return viewOverview();
   };
-  GL.Exam = { MOCKS, label(a, b) {
+  GL.Exam = { MOCKS, itemHref, ICON, autoDone, weekStats, label(a, b) {
     if (a === 'week') return `🎓 Exam prep · Week ${b}`;
     if (a === 'task') { const t = task(b); return t ? `🎓 ${t.level} · ${t.title}` : '🎓 Exam prep'; }
     if (a === 'mock') return `🎓 Mock exam ${b || ''}`;

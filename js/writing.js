@@ -132,7 +132,7 @@ List the mistakes in the order they appear in the text. If there are none, "mist
       add(m.index + pre.length, `${adv} ${pron} ${verb}`, `${adv} ${verb} ${pron}`, 'word_order', 'Verb in position 2', `When a sentence starts with „${adv}“, the verb comes next (position 2) and the subject follows it: ${adv} <b>${verb} ${pron}</b> …`);
     });
     // comma before subordinate clauses
-    each(/([\p{L}\d])\s+(weil|dass|obwohl|damit)\b/giu, (m) => {
+    each(/([\p{L}\d])\s+(weil|dass|obwohl)\b/giu, (m) => {
       const before = text.slice(0, m.index + 1).match(/(\p{L}+)$/u);
       const prev = before ? before[1] : '';
       if (/^(und|oder|aber|so|ohne|als|auch|nur|sondern)$/i.test(prev) || !prev) return;
@@ -190,7 +190,7 @@ List the mistakes in the order they appear in the text. If there are none, "mist
       add(at, w, capFirst(w), 'spelling', 'Capital at the start', 'Every sentence starts with a capital letter.');
     });
     // repeated word
-    each(/\b(\p{L}+)\s+\1\b/gu, (m) => { if (/^(die|das|der)$/i.test(m[1])) return; add(m.index, m[0], m[1], 'style', 'Repeated word', 'The same word appears twice in a row.'); });
+    each(/\b(\p{L}+)\s+\1\b/gu, (m) => { if (/^(die|das|der|null|eins|zwei|drei|vier|fünf|sechs|sieben|acht|neun|sehr|ganz|so)$/i.test(m[1])) return; add(m.index, m[0], m[1], 'style', 'Repeated word', 'The same word appears twice in a row.'); });
     return out.sort((a, b) => a.at - b.at);
   }
 
@@ -273,8 +273,9 @@ List the mistakes in the order they appear in the text. If there are none, "mist
     const pts = opts.points || [];
     return `<div class="wr-result">
       <div class="wr-head">${ring(r.score)}
-        <div style="flex:1;min-width:200px"><div class="row"><span class="ai-badge">✨ AI analysis</span>${r.level ? `<span class="level ${esc(r.level.slice(0, 2))}">≈ ${esc(r.level)}</span>` : ''}<span class="muted">${n ? `${n} mistake${n > 1 ? 's' : ''} found` : 'No mistakes – perfekt!'} · ${words(text)} words</span></div>
+        <div style="flex:1;min-width:200px"><div class="row">${r.offline ? '<span class="ai-badge ck-badge-off">✅ Writing coach</span>' : '<span class="ai-badge">✨ AI analysis</span>'}${r.level ? `<span class="level ${esc(r.level.slice(0, 2))}">≈ ${esc(r.level)}</span>` : ''}<span class="muted">${n ? `${n} mistake${n > 1 ? 's' : ''} found` : 'No mistakes – perfekt!'} · ${words(text)} words</span></div>
         ${r.summary ? `<p style="margin:.5em 0 0">${esc(r.summary)}</p>` : ''}</div></div>
+      ${r.offline && GL.Checker ? GL.Checker.criteriaHTML(r) : ''}
       <div class="chips wr-tabs" role="tablist">
         <button class="chip on" data-pane="marked">📝 Your text${n ? ' (marked)' : ''}</button>
         <button class="chip" data-pane="diff">✅ Corrected (changes)</button>
@@ -287,13 +288,14 @@ List the mistakes in the order they appear in the text. If there are none, "mist
           <div class="row"><span class="wr-num">${i + 1}</span><span class="path-tag">${esc(CATS[m.category][0])}</span>${m.rule ? `<b>${esc(m.rule)}</b>` : ''}<span class="spacer"></span>
             ${m.right ? `<button class="btn tiny ghost" data-say="${attr(m.right)}" aria-label="Listen">🔊</button>` : ''}${opts.noNotebook ? '' : `<button class="btn tiny ghost wr-nb" data-k="${i}">＋ Notebook</button>`}</div>
           <p class="wr-fix">${m.wrong ? `<span class="m-wrong">${esc(m.wrong)}</span>` : '<span class="muted">(missing)</span>'} → <span class="m-right">${esc(m.right || '–')}</span></p>
-          ${m.explanation ? `<p class="muted" style="margin:0">${esc(m.explanation)}</p>` : ''}</li>`).join('')}</ol>` : ''}
+          ${m.explanation ? `<p class="muted" style="margin:0">${m.auto ? m.explanation : esc(m.explanation)}</p>` : ''}</li>`).join('')}</ol>` : ''}
       <div class="grid grid-2" style="margin-top:6px">
         <div><h3>📊 Mistakes by type</h3>${barsHTML(counts)}</div>
         ${r.coverage.length || pts.length ? `<div><h3>🎯 Task coverage</h3><ul class="wr-cover">${(r.coverage.length ? r.coverage : pts.map((p) => ({ point: p[0], done: null }))).map((c) => `<li class="${c.done ? 'ok' : c.done === false ? 'no' : ''}"><span>${c.done ? '✔' : c.done === false ? '✘' : '•'}</span><div><b>${esc(c.point)}</b>${c.note ? `<small>${esc(c.note)}</small>` : ''}</div></li>`).join('')}</ul></div>` : ''}
       </div>
       ${r.strengths.length ? `<h3>👍 What you did well</h3><ul>${r.strengths.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>` : ''}
-      ${r.tips.length ? `<h3>🎯 Practise next</h3><ul>${r.tips.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>` : ''}
+      ${r.tips.length ? `<h3>🎯 Practise next</h3><ul>${r.tips.map((s) => `<li>${r.offline ? s : esc(s)}</li>`).join('')}</ul>` : ''}
+      ${r.offline ? '<p class="muted ck-note">The writing coach works offline with grammar rules – it finds typical learner mistakes and estimates an exam score, but it can’t understand every meaning. Read its suggestions critically.</p>' : ''}
       ${opts.actions === false ? '' : `<div class="row" style="margin-top:14px">
         ${n && !opts.noNotebook ? '<button class="btn ghost" id="wrAllNb">❗ Add all to my mistake notebook</button>' : ''}
         <button class="btn" id="wrFixSelf">✍️ Fix it myself, then check again</button>
@@ -336,7 +338,7 @@ List the mistakes in the order they appear in the text. If there are none, "mist
 
   /* ---------- views ---------- */
   function tabsHTML(active) {
-    return `<div class="chips tabs-row" style="margin:6px 0 16px">${[['', '📚 Tasks'], ['free', '✏️ Free writing'], ['history', '🗂️ My texts & progress']].map(([k, l]) => `<a class="chip ${active === k ? 'on' : ''}" href="#/writing${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
+    return `<div class="chips tabs-row" style="margin:6px 0 16px">${[['', '📚 Tasks'], ['free', '✏️ Free writing'], ['hunt', '🕵️ Mistake hunt'], ['history', '🗂️ My texts & progress']].map(([k, l]) => `<a class="chip ${active === k ? 'on' : ''}" href="#/writing${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
   }
   function statsTiles() {
     const h = S().history.filter((x) => x.score != null);
@@ -351,7 +353,7 @@ List the mistakes in the order they appear in the text. If there are none, "mist
     const ps = GL.writingPrompts.filter((p) => f === 'all' || p.level === f);
     return {
       html: `<h1>✍️ Writing studio</h1>
-        <p class="muted">Write real texts – emails, stories, opinions. The AI marks <b>every mistake</b> in your text, explains the rule, shows the corrected and a more natural version, and tracks your progress. No AI here? The quick check still finds common mistakes.</p>
+        <p class="muted">Write real texts – emails, stories, opinions – like in the Goethe/telc exam. The <b>✅ writing coach</b> marks typical mistakes (word order, cases, verb forms, spelling …), explains each rule, gives you an exam-style score (task · coherence · vocabulary · structures), checks the task points and shows the corrected text – no internet AI needed. Practise single mistakes in the <a href="#/writing/hunt">🕵️ mistake hunt</a>.</p>
         ${tabsHTML('')}${statsTiles()}
         <div class="chips" id="wrFilter" style="margin:14px 0">${['all', ...LEVELS].map((l) => `<button class="chip ${f === l ? 'on' : ''}" data-l="${l}">${l === 'all' ? 'All levels' : l}</button>`).join('')}</div>
         <div class="grid grid-3">${ps.map((p) => { const b = bestFor(p.id), dr = (S().drafts[p.id] || '').trim(); return `<a class="card wr-card" href="#/writing/${p.id}" style="margin:0">
@@ -389,11 +391,11 @@ List the mistakes in the order they appear in the text. If there are none, "mist
             <div class="wr-meter"><div class="track"><i id="wrBar"></i></div><span id="wrCount" class="muted"></span><span class="spacer"></span><small class="muted" id="wrSaved"></small></div>
             <div class="row" style="margin-top:10px">
               <button class="btn purple hidden" id="wrAnalyze">✨ Analyze my writing</button>
-              <button class="btn ghost" id="wrQuick">⚡ Quick check</button>
+              <button class="btn green" id="wrQuick">✅ Check & score my text</button>
               <button class="btn ghost" id="wrRead">🔊 Read aloud</button>
               <span id="wrTeacher"></span>
             </div>
-            <p class="muted hidden" id="wrNoAi" style="margin:8px 0 0">💡 The full AI analysis works when this course is opened on claude.ai. The quick check finds common mistakes everywhere.</p>
+            <p class="muted" id="wrNoAi" style="margin:8px 0 0">💡 The writing coach checks your text right here in the browser: mistakes with explanations, an exam-style score, task points and a corrected version.</p>
           </div>
         </div>
         <div id="wrOut"></div>`,
@@ -438,21 +440,29 @@ List the mistakes in the order they appear in the text. If there are none, "mist
         $('#wrQuick').onclick = () => {
           if (tooShort()) return;
           const text = ta.value;
-          const ms = quickCheck(text, ctx());
-          const counts = catCounts(ms);
-          out.innerHTML = `<div class="card wr-result"><div class="row"><span class="ai-badge" style="background:var(--gold);color:#1f2a48">⚡ Quick check</span><span class="muted">${ms.length ? `${ms.length} possible mistake${ms.length > 1 ? 's' : ''}` : 'No common mistakes found'}</span></div>
-            <p class="muted">Automatic check for typical learner mistakes (cases after prepositions, verb position, capitals, spelling …). It can’t understand meaning – ${AI.disabled ? 'ask your teacher to check the rest.' : 'the ✨ AI analysis finds everything.'}</p>
-            <div class="wr-pane" data-pane="marked">${markedHTML(text, ms)}<div class="wr-pop hidden"></div></div>
-            ${ms.length ? `<ol class="wr-mlist">${ms.map((m, i) => `<li class="wr-m" id="wrm-${i}"><div class="row"><span class="wr-num">${i + 1}</span><span class="path-tag">${esc(CATS[m.category][0])}</span><b>${esc(m.rule)}</b><span class="spacer"></span>${m.right && !/\//.test(m.right) ? `<button class="btn tiny ghost wr-nb" data-k="${i}">＋ Notebook</button>` : ''}</div>
-              <p class="wr-fix"><span class="m-wrong">${esc(m.wrong)}</span>${m.right ? ` → <span class="m-right">${esc(m.right)}</span>` : ''}</p><p class="muted" style="margin:0">${m.explanation}</p></li>`).join('')}</ol>
-              <h3>📊 By type</h3>${barsHTML(counts)}` : '<p>✅ Looks good so far!</p>'}</div>`;
-          wireResult(out, text, { mistakes: ms });
-          GL.sfx(ms.length ? 'pop' : 'ok');
+          const r = GL.Checker ? GL.Checker.analyze(text, Object.assign({ words: free ? [40, 200] : p.words }, ctx())) : null;
+          if (!r) return;
+          const entry = { ts: Date.now(), date: GL.todayStr(), pid: free ? null : p.id, title: title(), level: ctx().level, words: words(text), score: r.score, est: r.level, n: r.mistakes.length, cats: catCounts(r.mistakes), text, r, src: 'coach' };
+          const prev = st.history.filter((h) => h.pid === entry.pid && h.title === entry.title).pop();
+          st.history.push(entry);
+          if (st.history.length > 40) st.history.splice(0, st.history.length - 40);
+          Store.addXP(prev ? 5 : 12); Store.save();
+          if (GL.Game) GL.Game.count('write', words(text));
+          GL.track && GL.track('writing', `Writing „${entry.title}“ (coach): ${r.score}/100, ${r.mistakes.length} point${r.mistakes.length === 1 ? '' : 's'}, ${entry.words} words`);
+          out.innerHTML = `<div class="card">${prev && prev.score != null ? `<p class="wr-prev">${r.score > prev.score ? `📈 Better than last time: ${prev.score} → <b>${r.score}</b>. Super!` : r.score === prev.score ? `Same score as last time (${prev.score}).` : `Last time: ${prev.score}. Keep going – read the explanations below.`}</p>` : ''}${resultHTML(text, r, { points: free ? [] : p.points })}</div>`;
+          wireResult(out, text, r);
+          markPoints(r.coverage);
+          GL.sfx(r.score >= 85 ? 'done' : 'pop');
+          if (r.score >= 90) GL.confetti();
+          out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const fix = $('#wrFixSelf'); if (fix) fix.onclick = () => { ta.focus(); ta.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+          const use = $('#wrUseCorr'); if (use) use.onclick = () => { ta.value = r.corrected; ta.dispatchEvent(new Event('input')); ta.scrollIntoView({ behavior: 'smooth', block: 'center' }); GL.toast('Corrected text loaded – read it aloud once!'); };
         };
 
         AI.get().then((sample) => {
           if (!$('#wrAnalyze')) return;
-          if (!sample) { $('#wrNoAi').classList.remove('hidden'); return; }
+          if (!sample) return;
+          $('#wrNoAi').classList.add('hidden');
           const btn = $('#wrAnalyze');
           btn.classList.remove('hidden');
           btn.onclick = async () => {
@@ -514,13 +524,14 @@ List the mistakes in the order they appear in the text. If there are none, "mist
           <div class="card" style="margin:0"><h3 style="margin-top:0">🧭 Your most common mistakes</h3>${barsHTML(totals)}
             ${topCat ? `<p class="muted">Focus on <b>${esc(CATS[topCat[0]][0])}</b>: ${esc(CATS[topCat[0]][1])}. ${topCat[0] === 'case' ? 'The <a href="#/trainer">Trainer</a> has unlimited article drills.' : topCat[0] === 'verb' ? 'The <a href="#/trainer">Trainer</a> drills every verb form.' : ''}</p>` : ''}</div></div>
           <div class="card"><h3 style="margin-top:0">🗂️ All texts</h3><div class="wr-hist">${h.slice().reverse().map((x) => `<a class="wr-hrow" href="#/writing/history/${x.ts}"><span class="score-badge ${scoreCls(x.score)}">${x.score}</span><b>${esc(x.title)}</b><span class="muted">${x.words} words · ${x.n} mistake${x.n === 1 ? '' : 's'}${x.est ? ' · ≈ ' + esc(x.est) : ''}</span><span class="spacer"></span><small class="muted">${esc(x.date)}</small></a>`).join('')}</div></div>`
-        : `<div class="card"><p style="margin:0">No analysed texts yet. Pick a <a href="#/writing">task</a> or try <a href="#/writing/free">free writing</a> – after the ✨ AI analysis your texts and progress appear here.</p></div>`}`,
+        : `<div class="card"><p style="margin:0">No analysed texts yet. Pick a <a href="#/writing">task</a> or try <a href="#/writing/free">free writing</a> – after you press ✅ Check &amp; score, your texts and progress appear here.</p></div>`}`,
     };
   }
 
   GL.viewWriting = function (a, b) {
     if (a === 'free') return editor(null);
     if (a === 'history') return history(b);
+    if (a === 'hunt' && GL.Checker) return GL.Checker.viewHunt();
     const p = a && promptById(a);
     return p ? editor(p) : list();
   };

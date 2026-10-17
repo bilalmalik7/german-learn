@@ -83,6 +83,7 @@
   function log(sc, sentence) {
     const s = st(), d = GL.todayStr();
     s.days[d] = (s.days[d] || 0) + 1; s.n++; s.sum += sc;
+    if (GL.Game) setTimeout(() => GL.Game.count('speak', 1), 0);
     const keys = Object.keys(s.days).sort();
     if (keys.length > 120) delete s.days[keys[0]];
     Store.save();
@@ -266,7 +267,7 @@
       <div class="stat"><span class="s-ico">🔥</span><div><b>${streak()}</b><span>speaking day streak</span></div></div>
       <div class="stat"><span class="s-ico">🎤</span><div><b>${st().n}</b><span>sentences spoken</span></div></div></div>`;
   }
-  const TABS = [['', '🎯 Daily workout'], ['shadow', '🔁 Shadowing'], ['translate', '🔤 Say it in German'], ['questions', '❓ Answer questions'], ['ai', '🤖 Conversations']];
+  const TABS = [['', '🎯 Daily workout'], ['shadow', '🔁 Shadowing'], ['translate', '🔤 Say it in German'], ['questions', '❓ Answer questions'], ['convo', '🗨️ Conversations'], ['ai', '🤖 AI chat']];
   function shell(active, body) {
     return `<h1>🎤 Sprechen – Speak</h1>
       <p class="muted">Speaking is a skill you train like a sport: short, daily, out loud. Every sentence is checked word by word – wrong endings too (einen ≠ einem).</p>
@@ -481,7 +482,7 @@
         const box = $('#aiSection');
         AI.get().then((sample) => {
           if (!box.isConnected) return;
-          if (!sample) { box.innerHTML = '<div class="note">The AI conversation partner is available when you open this course on claude.ai. Everything else on this page works everywhere.</div>'; return; }
+          if (!sample) { box.innerHTML = '<div class="note">The free-chat AI partner only works inside claude.ai. <b>Here you can speak with the characters offline:</b> <a href="#/talk/convo">🗨️ Conversations</a> – everyday situations and the exam speaking simulator.</div>'; return; }
           const sc = sub && GL.talkScenarios.find((x) => x.id === sub);
           if (sc) {
             box.innerHTML = '<div class="card" id="chatRoot"></div>';
@@ -498,7 +499,8 @@
     };
   }
 
-  GL.viewTalk = function (sub) {
+  GL.viewTalk = function (sub, b) {
+    if (sub === 'convo' && GL.viewConvo) { const v = GL.viewConvo(b); return { html: b ? v.html : shell('convo', v.html.replace('<h1>🗨️ Conversations</h1>', '')), mount: v.mount }; }
     if (sub === 'shadow') return shadow();
     if (sub === 'translate') return translate();
     if (sub === 'questions') return questions();
