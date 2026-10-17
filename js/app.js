@@ -68,7 +68,7 @@
     s.textContent = sv;
   };
   /* ---------- mobile: bottom tab bar with a "More" sheet ---------- */
-  const MORE_PAGES = ['grammar', 'trainer', 'games', 'read', 'myplan', 'listen', 'life', 'rewards', 'daily', 'exam', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
+  const MORE_PAGES = ['scenes', 'talk', 'grammar', 'trainer', 'games', 'read', 'listen', 'life', 'rewards', 'daily', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
   const TOP_LABELS = { admin: ['📊', 'Teacher portal'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
   const moreBtn = $('#navMore'), sheet = $('#moreSheet'), backdrop = $('#moreBackdrop');
   function closeMore() {
@@ -87,7 +87,9 @@
     };
     const groups = $$('.nav .nav-menu').map((m) => [m.dataset.title, $$('.nav-sec', m)]);
     groups.push(['Account', $$('.top-stats [data-nav]').filter((a) => !a.classList.contains('hidden'))]);
-    sheet.innerHTML = `<div class="sheet-handle" aria-hidden="true"></div>${groups.filter((g) => g[1].length).map(([t, items]) => `<h4 class="more-h">${esc(t)}</h4><div class="more-grid">${items.map(item).join('')}</div>`).join('')}`;
+    const inst = GL.PWA && GL.PWA.canInstall() ? '<button class="more-item pwa-more" type="button"><span class="mi-ico">📲</span><span>Install app</span></button>' : '';
+    sheet.innerHTML = `<div class="sheet-handle" aria-hidden="true"></div>${groups.filter((g) => g[1].length).map(([t, items]) => `<h4 class="more-h">${esc(t)}</h4><div class="more-grid">${items.map(item).join('')}${t === 'Account' ? inst : ''}</div>`).join('')}`;
+    const pm = $('.pwa-more', sheet); if (pm) pm.onclick = () => { closeMore(); GL.PWA.install(); };
     sheet.hidden = false; backdrop.hidden = false;
     requestAnimationFrame(() => { sheet.classList.add('open'); backdrop.classList.add('open'); });
     moreBtn.setAttribute('aria-expanded', 'true');
@@ -179,6 +181,7 @@
     html.mount && html.mount();
     if ((page || 'home') === 'home' && GL.Planner) GL.Planner.wireHome(app);
     if (GL.Game) GL.Game.paint();
+    if (GL.PWA) GL.PWA.decorate();
     if (GL.Plans) { GL.Plans.decorate(); setTimeout(() => GL.Plans.decorate(), 500); }
     if (GL.Resume) { GL.Resume.visit(page, a, page === 'day' ? (b || GL.Resume.lastStep(+a || 1)) : b); GL.Resume.wireHome(app); if (page === 'settings') GL.Resume.wireLinkCard(app); }
     const steps = $('.steps'), act = $('.step.active');

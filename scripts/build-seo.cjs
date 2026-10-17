@@ -7,7 +7,7 @@
    and sitemap.xml. Run:  node scripts/build-seo.cjs   (re-run after changing content). */
 'use strict';
 const fs = require('fs'), path = require('path'), vm = require('vm');
-const ROOT = path.join(__dirname, '..'), SITE = 'https://german-30.vercel.app';
+const ROOT = path.join(__dirname, '..'), SITE = 'https://www.free-german.com';
 const TODAY = new Date().toISOString().slice(0, 10);
 
 /* ---------- load the course data ---------- */
@@ -90,7 +90,8 @@ ${body}
     <div class="cols">
       <div><b>Learn German</b><a href="/">Free German course</a><a href="/lessons">30 lessons A1–B1</a><a href="/grammar">German grammar A–Z</a><a href="/vocabulary">German vocabulary lists</a><a href="/reading">German reading texts</a></div>
       <div><b>Exams</b><a href="/goethe-telc-exam-preparation">Goethe &amp; telc exam prep</a><a href="/#/exam">A1 · A2 · B1 practice tests</a><a href="/#/myplan">Personal study plan</a></div>
-      <div><b>Guides</b><a href="/learn-german-pakistan">Learn German in Pakistan</a><a href="/german-in-urdu">German in Urdu</a><a href="/german-for-work-in-germany">German for jobs in Germany</a><a href="/deutsch-lernen">Deutsch lernen kostenlos</a></div>
+      <div><b>Guides</b><a href="/learn-german-pakistan">Learn German in Pakistan</a><a href="/german-in-urdu">German in Urdu</a><a href="/german-for-work-in-germany">German for jobs in Germany</a><a href="/deutsch-lernen">Deutsch lernen kostenlos</a><a href="/german-a1-spouse-visa">German A1 for spouse visa</a></div>
+      <div><b>German basics</b><a href="/german-numbers">German numbers</a><a href="/german-alphabet">German alphabet</a><a href="/german-days-months">Days &amp; months</a><a href="/german-greetings-phrases">Basic German phrases</a><a href="/der-die-das-rules">der, die, das rules</a></div>
     </div>
     <small>Deutsch30 is a free, independent learning website. Goethe-Zertifikat and telc are trademarks of their owners; this site is not affiliated with them.</small>
   </footer>
@@ -231,7 +232,7 @@ write('reading/', layout({
 }));
 
 /* ================= SITEMAP ================= */
-const top = [['/', '1.0'], ['/learn-german-pakistan', '0.9'], ['/deutsch-lernen', '0.9'], ['/goethe-telc-exam-preparation', '0.9'], ['/german-in-urdu', '0.8'], ['/german-for-work-in-germany', '0.8']];
+const top = [['/', '1.0'], ['/learn-german-pakistan', '0.9'], ['/deutsch-lernen', '0.9'], ['/goethe-telc-exam-preparation', '0.9'], ['/german-in-urdu', '0.8'], ['/german-for-work-in-germany', '0.8'], ['/german-a1-spouse-visa', '0.8'], ['/jarman-zaban-seekhein', '0.8'], ['/german-numbers', '0.8'], ['/german-alphabet', '0.8'], ['/german-days-months', '0.8'], ['/german-greetings-phrases', '0.8'], ['/der-die-das-rules', '0.8']].filter(([u]) => u === '/' || fs.existsSync(path.join(ROOT, u.slice(1) + '.html')));
 const all = [...top.map(([url, pr]) => ({ url, pr })), ...pages.filter((p) => p.pr === '0.8'), ...pages.filter((p) => p.pr !== '0.8')];
 fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

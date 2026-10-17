@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://german-30.vercel.app/sitemap.xml
+Sitemap: https://www.free-german.com/sitemap.xml
