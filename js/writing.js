@@ -128,6 +128,7 @@ List the mistakes in the order they appear in the text. If there are none, "mist
     // verb second: time/adverb first, then the verb (not the subject)
     each(/(^|[.!?]\s+)((?:Am|Im|Um|Nach dem|Nach der|Vor dem|Seit)\s+[\p{L}\d.:]+(?:\s+Uhr)?|Heute|Gestern|Morgen|Dann|Danach|Später|Jetzt|Zuerst|Leider|Deshalb|Deswegen|Trotzdem|Manchmal|Oft|Normalerweise|Abends|Morgens|Letzte Woche|Letztes Jahr|Nächste Woche|Nächstes Jahr|In der Freizeit|Am Wochenende)\s+(ich|du|er|sie|es|wir|ihr|man)\s+(\p{Ll}+)\b/gu, (m) => {
       const [, pre, adv, pron, verb] = m;
+      if (/\s(ich|du|er|sie|es|wir|ihr|man|uns|euch|ihn|mich|dich)$/i.test(adv)) return; // „Seit ich sie …“ = conjunction
       if (/^(der|die|das|den|dem|ein|eine|einen|nicht|auch|gern|sehr|oft|schon|noch|immer|nie|und|oder)$/.test(verb)) return;
       add(m.index + pre.length, `${adv} ${pron} ${verb}`, `${adv} ${verb} ${pron}`, 'word_order', 'Verb in position 2', `When a sentence starts with „${adv}“, the verb comes next (position 2) and the subject follows it: ${adv} <b>${verb} ${pron}</b> …`);
     });

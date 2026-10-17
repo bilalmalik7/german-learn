@@ -35,11 +35,13 @@
     cards: { ico: '🃏', t: 'Review 10 flashcards', k: 'cards', n: 10, href: '#/review/cards' },
     scene: { ico: '🎬', t: 'Play a real-life scene', k: 'scene', n: 1, href: '#/scenes' },
     xp: { ico: '⭐', t: 'Earn 60 XP', k: 'xp', n: 60, href: '#/daily' },
+    game: { ico: '🎮', t: 'Play 2 games', k: 'game', n: 2, href: '#/games' },
+    read: { ico: '📖', t: 'Read 1 text', k: 'read', n: 1, href: '#/read' },
   };
   const hash = (s) => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
   function todaysQuests() {
     const h = hash(GL.todayStr());
-    const a = ['lesson', 'exam'][h % 2], b = ['speak', 'listen'][(h >> 3) % 2], c = ['write', 'cards', 'scene', 'xp'][(h >> 6) % 4];
+    const a = ['lesson', 'exam'][h % 2], b = ['speak', 'listen'][(h >> 3) % 2], c = ['write', 'cards', 'scene', 'xp', 'game', 'read'][(h >> 6) % 6];
     return [a, b, c].map((id) => Object.assign({ id }, QUESTS[id]));
   }
   const qVal = (q) => (q.k === 'xp' ? G().day.xp : G().day.c[q.k] || 0);
@@ -76,6 +78,9 @@
     ['convo5', '🗨️', 'Talker', 'Finish 5 conversations', () => [Object.keys(st().convo || {}).length, 5]],
     ['life6', '🇩🇪', 'Settler', 'Open 6 Living-in-Germany topics', () => [Object.keys(((st().life || {}).seen) || {}).length, 6]],
     ['quests', '🎁', 'Quest hunter', 'Open 5 reward chests', () => [tot('chest'), 5]],
+    ['games10', '🎮', 'Gamer', 'Play 10 games', () => [((st().arcade || {}).plays) || 0, 10]],
+    ['wortle5', '🟩', 'Word wizard', 'Solve 5 Wortles', () => [Object.values(((st().arcade || {}).wortle) || {}).filter((w) => w.win).length, 5]],
+    ['read10', '📚', 'Bookworm', 'Read 10 texts', () => [Object.keys(((st().read || {}).done) || {}).length, 10]],
     ['early', '🌅', 'Early bird', 'Study before 8 am', () => [tot('early'), 1]],
     ['night', '🦉', 'Night owl', 'Study after 10 pm', () => [tot('night'), 1]],
   ];
@@ -233,7 +238,10 @@
     };
   }
 
-  GL.Game = { count, burst, fly, level, levelInfo, homeHTML, viewRewards, questsHTML, checkAll, paint, BADGES, todaysQuests };
+  function combo(target, n) {
+    if (RM() || !target) return; const r = target.getBoundingClientRect(); const f = document.createElement('div'); f.className = 'ga-float big'; f.textContent = n >= 10 ? `⚡ ${n} in a row!` : `🔥 ${n} in a row!`; f.style.left = r.left + r.width / 2 + 'px'; f.style.top = r.top + 20 + 'px'; document.body.appendChild(f); setTimeout(() => f.remove(), 1000);
+  }
+  GL.Game = { combo, count, burst, fly, level, levelInfo, homeHTML, viewRewards, questsHTML, checkAll, paint, BADGES, todaysQuests };
   document.addEventListener('click', (e) => { if (e.target.closest('#stat-xp')) location.hash = '#/rewards'; });
   document.addEventListener('DOMContentLoaded', () => { G(); checkAll(true); });
   setTimeout(() => { try { G(); checkAll(true); } catch (e) { /* store not ready */ } }, 0);

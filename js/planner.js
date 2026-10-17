@@ -20,12 +20,12 @@
     listen: ['🎧', 'Listening', [['listen', 'numbers', '🎧 Listening gym: numbers & times', 15], ['listen', 'everyday', '🎧 Everyday audio clip', 15], ['listen', 'dictation', '📝 Dictation', 15]]],
     speak: ['🗣️', 'Speaking', [['convo', '', '🗨️ Conversation with a character', 15], ['talk', '', '🎤 Speaking workout', 15], ['talk', 'shadow', '🔁 Shadowing', 15]]],
     write: ['✍️', 'Writing', [['hunt', '', '🕵️ Mistake hunt', 10], ['writing', '', '✍️ Write a text with the coach', 25]]],
-    read: ['📖', 'Reading', [['life', '', '📄 Read a real letter (Living in Germany)', 15], ['task', '', '📖 A reading exam task', 15]]],
+    read: ['📖', 'Reading', [['read', '', '📖 A text in the reading room', 15], ['life', '', '📄 Read a real letter (Living in Germany)', 15]]],
     grammar: ['🧩', 'Grammar', [['trainer', '', '🏋️ Grammar trainer', 15], ['review', 'quiz', '🧩 Grammar quiz', 15]]],
-    vocab: ['🔤', 'Vocabulary', [['review', 'cards', '🃏 Flashcards', 15], ['words', '', '🔤 Exam words', 15]]],
+    vocab: ['🔤', 'Vocabulary', [['review', 'cards', '🃏 Flashcards', 15], ['games', 'dash', '🎯 Der·Die·Das Dash', 10], ['words', '', '🔤 Exam words', 15]]],
   };
-  const HREF = { listen: (v) => `#/listen${v ? '/' + v : ''}`, convo: () => '#/talk/convo', talk: (v) => `#/talk${v ? '/' + v : ''}`, hunt: () => '#/writing/hunt', life: () => '#/life', trainer: () => '#/trainer', daily: () => '#/daily', official: (v) => `#/exam/format/${v}`, rest: () => '#/', words: (v) => `#/exam/words${v ? '/' + v : ''}` };
-  const ICONS = { listen: '🎧', convo: '🗨️', talk: '🎤', hunt: '🕵️', life: '🇩🇪', trainer: '🏋️', daily: '⚡', official: '📄', rest: '😴' };
+  const HREF = { listen: (v) => `#/listen${v ? '/' + v : ''}`, convo: () => '#/talk/convo', talk: (v) => `#/talk${v ? '/' + v : ''}`, hunt: () => '#/writing/hunt', life: () => '#/life', trainer: () => '#/trainer', daily: () => '#/daily', official: (v) => `#/exam/format/${v}`, rest: () => '#/', read: () => '#/read', games: (v) => `#/games${v ? '/' + v : ''}`, words: (v) => `#/exam/words${v ? '/' + v : ''}` };
+  const ICONS = { listen: '🎧', convo: '🗨️', talk: '🎤', hunt: '🕵️', life: '🇩🇪', trainer: '🏋️', daily: '⚡', official: '📄', rest: '😴', read: '📖', games: '🎮' };
   const href = (it) => (HREF[it.type] ? HREF[it.type](it.v) : GL.Exam ? GL.Exam.itemHref([it.type, it.v]) : '#/');
   const icon = (it) => ICONS[it.type] || (GL.Exam && GL.Exam.ICON[it.type]) || '•';
   const hash = (s) => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };

@@ -68,7 +68,7 @@
     s.textContent = sv;
   };
   /* ---------- mobile: bottom tab bar with a "More" sheet ---------- */
-  const MORE_PAGES = ['grammar', 'trainer', 'myplan', 'listen', 'life', 'rewards', 'daily', 'exam', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
+  const MORE_PAGES = ['grammar', 'trainer', 'games', 'read', 'myplan', 'listen', 'life', 'rewards', 'daily', 'exam', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
   const TOP_LABELS = { admin: ['📊', 'Teacher portal'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
   const moreBtn = $('#navMore'), sheet = $('#moreSheet'), backdrop = $('#moreBackdrop');
   function closeMore() {
@@ -144,6 +144,8 @@
         case 'myplan': html = GL.viewMyPlan(a); break;
         case 'rewards': html = GL.Game.viewRewards(); break;
         case 'daily': html = GL.viewDaily(); break;
+        case 'games': html = GL.viewGames(a); break;
+        case 'read': html = GL.viewRead(a, b); break;
         case 'teacher': html = GL.viewTeacher(); break;
         case 'admin': html = GL.viewAdmin(); break;
         case 'register': html = GL.viewRegister(); break;
@@ -267,6 +269,8 @@
           <a href="#/trainer"><span class="t-ico">🏋️</span><div><b>Trainer</b><small>verbs · cases · endings</small></div></a>
           <a href="#/talk"><span class="t-ico">🎤</span><div><b>Speak · ${GL.Speak.today()}/${GL.Speak.GOAL}</b><small>10-minute speaking workout</small></div></a>
           <a href="#/scenes"><span class="t-ico">🎬</span><div><b>Real life</b><small>${GL.scenarios.filter((x) => !x.track).length} scenes: airport, doctor, bank …</small></div></a>
+          <a href="#/games"><span class="t-ico">🎮</span><div><b>Games</b><small>Der·Die·Das Dash, Wortle …</small></div></a>
+          <a href="#/read"><span class="t-ico">📖</span><div><b>Reading</b><small>stories, chats, news</small></div></a>
           <a href="#/listen"><span class="t-ico">🎧</span><div><b>Listening</b><small>numbers, dictation, real audio</small></div></a>
           <a href="#/life"><span class="t-ico">🇩🇪</span><div><b>Life in Germany</b><small>offices, doctor, flat, work</small></div></a>
           <a href="#/writing"><span class="t-ico">✍️</span><div><b>Writing</b><small>the coach marks every mistake</small></div></a>

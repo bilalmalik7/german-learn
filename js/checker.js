@@ -9,7 +9,7 @@
   const esc = (s) => GL.esc(s);
 
   /* ================= word list ================= */
-  const SEP = ['zurück', 'zusammen', 'weiter', 'fern', 'fest', 'statt', 'teil', 'los', 'weg', 'hin', 'her', 'vor', 'nach', 'mit', 'auf', 'aus', 'ein', 'ab', 'an', 'bei', 'zu', 'um'];
+  const SEP = ['kennen', 'spazieren', 'zurück', 'zusammen', 'weiter', 'fern', 'fest', 'statt', 'teil', 'los', 'weg', 'hin', 'her', 'vor', 'nach', 'mit', 'auf', 'aus', 'ein', 'ab', 'an', 'bei', 'zu', 'um'];
   const BASES = 'fangen rufen stehen kaufen kommen gehen sehen laden holen nehmen bringen machen räumen ziehen steigen fahren stellen hören schlafen sagen geben zeigen legen packen schauen füllen melden setzen treten halten lassen passen suchen schreiben fallen denken lernen hängen schalten probieren kochen wachen sprechen arbeiten bauen rechnen spielen lesen tragen reisen laufen lachen sitzen liegen schließen fliegen wandern planen prüfen drucken hören bieten biegen fühlen nutzen wählen werfen ziehen leihen'.split(' ');
   const PRON = { ich: [0], du: [1], er: [2], es: [2], man: [2], sie: [2, 5], wir: [3], ihr: [4] };
   const MODAL = new Set('kann kannst können könnt muss musst müssen müsst will willst wollen wollt darf darfst dürfen dürft soll sollst sollen sollt möchte möchtest möchten möchtet werde wirst wird werden werdet könnte könntest könnten könntet würde würdest würden würdet müsste müsstest müssten dürfte dürften sollte solltest sollten wollte wollten konnte konnten musste mussten'.split(' '));
@@ -108,7 +108,7 @@
       if (!/^[a-zäöüß]+(en|ern|eln)$/.test(inf) || V[inf] || !/^to\s/.test(String(v[2] || ''))) return;
       const r = regular(inf);
       const f = String(v[1] || '');
-      let erM = /(?:^|[,·;]\s*)(?:er|sie|es)\s+(\p{Ll}+)/u.exec(f) || /^(\p{Ll}+t)$/u.exec(f.trim());
+      let erM = /(?:^|[,·;]\s*)(?:er|sie|es)\s+(\p{Ll}+)(?!\p{Ll}|\s+\p{Ll})/u.exec(f) || /^(\p{Ll}+t)$/u.exec(f.trim());
       if (erM && /^(hat|ist|hatte|war|wird)$/.test(erM[1])) erM = null;
       if (erM && erM[1] !== r.pres[2][0]) { r.pres[2] = [erM[1]]; r.pres[1] = [erM[1].replace(/t$/, '') + (/[sßzx]t$/.test(erM[1]) ? 't' : 'st')]; }
       const pm = /\b(ist|hat)\s+(\p{Ll}+)/u.exec(f);
@@ -234,9 +234,9 @@
 
     // 1. subject–verb agreement (main clauses: pronoun + verb / verb + pronoun; subordinate clauses: pronoun … final verb)
     const agree = (P, V, swap) => {
-      const ps = P.t === 'Sie' && !(prevTok(P) && SENT.has(prevTok(P).t)) && P.i > 0 ? [5] : PRON[P.lo];
+      const ps = P.t === 'Sie' && !(prevTok(P) && (SENT.has(prevTok(P).t) || /^[:„“"»«(–-]$/.test(prevTok(P).t))) && P.i > 0 ? [5] : PRON[P.lo];
       if (!ps) return;
-      if (P.lo === 'ihr') { const nx = nextW(P); if (P.t === 'Ihr' || (nx && nx.cap)) return; }
+      if (P.lo === 'ihr') { const nx = nextW(P); if (P.t === 'Ihr' || (nx && (nx.cap || DETLIKE.test(nx.lo) || /^(mein|dein|sein|unser|euer|ihr)\p{Ll}*$/u.test(nx.lo)))) return; }
       if (P.lo === 'es' && /^(sind|waren|gibt|gab|werden|wurden)$/.test(V.lo)) return;
       const pp0 = prevTok(P); if (!swap && pp0 && /^(und|oder|sowie)$/.test(pp0.lo)) return; // "Max und ich finden …"
       if (DETLIKE.test(V.lo)) return;
@@ -433,6 +433,7 @@
     segs.forEach((s) => {
       const t = s.toks; if (s.sub || t.length < 3) return;
       const D = t[0], N = t[1], V = t[2];
+      const pD = prevTok(D); if (pD && /^(und|oder|sowie)$/.test(pD.lo)) return;
       if (!N.cap || V.cap || !isFinite(V.lo) || (t[3] && PRONS.has(t[3].lo))) return;
       const fs = finOf(V.lo).filter((f) => /^(sein|haben|werden|können|müssen|wollen|dürfen|sollen|möchten)$/.test(f.inf) || f.inf === 'mögen');
       if (!fs.length) return;
@@ -567,7 +568,7 @@
     { const re = /(\p{L}) +([,.!?;:])(?!\d)/gu; let m; while ((m = re.exec(text))) out.push({ at: m.index + 1, wrong: text.slice(m.index + 1, m.index + m[0].length), right: m[2], category: 'punctuation', rule: 'No space before punctuation', explanation: 'No space before , . ! ? – but one space after.', auto: true, sev: 0.2 }); }
     { const re = /([,.;!?])(\p{L}{2,})/gu; let m; while ((m = re.exec(text))) { const before = text.slice(Math.max(0, m.index - 3), m.index); if (/(z\.B|d\.h|u\.a|\.[A-Z])$/i.test(before + m[1]) || /\d$/.test(before) || /^(de|com|net|org)$/i.test(m[2])) continue; out.push({ at: m.index, wrong: m[0], right: m[1] + ' ' + m[2], category: 'punctuation', rule: 'Space after punctuation', explanation: 'Put a space after a comma or full stop.', auto: true, sev: 0.2 }); } }
     // 18. "Ich" with a capital in the middle of a sentence
-    W.forEach((t) => { if (t.t !== 'Ich') return; const p = prevTok(t); if (!p || SENT.has(p.t) || p.t === ':' || p.t === '„' || p.t === '"' || p.t === '(') return; if (p.t === ',' && /^\s*(Liebe|Lieber|Hallo|Hi|Sehr)\b/.test(text.slice(0, p.s).split('\n').pop())) return; add(t, t, 'ich', 'spelling', '„ich“ is small', 'In German „ich“ (I) is written with a small letter – except at the start of a sentence.', { sev: 0.5 }); });
+    W.forEach((t) => { if (t.t !== 'Ich') return; const p = prevTok(t); if (!p || SENT.has(p.t) || p.t === ':' || p.t === '„' || p.t === '"' || p.t === '(') return; if (/^[“"»«]$/.test(p.t) && p.i > 0 && SENT.has(tok[p.i - 1].t)) return; if (p.t === ',' && /^\s*(Liebe|Lieber|Hallo|Hi|Sehr)\b/.test(text.slice(0, p.s).split('\n').pop())) return; add(t, t, 'ich', 'spelling', '„ich“ is small', 'In German „ich“ (I) is written with a small letter – except at the start of a sentence.', { sev: 0.5 }); });
 
     // 20. modal verb + zu ("Ich möchte zu lernen")
     segs.forEach((s) => {
@@ -619,6 +620,7 @@
       for (let k = 1; k < t.length; k++) if (!t[k].cap && isFinite(t[k].lo) && !(k === 1 && /^(sein|ihr)$/.test(t[k].lo)) && !(DETLIKE.test(t[k].lo) && t[k + 1] && t[k + 1].cap)) { fi = k; break; }
       if (fi < 0 || fi === t.length - 1) return;
       const F = t[fi], R = t.slice(fi + 1);
+      const RL = R[R.length - 1]; if (R.length <= 2 && R.every((r) => L.inf.has(r.lo) || isPP(r.lo) || isFinite(r.lo)) && isFinite(RL.lo) && (MODAL.has(RL.lo) || HABEN.has(RL.lo) || SEIN.has(RL.lo) || /^(werde|wirst|wird|werden|werdet|würde|würden)$/.test(RL.lo))) return;
       if (isFinite(R[0].lo) && !MODAL.has(F.lo) && !HABEN.has(F.lo) && !SEIN.has(F.lo) && s.sent && R.length > 1 && PRONS.has(R[1].lo)) {
         add(F, R[0], `${F.t}, ${R[0].t}`, 'punctuation', 'Comma between the two clauses', `The subordinate clause („${esc(t[0].t)} …“) ends with its verb „${esc(F.t)}“ – put a <b>comma</b> before the main clause.`, { sev: 0.4, topic: 'subordinate' });
         return;
@@ -650,6 +652,7 @@
       for (let k = 1; k < Math.min(t.length - 1, 5); k++) {
         if (isFinite(t[k].lo) && !t[k].cap) break;
         if (!t[k].cap && !PRONS.has(t[k].lo) && !/^(\d+|der|die|das|dem|den|des|am|im|um|in|an|auf|mit|nach|vor|seit|bei|zum|zur|ab|ein|einer|einem|jeden|jede|jedes|letzte|letzten|letztes|nächste|nächsten|nächstes|diese|diesen|dieses|meinem|meiner|meinen|halb|viertel|uhr|morgens|abends|früh|spät|zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|elf|zwölf|ersten|zweiten|vielen|zwanzig|dreißig)$/.test(t[k].lo)) break;
+        if (PRONS.has(t[k].lo) && !(isFinite(t[k + 1].lo) && !t[k + 1].cap)) break;
         if (PRONS.has(t[k].lo) && isFinite(t[k + 1].lo) && !t[k + 1].cap) {
           add(t[k], t[k + 1], `${t[k + 1].t} ${t[k].t}`, 'word_order', 'Verb in position 2', `The sentence starts with „${esc(t.slice(0, k).map((x) => x.t).join(' '))}“, so the verb comes next and the subject follows: <b>${esc(t[k + 1].t)} ${esc(t[k].t)}</b>.`, { sev: 1, topic: 'word-order-v2' });
           break;
@@ -684,7 +687,7 @@
       if (!s.afterComma || !s.toks.length) return;
       const f = s.toks[0]; const pv = prevTok(f); const pw = pv && tok[pv.i - 1];
       if (!pw || !pw.w) return;
-      if (f.lo === 'das' && /^(glaube|glaubst|glaubt|denke|denkst|denkt|hoffe|hoffst|hofft|weiß|weißt|finde|findest|findet|meine|meinst|meint|sage|sagst|sagt|schreibe|schreibt|wusste|dachte|glaubte|hoffen|wissen|denken|sicher|froh|schade|wichtig|klar|möglich|gut|toll|bekannt)$/.test(pw.lo) && s.toks[1] && (PRONS.has(s.toks[1].lo) || s.toks[1].cap)) add(f, f, 'dass', 'spelling', 'dass (conjunction)', 'After verbs like glauben/denken/hoffen/wissen the conjunction is <b>dass</b> (double s): „Ich glaube, dass …“', { sev: 0.9, topic: 'subordinate' });
+      if (f.lo === 'das' && /^(glaube|glaubst|glaubt|denke|denkst|denkt|hoffe|hoffst|hofft|weiß|weißt|finde|findest|findet|meine|meinst|meint|sage|sagst|sagt|schreibe|schreibt|wusste|dachte|glaubte|hoffen|wissen|denken|sicher|froh|schade|wichtig|klar|möglich|gut|toll|bekannt)$/.test(pw.lo) && s.toks[1] && (PRONS.has(s.toks[1].lo) || (s.toks[1].cap && s.toks.length > 2 && isFinite(s.toks[s.toks.length - 1].lo))) && !(s.toks[1].cap && isFinite((s.toks[2] || {}).lo || ''))) add(f, f, 'dass', 'spelling', 'dass (conjunction)', 'After verbs like glauben/denken/hoffen/wissen the conjunction is <b>dass</b> (double s): „Ich glaube, dass …“', { sev: 0.9, topic: 'subordinate' });
       if (f.lo === 'dass' && pw.cap && nounInfo(pw) && nounInfo(pw).g === 'das' && !pluralInfo(pw)) add(f, f, 'das', 'spelling', 'das (relative pronoun)', `After a neuter noun (das ${esc(pw.t)}) the relative pronoun is <b>das</b> (which/that): „das ${esc(pw.t)}, das …“`, { sev: 0.9, topic: 'relative' });
     });
     // 39. dative verbs with accusative pronouns and the other way round

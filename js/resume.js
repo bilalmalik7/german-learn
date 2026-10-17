@@ -7,7 +7,7 @@
 
   /* ---------- 1. where did the learner stop? ---------- */
   const STEP_NAMES = { intro: 'Overview', vocab: 'Vocabulary', grammar: 'Grammar', dialogue: 'Dialogue', practice: 'Exercises', speaking: 'Speaking', writing: 'Writing', done: 'Finish' };
-  const STUDY = ['day', 'grammar', 'scenes', 'trainer', 'talk', 'writing', 'review', 'sounds', 'job', 'exam', 'listen', 'life', 'daily', 'myplan'];
+  const STUDY = ['day', 'grammar', 'scenes', 'trainer', 'talk', 'writing', 'review', 'sounds', 'job', 'exam', 'listen', 'life', 'daily', 'myplan', 'read', 'games'];
   function label(page, a, b) {
     if (page === 'day') return `📅 Day ${+a || 1} · ${STEP_NAMES[b] || 'Overview'}`;
     if (page === 'scenes') { const s = a && GL.scenarios.find((x) => x.id === a); return s ? `🎬 ${s.title}` : '🎬 Real-life scenes'; }
@@ -16,6 +16,8 @@
     if (page === 'listen') return '🎧 Listening gym';
     if (page === 'life') { const t = a && (GL.life || []).find((x) => x.id === a); return t ? `🇩🇪 ${t.title}` : '🇩🇪 Living in Germany'; }
     if (page === 'daily') return '⚡ Daily mix';
+    if (page === 'games') return '🎮 Games';
+    if (page === 'read') { const t = a && (GL.reading || []).find((x) => x.id === a); return t ? `📖 ${t.title}` : '📖 Reading room'; }
     if (page === 'myplan') return '🧭 My plan';
     if (page === 'exam') return GL.Exam ? GL.Exam.label(a, b) : '🎓 Exam prep';
     return ({ trainer: '🏋️ Grammar trainer', talk: '🎤 Speaking practice', writing: '✍️ Writing studio', review: '🔁 Review', sounds: '🗣️ Sounds' })[page] || '';
@@ -40,7 +42,7 @@
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then((p) => { if (!p) navigator.storage.persist().catch(() => {}); }).catch(() => {}); } catch (e) { /* not supported */ }
 
   /* ---------- 4. progress link (no account needed) ---------- */
-  const KEEP = ['days', 'xp', 'streak', 'activity', 'srs', 'scenes', 'trainer', 'speak', 'time', 'timeAreas', 'last', 'created', 'mistakes', 'exam', 'game', 'listen', 'convo', 'life', 'myplan', 'hunt'];
+  const KEEP = ['days', 'xp', 'streak', 'activity', 'srs', 'scenes', 'trainer', 'speak', 'time', 'timeAreas', 'last', 'created', 'mistakes', 'exam', 'game', 'listen', 'convo', 'life', 'myplan', 'hunt', 'arcade', 'read'];
   const b64u = (bytes) => { let s = ''; bytes.forEach((x) => (s += String.fromCharCode(x))); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
   const unb64u = (str) => { const s = atob(str.replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(s, (c) => c.charCodeAt(0)); };
   async function pack() {

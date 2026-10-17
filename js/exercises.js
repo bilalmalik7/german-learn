@@ -81,6 +81,7 @@
       render(card, item.q, (correct) => {
         combo = correct ? combo + 1 : 0;
         GL.sfx(correct ? 'ok' : 'bad');
+        if (correct && GL.Game) { GL.Game.burst(card); if (combo >= 3) GL.Game.combo(card, combo); }
         coachReact(correct);
         if (!correct && !opts.noMistakes) Store.addMistake(item.q, opts.day);
         if (correct && opts.mistakeMode) Store.clearMistake(item.q);

@@ -14,7 +14,7 @@
   document.head.appendChild(s);
 
   // /day/5/vocab → route /day/[day]/[step]; ids (scenes, grammar topics, writing tasks) → [id]
-  const ROUTES = { day: ['day', 'step'], grammar: ['topic'], scenes: ['scene'], trainer: ['tab', 'item'], writing: ['task', 'item'], review: ['tab'], job: ['part', 'n'], exam: ['', 'id', 'part'], listen: ['', 'id'], life: ['topic'], talk: ['mode', 'id'] };
+  const ROUTES = { day: ['day', 'step'], grammar: ['topic'], scenes: ['scene'], trainer: ['tab', 'item'], writing: ['task', 'item'], review: ['tab'], job: ['part', 'n'], exam: ['', 'id', 'part'], listen: ['', 'id'], life: ['topic'], games: ['game'], read: ['text', 'level'], talk: ['mode', 'id'] };
   let last = '';
   function track() {
     const parts = (location.hash.replace(/^#\/?/, '').split('#')[0] || '').split('/').filter(Boolean);
