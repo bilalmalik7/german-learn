@@ -47,3 +47,37 @@ German zabaan muft seekhein – zero se B1 tak! Goethe/telc exam ki tayyari, 30 
 4. Put www.free-german.com in the Instagram bio link and the Facebook page's "Website" field.
 5. Pin the first comment: "Start free 👉 www.free-german.com".
 6. Boost the reel with a small budget (e.g. 3–5 days) targeted at Pakistan, ages 18–35, interests "Germany / study abroad / IELTS / Goethe-Institut".
+
+---
+
+# Reel 2 – "Level up your German" (anime style)
+
+## Files
+- `deutsch30-reel2-anime-9x16.mp4` – 1080×1920, 30 s → Reels / TikTok / Shorts / Stories
+- `deutsch30-reel2-anime-feed-4x5.mp4` – 1080×1350 → feed post
+- `cover2-anime-9x16.jpg` – cover
+
+## TikTok / Instagram caption
+POV: you want to study in Germany 🎓🇩🇪
+Your German level: 0 → let's level up! ⚡
+⚔️ Final boss: the B1 exam … BESTANDEN! ✅
+
+Start your training arc for FREE 👉 link in bio
+🌐 free-german.com
+
+#learngerman #studyingermany #germanlanguage #deutschlernen #anime #animeedit #levelup #goethe #telc #B1 #germanA1 #ausbildung #studyabroad #pakistan #fyp
+
+## Facebook caption
+⚡ Your German training arc starts today! ⚡
+From level 0 to passing the B1 exam – with a free 30-day course, games, speaking practice and Goethe & telc practice tests.
+🎓 Study · 💼 Ausbildung & jobs · 🇩🇪 a new life in Germany
+Start free 👉 https://www.free-german.com
+Comment "LEVEL UP" if you're starting today! 💪
+
+## Roman-Urdu hook (for Pakistani audiences)
+POV: Germany mein parhna hai, lekin German level zero hai? 😅 Training shuru karo – bilkul FREE! 👉 free-german.com
+
+## Tips for this reel
+- On TikTok, use the "POV" text in the first frame (already in the video) – it drives watch time.
+- Ask a question in the first comment: "What's your German level right now? 0, A1 or A2?" – comments boost reach.
+- Post at 8–10 pm PKT; reply to every comment in the first hour.
