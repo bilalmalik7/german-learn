@@ -34,7 +34,7 @@
   function hub() {
     return {
       html: `<h1>💼 Job German</h1>
-        <p class="muted">German for one real job at a time: the job advert, interview preparation and 15 days in the job – with animated scenes where <b>you</b> do the job and speak at every important moment.</p>
+        <p class="muted">German for one real job at a time: the job advert, interview preparation and 15–16 days in the job – with animated scenes where <b>you</b> do the job and speak at every important moment.</p>
         <div class="job-hub">${jobs().map((j) => {
           const d = doneCount(j), t = total(j);
           return `<a class="job-hub-card ${j.heroClass || ''}" href="${j.base}"><span class="jhc-icon">${j.icon}</span>
@@ -55,8 +55,8 @@
     const next = j.days.find((d) => !doneScene(d.scene));
     const intro = j.intro || `Interview preparation and <b>15 days in the job</b> – from your first “Hallo” to handling the Saturday rush. Every day: the key phrases (listen &amp; speak) and an animated scene where <b>you are the new ${esc(j.short)}</b>. Made for the advert <i>“${esc(j.advert.role)}”</i> – ${esc(j.advert.place)}.`;
     const adCard = (ad) => `<div class="card"><h3 style="margin-top:0">🧾 ${esc(ad.role)}</h3><p class="muted" style="margin:-4px 0 8px">${esc(ad.place)}</p>${ad.about ? `<p style="margin:0 0 8px">${esc(ad.about)}</p>` : ''}
-        <h4>Your tasks</h4>${list(ad.tasks)}<h4>What they want</h4>${list(ad.want)}
-        <h4>Benefits in the advert</h4><div class="chips">${ad.benefits.map((b) => `<span class="chip">${esc(b)}</span>`).join('')}</div>
+        ${ad.tasks.length ? `<h4>Your tasks</h4>${list(ad.tasks)}` : ''}<h4>What they want</h4>${list(ad.want)}
+        ${ad.benefits.length ? `<h4>Benefits in the advert</h4><div class="chips">${ad.benefits.map((b) => `<span class="chip">${esc(b)}</span>`).join('')}</div>` : ''}
         ${ad.contact ? `<p class="job-contact">👤 <b>Contact:</b> ${esc(ad.contact)}${ad.apply ? ` · <a href="${attr(ad.apply)}" target="_blank" rel="noopener">Apply online ↗</a>` : ''}</p>` : ''}
         ${ad.note ? `<p class="iv-tip">💡 ${esc(ad.note)}</p>` : ''}</div>`;
     const tools = [
@@ -104,8 +104,8 @@
       html: `${back(j)}
         <h1>🤝 Das Vorstellungsgespräch</h1>
         <p class="muted">${esc(iv.intro)}</p>
-        <div class="card job-play"><div>${GL.charSVG(j.id === 'sales' ? 'meier' : 'hartmann', 'idle')}</div><div><h3 style="margin:0">Practise the interview as a scene</h3><p class="muted" style="margin:.3em 0 .8em">${j.id === 'sales' ? 'The store manager asks you the typical questions' : 'First you call the head of the kitchen, then the interview: they ask the typical questions'} – you answer (and speak, if your browser supports it).</p><a class="btn green" href="#/scenes/${iv.scene}">▶ Start the interview ${doneScene(iv.scene) ? '(again)' : ''}</a></div></div>
-        ${iv.call ? `<div class="card"><h3 style="margin-top:0">📞 Calling before you apply</h3><p class="muted" style="margin-top:0">The advert names a contact person. A short call with one or two good questions makes you stand out.</p>${iv.call.map(([de, en], i) => phraseRow(de, en, i)).join('')}</div>` : ''}
+        <div class="card job-play"><div>${GL.charSVG(iv.who || 'meier', 'idle')}</div><div><h3 style="margin:0">Practise the interview as a scene</h3><p class="muted" style="margin:.3em 0 .8em">${esc(iv.sceneText || 'The store manager asks you the typical questions')} – you answer (and speak, if your browser supports it).</p><a class="btn green" href="#/scenes/${iv.scene}">▶ Start the interview ${doneScene(iv.scene) ? '(again)' : ''}</a></div></div>
+        ${(iv.extras || []).map((x) => `<div class="card"><h3 style="margin-top:0">${x.icon} ${esc(x.title)}</h3><p class="muted" style="margin-top:0">${esc(x.intro)}</p>${x.rows.map(([de, en], i) => phraseRow(de, en, i)).join('')}</div>`).join('')}
         <h2>❓ Questions they will probably ask</h2>
         <div class="iv-list">${iv.questions.map((x, i) => `<details class="iv-q" ${i === 0 ? 'open' : ''}><summary><span class="iv-no">${i + 1}</span><div><b>${esc(x.q)}</b><small>${esc(x.en)}</small></div></summary>
             <div class="iv-body"><div class="iv-row"><button class="say-btn" type="button" data-say="${attr(x.q)}" aria-label="Listen">🔊</button><span class="muted">Listen to the question</span></div>
