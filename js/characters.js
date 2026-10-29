@@ -43,6 +43,14 @@
     wagner: { name: 'Herr Wagner', role: 'New neighbour', gender: 'm', pitch: 0.95, rate: 1.02, color: '#6c757d' },
     brandt: { name: 'Frau Brandt', role: 'Market stall owner', gender: 'f', pitch: 0.95, rate: 0.95, color: '#588157' },
     ansage: { name: 'Durchsage', role: 'Announcement', gender: 'f', pitch: 1.05, rate: 0.95, color: '#ffce00' },
+    hartmann: { name: 'Herr Hartmann', role: 'Head of the hospital kitchen', gender: 'm', pitch: 0.8, rate: 0.95, color: '#1d3557' },
+    nina: { name: 'Nina', role: 'Dietitian – your buddy at the hospital', gender: 'f', pitch: 1.15, rate: 1.02, color: '#2a9d8f' },
+    schulte: { name: 'Herr Schulte', role: 'Cook in the diet kitchen', gender: 'm', pitch: 0.75, rate: 0.98, color: '#495057' },
+    pia: { name: 'Pia', role: 'Kitchen assistant', gender: 'f', pitch: 1.3, rate: 1.05, color: '#90be6d' },
+    olsen: { name: 'Herr Olsen', role: 'Delivery driver', gender: 'm', pitch: 0.9, rate: 1.02, color: '#e76f51' },
+    tom: { name: 'Tom', role: 'Nurse on the ward', gender: 'm', pitch: 1.05, rate: 1.03, color: '#4361ee' },
+    aydin: { name: 'Dr. Aydın', role: 'Ward doctor', gender: 'f', pitch: 1.0, rate: 0.98, color: '#577590' },
+    jung: { name: 'Frau Jung', role: 'Speech therapist', gender: 'f', pitch: 1.1, rate: 0.98, color: '#9d4edd' },
   };
 
   /* Looks. eyes = iris colour. Accessories: glasses, cap, tie, scarf, beard, mustache, apron, coat, hood, blazer, badge, scrubs, vest, polo. */
@@ -84,6 +92,14 @@
     wagner: { skin: '#f0c8a8', hair: '#2b2b2b', hairStyle: 'curly', shirt: '#6c757d', collar: '#495057', hood: true, beard: true, eyes: '#4a2c1a' },
     brandt: { skin: '#f0c9ae', hair: '#c9c9c9', hairStyle: 'bun', shirt: '#588157', collar: '#3a5a40', apron: true, scarf: '#e9c46a', eyes: '#3d7a3a' },
     hahn: { skin: '#f3cfb6', hair: '#8c5a3c', hairStyle: 'bun', shirt: '#1b4965', collar: '#13344a', cap: '#13344a', badge: true, eyes: '#3d7a3a' },
+    hartmann: { skin: '#efc9ad', hair: '#8f8f8f', hairStyle: 'short', shirt: '#ffffff', collar: '#1d3557', apron: true, badge: true, mustache: true, eyes: '#4b6b8a' },
+    nina: { skin: '#f3d0b6', hair: '#a0522d', hairStyle: 'ponytail', shirt: '#ffffff', collar: '#2a9d8f', scrubs: true, badge: true, eyes: '#3d7a3a' },
+    schulte: { skin: '#e9bf9d', hair: '#3b2a20', hairStyle: 'buzz', shirt: '#ffffff', collar: '#495057', apron: true, beard: true, eyes: '#4a2c1a' },
+    pia: { skin: '#f6d6c1', hair: '#e2b85a', hairStyle: 'bun', shirt: '#90be6d', collar: '#6a994e', apron: true, eyes: '#3b6fb6' },
+    olsen: { skin: '#f0c5a5', hair: '#c9a36b', hairStyle: 'short', shirt: '#e76f51', collar: '#b5482f', polo: true, cap: '#264653', eyes: '#3b6fb6' },
+    tom: { skin: '#c48b66', hair: '#1f1a17', hairStyle: 'short', shirt: '#4361ee', collar: '#2b44c2', scrubs: true, badge: true, eyes: '#3a2414' },
+    aydin: { skin: '#d9a582', hair: '#24170f', hairStyle: 'long', shirt: '#ffffff', collar: '#577590', coat: true, badge: true, eyes: '#4a2c1a' },
+    jung: { skin: '#f2cfb7', hair: '#6b3e2e', hairStyle: 'bob', shirt: '#9d4edd', collar: '#7b2cbf', scrubs: true, badge: true, glasses: true, eyes: '#3d7a3a' },
   };
 
   /* ---------- colour helpers ---------- */

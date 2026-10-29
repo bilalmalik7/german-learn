@@ -152,7 +152,7 @@
         case 'talk': html = GL.viewTalk(a, b); break;
         case 'scenes': html = GL.viewScenes(a); break;
         case 'writing': html = GL.viewWriting(a, b); break;
-        case 'job': html = GL.viewJob(a, b); break;
+        case 'job': html = GL.viewJob(a, b, c); break;
         case 'exam': html = GL.viewExam(a, b, c); break;
         case 'listen': html = GL.viewListen(a, b); break;
         case 'life': html = GL.viewLife(a); break;
@@ -183,7 +183,7 @@
     if (GL.Game) GL.Game.paint();
     if (GL.PWA) GL.PWA.decorate();
     if (GL.Plans) { GL.Plans.decorate(); setTimeout(() => GL.Plans.decorate(), 500); }
-    if (GL.Resume) { GL.Resume.visit(page, a, page === 'day' ? (b || GL.Resume.lastStep(+a || 1)) : b); GL.Resume.wireHome(app); if (page === 'settings') GL.Resume.wireLinkCard(app); }
+    if (GL.Resume) { GL.Resume.visit(page, a, page === 'day' ? (b || GL.Resume.lastStep(+a || 1)) : b, c); GL.Resume.wireHome(app); if (page === 'settings') GL.Resume.wireLinkCard(app); }
     const steps = $('.steps'), act = $('.step.active');
     if (steps && act) steps.scrollLeft = act.offsetLeft - steps.clientWidth / 2 + act.clientWidth / 2;
     app.focus({ preventScroll: true });
@@ -203,7 +203,7 @@
       html: `<div class="card lock-card lock-rich">
         <span class="lock-big" aria-hidden="true">🔒</span>
         <h1>Job German is for logged-in students</h1>
-        <p>💼 <b>Sales Advisor im Modegeschäft</b> – interview preparation and 15 days in the job, with animated scenes and speaking practice. Log in with the username and password from your teacher to open it.</p>
+        <p>💼 <b>Sales Advisor</b> and <b>Dietitian</b> tracks – interview preparation and 15 days in the job, with animated scenes and speaking practice. Log in with the username and password from your teacher to open it.</p>
         <div class="pv" style="max-width:520px"><ul class="pv-goals" style="list-style:none;padding:0;margin:0">
           <li>🤝 <b>Das Vorstellungsgespräch</b> – 16 questions with model answers</li>
           ${j.days.slice(0, 5).map((d) => `<li>${d.icon} <b>Day ${d.day}:</b> ${esc(d.title)} <span class="muted">– ${esc(d.en)}</span></li>`).join('')}

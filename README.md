@@ -95,6 +95,25 @@ and **15 days in the job**, each with 10 key phrases and an animated scene where
 (first day, greeting customers, directions, sizes, fitting room, styling, backstage, till, returns, complaints,
 pick-ups & phone, shift plan, Saturday rush, sale & recycling, feedback & closing). Plus an interview scene.
 
+### 🥗 Job German – Dietitian / Diätassistent/in (open for everyone)
+
+Made for two real adverts in Osnabrück (Klinikum Osnabrück / SGKO and Marienhospital Osnabrück / Niels-Stensen-Kliniken),
+shown side by side with tasks, requirements, benefits, contact and an apply link. `#/job` is now a hub for all job tracks;
+the dietitian track lives at `#/job/diet`:
+- **Interview:** phrases for calling the contact person before applying, 17 questions with model answers (diets, HACCP,
+  diabetes counselling, instructing staff, Orga-Card & MS Office, the Christian ethos of a Catholic hospital …), questions
+  to ask, rescue phrases, tips, recognition note, and a two-part scene (phone call + interview).
+- **Onboarding plan** (`/plan`): before day 1 → day 1 → week 1 → weeks 2–4 → months 2–3 → end of probation, each with
+  to-dos, phrases and links to the practice days, plus a typical working day with German times.
+- **Job vocabulary** (`/words`): 92 words in 6 topics (listen + speak) with a quiz (meanings and der/die/das).
+- **Typical mistakes** (`/fix`): 18 job-specific errors – pick the correct sentence, read why, say it.
+- **15 days in the job**, each with 10 key phrases and an animated scene where the learner is the new dietitian: first day,
+  hygiene & HACCP, goods receipt, hospital diets, new recipes, instructing kitchen staff, menu ordering system, menu
+  choices & diet agreements on the ward, tray line check, diabetes counselling, malnutrition in the nutrition team,
+  dysphagia & step-by-step diet, phone calls with wards, a group talk, a complaint and the end-of-probation feedback talk.
+- New characters (head of kitchen, dietitian buddy, cook, kitchen assistant, driver, nurse, doctor, speech therapist) and
+  backgrounds (diet kitchen, tray line, delivery ramp, patient room, counselling office, team room, seminar room).
+
 ### 🎓 Exam prep – telc & Goethe, A1 → B1 in 12 weeks (`#/exam`)
 
 - **Roadmap:** 12 weeks, about 2–3 hours a day, Monday to Saturday (Sunday: review). Each week has can-do goals,
@@ -178,7 +197,8 @@ js/data/practice.js   verb tables, drill nouns, conversation questions, scenario
 js/data/scenarios*.js the 22 real-life scenes
 js/data/writing.js    writing studio tasks and model answers
 js/data/jobs.js       Job German: Sales Advisor track – interview questions, 15 work days, 16 scenes
-js/job.js             Job German pages (overview, interview preparation, day pages)
+js/data/job-diet.js   Job German: Dietitian track – two adverts, interview, onboarding plan, words, mistakes, 15 days
+js/job.js             Job German pages (hub, job overview, interview, plan, words, mistakes, day pages)
 js/data/exam.js       Exam prep: exam formats, the 12-week roadmap, notes sheets
 js/data/exam-*.js     Exam prep: practice tests and mock exams (a1, a2, b1, b1-mock, telc) and exam words
 js/exam.js            Exam prep pages: roadmap, weeks, formats, task trainer, mock exams, words, notes

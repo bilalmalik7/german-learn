@@ -2270,3 +2270,53 @@ button.more-item { border: 2px solid var(--line); font: inherit; cursor: pointer
   .hero h1 { margin-top: 12px; }
   .hero .row { gap: 8px; }
 }
+/* Job German – dietitian: conveyor of trays on the tray line */
+.tray-belt { animation: trayBelt 14s linear infinite; }
+@keyframes trayBelt { from { transform: translateX(-230px); } to { transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .tray-belt { animation: none; } }
+/* Job German – several job tracks: hub, tools, advert tabs, onboarding timeline, word quiz, mistakes */
+.job-hero.diet { background: radial-gradient(circle at 0% 0%, #90be6d 0, transparent 42%), radial-gradient(circle at 100% 100%, #e9c46a 0, transparent 45%), linear-gradient(135deg, #1b4332 0%, #2a9d8f 60%, #264653 100%); box-shadow: 0 16px 40px rgba(27, 67, 50, .3); }
+.job-hub { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
+.job-hub-card { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 6px; padding: 20px; border-radius: 24px; color: #fff; text-decoration: none; min-height: 250px; animation: tIn .4s ease-out backwards; transition: transform .2s;
+  background: radial-gradient(circle at 0% 0%, #e76f51 0, transparent 42%), linear-gradient(135deg, #1f1f1f 0%, #3d405b 60%, #264653 100%); box-shadow: 0 12px 30px rgba(31, 31, 31, .25); }
+.job-hub-card.diet { background: radial-gradient(circle at 0% 0%, #90be6d 0, transparent 42%), linear-gradient(135deg, #1b4332 0%, #2a9d8f 60%, #264653 100%); }
+.job-hub-card:hover { transform: translateY(-4px); }
+.job-hub-card b { font-size: 1.25rem; font-family: var(--display, Fredoka, sans-serif); max-width: 62%; } .job-hub-card > small { opacity: .9; max-width: 62%; }
+.job-hub-card .jh-prog { margin: auto 0 8px; } .job-hub-card .btn { align-self: flex-start; }
+.jhc-icon { font-size: 2rem; }
+.jhc-art { position: absolute; right: -6px; bottom: -8px; display: flex; align-items: flex-end; pointer-events: none; }
+.jhc-art svg { width: 92px; height: auto; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .3)); } .jhc-art svg + svg { margin-left: -26px; }
+.job-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 0 0 18px; }
+.job-tool { display: flex; flex-direction: column; gap: 2px; padding: 14px; border-radius: 18px; background: var(--card); border: 2px solid var(--line); color: var(--ink); text-decoration: none; transition: transform .2s, border-color .2s; }
+.job-tool:hover { transform: translateY(-3px); border-color: #2a9d8f; }
+.job-tool span { font-size: 1.6rem; } .job-tool small { color: var(--ink2); }
+.ad-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px; }
+.ad-tabs button { padding: 8px 16px; border-radius: 999px; border: 2px solid var(--line); background: var(--card); color: var(--ink2); font-weight: 800; cursor: pointer; font: inherit; font-weight: 800; }
+.ad-tabs button.on { background: #2a9d8f; border-color: #2a9d8f; color: #fff; }
+.ad-pane > div > .card { margin-top: 0; }
+.job-contact { margin: 12px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); }
+.plan-tl { list-style: none; padding: 0; margin: 16px 0; position: relative; }
+.plan-tl::before { content: ''; position: absolute; left: 21px; top: 10px; bottom: 10px; width: 4px; border-radius: 4px; background: linear-gradient(#2a9d8f, #e9c46a); }
+.plan-tl li { position: relative; padding-left: 58px; animation: tIn .4s ease-out backwards; }
+.plan-tl .pt-dot { position: absolute; left: 0; top: 14px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; background: var(--card); border: 3px solid #2a9d8f; }
+.plan-tl .card { margin-top: 0; } .plan-tl h4 { margin: 12px 0 2px; }
+.chip.done { border-color: var(--green); color: var(--green); }
+a.chip { text-decoration: none; }
+.df-row { display: grid; grid-template-columns: 54px 1fr; align-items: center; gap: 8px; }
+.df-time { font-weight: 900; color: #2a9d8f; font-variant-numeric: tabular-nums; }
+.df-row .jp-row { border-top: 1px dashed var(--line); }
+.word-grp summary { display: flex; gap: 10px; align-items: center; cursor: pointer; list-style: none; }
+.word-grp summary::-webkit-details-marker { display: none; }
+.word-grp summary span { font-size: 1.4rem; } .word-grp summary small { color: var(--ink2); margin-left: auto; }
+.wq-q { font-size: 1.1rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.wq-opts, .fx-opts { display: grid; gap: 8px; }
+.wq-opts .btn, .fx-opts .btn { text-align: left; justify-content: flex-start; white-space: normal; }
+.wq-opts .btn.right, .fx-opts .btn.right { background: var(--green); border-color: var(--green); color: #fff; }
+.wq-opts .btn.wrong, .fx-opts .btn.wrong { background: color-mix(in srgb, var(--red) 15%, var(--card)); border-color: var(--red); color: var(--ink); }
+.fx-list { display: grid; gap: 12px; }
+.fx { position: relative; margin: 0; padding-left: 56px; animation: tIn .35s ease-out backwards; border: 2px solid var(--line); }
+.fx.ok { border-color: var(--green); } .fx.no { border-color: var(--red); }
+.fx-n { position: absolute; left: 14px; top: 16px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; color: #fff; background: #3d405b; }
+.fx-q { margin: 0 0 8px; font-weight: 800; color: var(--ink2); font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; }
+.fx-why p { margin: 8px 0 0; }
+@media (max-width: 640px) { .jhc-art svg { width: 72px; } .job-hub-card b, .job-hub-card > small { max-width: 70%; } .fx { padding-left: 16px; } .fx-n { position: static; margin-bottom: 6px; } }
