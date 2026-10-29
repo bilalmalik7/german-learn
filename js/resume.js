@@ -8,11 +8,11 @@
   /* ---------- 1. where did the learner stop? ---------- */
   const STEP_NAMES = { intro: 'Overview', vocab: 'Vocabulary', grammar: 'Grammar', dialogue: 'Dialogue', practice: 'Exercises', speaking: 'Speaking', writing: 'Writing', done: 'Finish' };
   const STUDY = ['day', 'grammar', 'scenes', 'trainer', 'talk', 'writing', 'review', 'sounds', 'job', 'exam', 'listen', 'life', 'daily', 'myplan', 'read', 'games'];
-  function label(page, a, b) {
+  function label(page, a, b, c) {
     if (page === 'day') return `📅 Day ${+a || 1} · ${STEP_NAMES[b] || 'Overview'}`;
     if (page === 'scenes') { const s = a && GL.scenarios.find((x) => x.id === a); return s ? `🎬 ${s.title}` : '🎬 Real-life scenes'; }
     if (page === 'grammar') { const t = a && GL.grammar[decodeURIComponent(a)]; return t ? `📘 ${t.title}` : '📘 Grammar A–Z'; }
-    if (page === 'job') return a === 'day' ? `💼 Job German · Day ${b}` : a === 'interview' ? '💼 Job German · Interview' : '💼 Job German';
+    if (page === 'job') { const j = (GL.jobs || []).find((x) => x.id === a); const sub = j ? b : a, n = j ? c : b, t = j ? `💼 ${j.short}` : '💼 Job German'; return sub === 'day' ? `${t} · Day ${n}` : sub === 'interview' ? `${t} · Interview` : ({ plan: `${t} · Plan`, words: `${t} · Words`, fix: `${t} · Mistakes` })[sub] || t; }
     if (page === 'listen') return '🎧 Listening gym';
     if (page === 'life') { const t = a && (GL.life || []).find((x) => x.id === a); return t ? `🇩🇪 ${t.title}` : '🇩🇪 Living in Germany'; }
     if (page === 'daily') return '⚡ Daily mix';
@@ -22,11 +22,11 @@
     if (page === 'exam') return GL.Exam ? GL.Exam.label(a, b) : '🎓 Exam prep';
     return ({ trainer: '🏋️ Grammar trainer', talk: '🎤 Speaking practice', writing: '✍️ Writing studio', review: '🔁 Review', sounds: '🗣️ Sounds' })[page] || '';
   }
-  function visit(page, a, b) {
+  function visit(page, a, b, c) {
     if (!STUDY.includes(page)) return;
     const st = Store.state;
     if (page === 'day') { const n = +a || 1; const d = Store.day(n); d.lastStep = b || d.lastStep || 'intro'; }
-    st.last = { hash: location.hash || '#/', label: label(page, a, b), at: Date.now() };
+    st.last = { hash: location.hash || '#/', label: label(page, a, b, c), at: Date.now() };
     Store.save();
   }
   /* #/day/5 without a step → the step where the learner stopped on that day */

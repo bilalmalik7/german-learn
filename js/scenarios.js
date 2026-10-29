@@ -341,8 +341,66 @@
       ${[[380, '#e63946', 'Äpfel 2,80 €/kg'], [480, '#f4a261', 'Möhren 1,50 €'], [580, '#2a9d8f', 'Salat 1,20 €'], [680, '#9d4edd', 'Pflaumen 3,90 €']].map(([x, c, t]) => `<g><rect x="${x - 40}" y="176" width="84" height="30" rx="4" fill="#c8a165"/>${[0, 1, 2, 3, 4].map((j) => `<circle cx="${x - 26 + j * 13}" cy="${176 - (j % 2) * 6}" r="8" fill="${c}"/>`).join('')}<rect x="${x - 34}" y="140" width="72" height="18" rx="3" fill="#fff"/><text x="${x + 2}" y="153" text-anchor="middle" font-family="Nunito, sans-serif" font-size="9" font-weight="800" fill="#333">${t}</text></g>`).join('')}`,
   });
 
+  /* Job German – dietitian: the hospital's diet kitchen, tray line, delivery ramp, a patient room, the counselling office and two meeting rooms */
+  const steam = (x, y) => `<path class="steam" d="M${x} ${y} q8 -12 0 -24 q-8 -12 0 -24" stroke="#cfd8dc" stroke-width="3" fill="none"/>`;
+  const pot = (x, c = '#adb5bd') => `<g><rect x="${x}" y="184" width="64" height="34" rx="6" fill="${c}"/><rect x="${x - 6}" y="180" width="76" height="8" rx="4" fill="#868e96"/><rect x="${x - 12}" y="192" width="12" height="6" rx="3" fill="#495057"/><rect x="${x + 64}" y="192" width="12" height="6" rx="3" fill="#495057"/>${steam(x + 22, 176)}${steam(x + 42, 172)}</g>`;
+  const room = (title, sub, accent) => `<rect width="800" height="300" fill="#eef3f6"/>
+      <rect x="240" y="30" width="320" height="170" rx="8" fill="#263238"/><rect x="252" y="42" width="296" height="146" fill="#fff"/>
+      <text x="400" y="74" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="20" font-weight="600" fill="${accent}">${title}</text>
+      <text x="400" y="98" text-anchor="middle" font-family="Nunito, sans-serif" font-size="13" fill="#555">${sub}</text>
+      <g><circle cx="400" cy="146" r="34" fill="#f1f3f5" stroke="#ced4da" stroke-width="3"/><path d="M400 146 L400 112 A34 34 0 0 1 434 146 Z" fill="#90be6d"/><path d="M400 146 L434 146 A34 34 0 0 1 400 180 Z" fill="#f4a261"/><path d="M400 146 L400 180 A34 34 0 0 1 366 146 L366 146 A34 34 0 0 1 400 112 Z" fill="#8ecae6" opacity=".9"/></g>
+      ${plant(40)}${clock(700, 80)}
+      ${floor('#c9d3da', '#aeb9c2')}
+      <ellipse cx="400" cy="300" rx="300" ry="34" fill="#8d6e63"/><ellipse cx="400" cy="294" rx="300" ry="30" fill="#a1887f"/>`;
+  Object.assign(BG, {
+    dietkitchen: () => `<rect width="800" height="300" fill="#eef2f4"/><rect width="800" height="300" fill="url(#none)"/>
+      ${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<rect x="${i * 100}" y="0" width="100" height="150" fill="none" stroke="#dde3e7" stroke-width="2"/>`).join('')}
+      ${sign(300, 18, 200, 'DIÄTKÜCHE', '#2a9d8f')}
+      <g><rect x="40" y="40" width="200" height="110" rx="6" fill="#fff" stroke="#b0bec5" stroke-width="3"/><text x="140" y="64" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="15" font-weight="600" fill="#2a9d8f">Heute · Diätliste</text>
+        ${[['LVK', 'leichte Vollkost', 24], ['GF', 'glutenfrei', 6], ['PÜ', 'püriert', 9], ['NA', 'natriumarm', 11]].map(([k, t, n], i) => `<text x="56" y="${86 + i * 17}" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#e76f51">${k}</text><text x="88" y="${86 + i * 17}" font-family="Nunito, sans-serif" font-size="11" fill="#333">${t}</text><text x="222" y="${86 + i * 17}" text-anchor="end" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#333">${n}</text>`).join('')}</g>
+      <g>${[0, 1, 2, 3].map((i) => `<rect x="${560 + i * 52}" y="50" width="44" height="34" rx="4" fill="#ced4da" stroke="#adb5bd"/><rect x="${566 + i * 52}" y="56" width="32" height="10" rx="2" fill="${['#ffd166', '#90be6d', '#ff9f9f', '#8ecae6'][i]}"/>`).join('')}<rect x="550" y="88" width="220" height="6" fill="#868e96"/></g>
+      <g><rect x="612" y="104" width="110" height="100" rx="8" fill="#6c757d"/><rect x="622" y="114" width="70" height="80" rx="4" fill="#343a40"/><rect x="628" y="120" width="58" height="68" rx="3" fill="#ffb703" opacity=".25" class="blink"/><circle cx="706" cy="128" r="5" fill="#2ec4b6"/><circle cx="706" cy="146" r="5" fill="#adb5bd"/><text x="667" y="216" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" font-weight="800" fill="#6c757d">Kombidämpfer</text></g>
+      ${floor('#cfd8dc', '#b0bec5')}
+      <rect x="40" y="220" width="560" height="96" rx="4" fill="#ced4da"/><rect x="30" y="212" width="580" height="14" rx="4" fill="#e9ecef"/><rect x="30" y="226" width="580" height="4" fill="#adb5bd"/>
+      ${pot(90)}${pot(200, '#ced4da')}
+      <g><rect x="330" y="200" width="70" height="12" rx="3" fill="#ffd166"/><rect x="420" y="200" width="70" height="12" rx="3" fill="#90be6d"/><circle cx="350" cy="196" r="7" fill="#f4a261"/><circle cx="366" cy="198" r="6" fill="#f4a261"/><path d="M440 196 q8 -10 16 0" stroke="#2a9d8f" stroke-width="5" fill="none"/></g>
+      <g><rect x="520" y="186" width="16" height="26" rx="3" fill="#fff" stroke="#adb5bd"/><rect x="524" y="170" width="8" height="18" rx="2" fill="#e63946"/><text x="528" y="206" text-anchor="middle" font-family="Nunito, sans-serif" font-size="8" font-weight="800" fill="#333">°C</text></g>`,
+    trayline: () => `<rect width="800" height="300" fill="#eef1f3"/>
+      ${sign(270, 18, 260, 'SPEISENVERTEILUNG', '#1d3557')}
+      ${[0, 1, 2].map((i) => lamp(150 + i * 250)).join('')}
+      <g><rect x="30" y="80" width="150" height="120" rx="6" fill="#fff" stroke="#b0bec5" stroke-width="3"/><text x="105" y="104" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="14" font-weight="600" fill="#1d3557">Bandabnahme</text>${['Kostform?', 'Allergene?', 'Konsistenz?', 'Temperatur?'].map((t, i) => `<text x="48" y="${126 + i * 18}" font-family="Nunito, sans-serif" font-size="11" fill="#333">☐ ${t}</text>`).join('')}</g>
+      <g><rect x="600" y="70" width="170" height="130" rx="8" fill="#adb5bd"/>${[0, 1, 2, 3].map((r) => `<rect x="612" y="${82 + r * 28}" width="146" height="20" rx="3" fill="#dee2e6"/>`).join('')}<text x="685" y="216" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" font-weight="800" fill="#6c757d">Tablettwagen</text></g>
+      ${floor('#d0d7dd', '#b4bec6')}
+      <rect x="0" y="232" width="800" height="22" fill="#495057"/><rect x="0" y="226" width="800" height="8" fill="#868e96"/><rect x="0" y="254" width="800" height="62" fill="#6c757d"/>
+      <g class="tray-belt"><g>${[0, 1, 2, 3, 4].map((i) => `<g transform="translate(${(i - 1) * 230},0)"><rect x="0" y="206" width="120" height="22" rx="4" fill="#f8f9fa" stroke="#adb5bd"/><ellipse cx="34" cy="206" rx="22" ry="7" fill="#fff" stroke="#ced4da"/><rect x="66" y="198" width="22" height="10" rx="2" fill="#ffd166"/><rect x="94" y="200" width="18" height="8" rx="2" fill="#fff" stroke="#ced4da"/><rect x="8" y="214" width="26" height="10" rx="1" fill="${['#2a9d8f', '#e76f51', '#4361ee', '#9d4edd'][i]}"/></g>`).join('')}</g></g>`,
+    delivery: () => `<rect width="800" height="300" fill="#dfe7ee"/><rect width="800" height="300" fill="url(#none)"/>
+      <rect x="0" y="0" width="800" height="40" fill="#b0bec5"/>${sign(40, 52, 200, 'WARENEINGANG', '#e76f51')}
+      <g><rect x="470" y="40" width="300" height="200" rx="6" fill="#f8f9fa" stroke="#adb5bd" stroke-width="4"/><rect x="480" y="50" width="280" height="180" fill="#e9ecef"/>${[0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => `<rect x="${492 + c * 66}" y="${150 - r * 42}" width="56" height="38" rx="3" fill="${['#c8a165', '#8ecae6', '#c8a165', '#ffffff'][(c + r) % 4]}" stroke="#8d6e63"/>`).join('')).join('')}<text x="620" y="232" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#6c757d">❄ Kühlfahrzeug</text></g>
+      <g><rect x="40" y="110" width="150" height="90" rx="6" fill="#fff" stroke="#b0bec5" stroke-width="3"/><text x="115" y="134" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="13" font-weight="600" fill="#e76f51">Bitte prüfen</text>${['Kühlware ≤ 7 °C', 'TK ≤ –18 °C', 'MHD · Verpackung'].map((t, i) => `<text x="56" y="${156 + i * 16}" font-family="Nunito, sans-serif" font-size="11" fill="#333">✓ ${t}</text>`).join('')}</g>
+      ${floor('#b8c4cc', '#9aa8b2')}
+      <rect x="0" y="262" width="800" height="12" fill="#ffd166" opacity=".8"/>
+      <g><rect x="250" y="226" width="80" height="60" rx="3" fill="#c8a165" stroke="#8d6e63" stroke-width="2"/><rect x="300" y="248" width="70" height="44" rx="3" fill="#8ecae6" stroke="#5c8fa8" stroke-width="2"/><path d="M250 242 h80" stroke="#e0c08a" stroke-width="5"/><rect x="236" y="290" width="150" height="8" rx="2" fill="#495057"/></g>`,
+    patientroom: () => `<rect width="800" height="300" fill="#f2f6f4"/>
+      <rect x="520" y="40" width="230" height="150" fill="#bde0fe"/><path d="M540 190 V130 h40 v60 M600 190 V110 h50 v80 M670 190 V145 h50 v45" fill="#a9c4dc"/><rect x="520" y="40" width="230" height="150" fill="none" stroke="#fff" stroke-width="10"/><path d="M635 40 V190" stroke="#fff" stroke-width="6"/>
+      <g><rect x="40" y="40" width="110" height="34" rx="6" fill="#2a9d8f"/><text x="95" y="63" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="16" font-weight="600" fill="#fff">Zimmer 12</text></g>
+      <g><rect x="40" y="90" width="120" height="80" rx="4" fill="#fff" stroke="#b0bec5" stroke-width="3"/><text x="100" y="110" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#2a9d8f">Speiseplan</text>${[124, 138, 152].map((y) => `<path d="M54 ${y} h92" stroke="#cfd8dc" stroke-width="4"/>`).join('')}</g>
+      ${floor('#d8e2dc', '#c2cfc7')}
+      <g><rect x="200" y="210" width="300" height="40" rx="10" fill="#fff" stroke="#cfd8dc" stroke-width="3"/><rect x="200" y="196" width="110" height="26" rx="10" fill="#e3f2fd"/><path d="M190 160 V300 M510 200 V300" stroke="#90a4ae" stroke-width="6"/><rect x="186" y="150" width="10" height="20" rx="3" fill="#90a4ae"/><rect x="320" y="204" width="180" height="40" rx="8" fill="#a8dadc"/><circle cx="215" cy="300" r="7" fill="#546e7a"/><circle cx="495" cy="300" r="7" fill="#546e7a"/></g>
+      <g><rect x="540" y="236" width="80" height="70" rx="4" fill="#e9ecef" stroke="#adb5bd"/><rect x="530" y="228" width="100" height="10" rx="3" fill="#ced4da"/><rect x="556" y="210" width="20" height="18" rx="3" fill="#fff" stroke="#adb5bd"/><rect x="586" y="214" width="26" height="14" rx="2" fill="#ffd166"/></g>`,
+    dietoffice: () => `<rect width="800" height="300" fill="#f4f7f2"/>
+      <g><rect x="40" y="36" width="190" height="150" rx="6" fill="#fff" stroke="#b0bec5" stroke-width="3"/><text x="135" y="60" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="15" font-weight="600" fill="#2a9d8f">Der gesunde Teller</text>
+        <circle cx="135" cy="118" r="50" fill="#f8f9fa" stroke="#ced4da" stroke-width="3"/><path d="M135 118 L135 68 A50 50 0 0 1 135 168 Z" fill="#90be6d"/><path d="M135 118 L135 168 A50 50 0 0 1 85 118 Z" fill="#ffd166"/><path d="M135 118 L85 118 A50 50 0 0 1 135 68 Z" fill="#f4a261"/></g>
+      <g><rect x="290" y="40" width="180" height="120" rx="4" fill="#fff" stroke="#b0bec5" stroke-width="3"/><text x="380" y="62" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#1d3557">ERNÄHRUNGSBERATUNG</text>${[0, 1, 2, 3, 4].map((i) => `<rect class="grow" style="animation-delay:${i * 0.15}s" x="${306 + i * 32}" y="${148 - (5 - i) * 14}" width="22" height="${(5 - i) * 14}" fill="${['#e76f51', '#f4a261', '#e9c46a', '#90be6d', '#2a9d8f'][i]}"/>`).join('')}</g>
+      ${shelf(540, 40, 220, 3, ['#90be6d', '#ffd166', '#f4a261', '#8ecae6', '#ffffff'])}
+      ${floor('#dfe6dc', '#c6d1c2')}
+      <rect x="250" y="232" width="320" height="16" rx="5" fill="#d7ccc8"/><rect x="270" y="248" width="12" height="56" fill="#8d6e63"/><rect x="540" y="248" width="12" height="56" fill="#8d6e63"/>${screen(450, 184)}
+      <g><circle cx="300" cy="222" r="10" fill="#e63946"/><path d="M300 212 q4 -8 10 -6" stroke="#2a9d8f" stroke-width="3" fill="none"/><rect x="320" y="214" width="34" height="18" rx="4" fill="#ffd166"/><rect x="364" y="220" width="40" height="12" rx="3" fill="#fff" stroke="#adb5bd"/></g>`,
+    teamroom: () => room('Ernährungsteam', 'Fallbesprechung · Station 5', '#1d3557'),
+    seminar: () => room('Herzgesund essen', 'Patientenschulung · Raum 2', '#2a9d8f'),
+  });
+
   // lighting per background: '' = daylight, 'evening' = warm, 'night' = dark blue, 'cool' = fluorescent
-  const MOOD = { restaurant: 'evening', dining: 'evening', doorway: 'evening', hotelroom: 'evening', security: 'cool', amt: 'cool', counter: 'cool', police: 'cool', exam: 'cool', practice: 'cool', checkout: 'cool', hospital: 'cool', stairwell: 'night', phoneshop: 'cool' };
+  const MOOD = { restaurant: 'evening', dining: 'evening', doorway: 'evening', hotelroom: 'evening', security: 'cool', amt: 'cool', counter: 'cool', police: 'cool', exam: 'cool', practice: 'cool', checkout: 'cool', hospital: 'cool', stairwell: 'night', phoneshop: 'cool', dietkitchen: 'cool', trayline: 'cool' };
 
   /* ---------- player ---------- */
   function progressOf(id) { return ((Store.state.scenes = Store.state.scenes || {})[id]) || {}; }
@@ -366,7 +424,7 @@
   function player(sc) {
     let token = 0, sceneIdx = 0, stepIdx = 0, choices = 0, firstTry = 0, auto = true, showEn = Store.state.settings.showEn;
     return {
-      html: `<p><a href="${sc.track ? '#/job' : '#/scenes'}">${sc.track ? '← Job German' : '← All scenes'}</a></p>
+      html: `<p><a href="${sc.track ? sc.jobBase || '#/job' : '#/scenes'}">${sc.track ? '← Job German' : '← All scenes'}</a></p>
         <div class="scn-player">
           <div class="scn-top"><div><span class="scn-big-icon">${sc.icon}</span> <b>${esc(sc.title)}</b> <span class="muted">· ${esc(sc.en)}</span></div>
             <div class="scn-dots">${sc.scenes.map((s, i) => `<span data-i="${i}" title="${attr(s.title)}"></span>`).join('')}</div></div>
@@ -597,7 +655,7 @@
           panel.innerHTML = `<div class="center">${GL.charSVG('bruno', 'happy waving')}<h2>🎉 Geschafft! ${esc(sc.title)}</h2>
             <p><span class="score-badge ${pct >= 80 ? '' : pct >= 50 ? 'mid' : 'low'}">${pct}%</span> right on the first try (${firstTry} of ${choices}) · +30 XP</p>
             <p class="muted">Play it again with “Pause after each line” and say every line of Alex out loud – that’s the best speaking practice.</p>
-            <div class="row" style="justify-content:center">${sc.jobDay && sc.jobDay < 15 ? `<a class="btn green" href="#/job/day/${sc.jobDay + 1}">▶ Next: Day ${sc.jobDay + 1}</a>` : ''}${sc.id === 'job-interview' ? '<a class="btn green" href="#/job/day/1">▶ Start Day 1 at work</a>' : ''}<a class="btn ghost" href="${sc.track ? '#/job' : '#/scenes'}">${sc.track ? 'Job German' : 'All scenes'}</a><button class="btn" id="scnAgain">🔁 Play again</button></div></div>`;
+            <div class="row" style="justify-content:center">${sc.jobDay && sc.jobDay < (sc.jobDays || 15) ? `<a class="btn green" href="${sc.jobBase}/day/${sc.jobDay + 1}">▶ Next: Day ${sc.jobDay + 1}</a>` : ''}${sc.jobInterview ? `<a class="btn green" href="${sc.jobBase}/day/1">▶ Start Day 1 at work</a>` : ''}<a class="btn ghost" href="${sc.track ? sc.jobBase || '#/job' : '#/scenes'}">${sc.track ? 'Job German' : 'All scenes'}</a><button class="btn" id="scnAgain">🔁 Play again</button></div></div>`;
           $('#scnAgain').onclick = () => { token++; choices = firstTry = 0; setScore(); log.innerHTML = ''; sceneIdx = 0; setupScene(0); phrasesPanel(0); };
         }
 
