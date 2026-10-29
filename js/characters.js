@@ -51,6 +51,11 @@
     tom: { name: 'Tom', role: 'Nurse on the ward', gender: 'm', pitch: 1.05, rate: 1.03, color: '#4361ee' },
     aydin: { name: 'Dr. Aydın', role: 'Ward doctor', gender: 'f', pitch: 1.0, rate: 0.98, color: '#577590' },
     jung: { name: 'Frau Jung', role: 'Speech therapist', gender: 'f', pitch: 1.1, rate: 0.98, color: '#9d4edd' },
+    krause: { name: 'Frau Krause', role: 'Head of the BI team', gender: 'f', pitch: 0.95, rate: 0.98, color: '#3a0ca3' },
+    elif: { name: 'Elif', role: 'BI developer – your buddy in the IT team', gender: 'f', pitch: 1.15, rate: 1.04, color: '#4cc9f0' },
+    ben: { name: 'Ben', role: 'IT support', gender: 'm', pitch: 1.05, rate: 1.06, color: '#06d6a0' },
+    koenig: { name: 'Herr König', role: 'Head of controlling', gender: 'm', pitch: 0.78, rate: 0.95, color: '#6c757d' },
+    roth: { name: 'Frau Roth', role: 'Branch manager', gender: 'f', pitch: 1.0, rate: 1.02, color: '#ef476f' },
   };
 
   /* Looks. eyes = iris colour. Accessories: glasses, cap, tie, scarf, beard, mustache, apron, coat, hood, blazer, badge, scrubs, vest, polo. */
@@ -100,6 +105,11 @@
     tom: { skin: '#c48b66', hair: '#1f1a17', hairStyle: 'short', shirt: '#4361ee', collar: '#2b44c2', scrubs: true, badge: true, eyes: '#3a2414' },
     aydin: { skin: '#d9a582', hair: '#24170f', hairStyle: 'long', shirt: '#ffffff', collar: '#577590', coat: true, badge: true, eyes: '#4a2c1a' },
     jung: { skin: '#f2cfb7', hair: '#6b3e2e', hairStyle: 'bob', shirt: '#9d4edd', collar: '#7b2cbf', scrubs: true, badge: true, glasses: true, eyes: '#3d7a3a' },
+    krause: { skin: '#f1cdb5', hair: '#3b2a20', hairStyle: 'bob', shirt: '#3a0ca3', collar: '#ffffff', blazer: true, glasses: true, eyes: '#4a2c1a' },
+    elif: { skin: '#d9a582', hair: '#1f1410', hairStyle: 'long', shirt: '#4cc9f0', collar: '#2a9fc4', hood: true, eyes: '#3a2414' },
+    ben: { skin: '#f3d3bd', hair: '#d8a05a', hairStyle: 'curly', shirt: '#06d6a0', collar: '#05a57b', hood: true, glasses: true, eyes: '#3b6fb6' },
+    koenig: { skin: '#eec7a8', hair: '#bdbdbd', hairStyle: 'side', shirt: '#ffffff', collar: '#6c757d', blazer: true, tie: '#1d3557', glasses: true, eyes: '#4b6b8a' },
+    roth: { skin: '#e9b896', hair: '#8c3b2a', hairStyle: 'ponytail', shirt: '#ef476f', collar: '#c9184a', blazer: true, badge: true, eyes: '#3d7a3a' },
   };
 
   /* ---------- colour helpers ---------- */

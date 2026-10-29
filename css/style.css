@@ -2276,9 +2276,11 @@ button.more-item { border: 2px solid var(--line); font: inherit; cursor: pointer
 @media (prefers-reduced-motion: reduce) { .tray-belt { animation: none; } }
 /* Job German – several job tracks: hub, tools, advert tabs, onboarding timeline, word quiz, mistakes */
 .job-hero.diet { background: radial-gradient(circle at 0% 0%, #90be6d 0, transparent 42%), radial-gradient(circle at 100% 100%, #e9c46a 0, transparent 45%), linear-gradient(135deg, #1b4332 0%, #2a9d8f 60%, #264653 100%); box-shadow: 0 16px 40px rgba(27, 67, 50, .3); }
+.job-hero.it { background: radial-gradient(circle at 0% 0%, #f72585 0, transparent 42%), radial-gradient(circle at 100% 100%, #4cc9f0 0, transparent 45%), linear-gradient(135deg, #10002b 0%, #3a0ca3 60%, #4361ee 100%); box-shadow: 0 16px 40px rgba(58, 12, 163, .3); }
 .job-hub { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
 .job-hub-card { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 6px; padding: 20px; border-radius: 24px; color: #fff; text-decoration: none; min-height: 250px; animation: tIn .4s ease-out backwards; transition: transform .2s;
   background: radial-gradient(circle at 0% 0%, #e76f51 0, transparent 42%), linear-gradient(135deg, #1f1f1f 0%, #3d405b 60%, #264653 100%); box-shadow: 0 12px 30px rgba(31, 31, 31, .25); }
+.job-hub-card.it { background: radial-gradient(circle at 0% 0%, #f72585 0, transparent 42%), linear-gradient(135deg, #10002b 0%, #3a0ca3 60%, #4361ee 100%); }
 .job-hub-card.diet { background: radial-gradient(circle at 0% 0%, #90be6d 0, transparent 42%), linear-gradient(135deg, #1b4332 0%, #2a9d8f 60%, #264653 100%); }
 .job-hub-card:hover { transform: translateY(-4px); }
 .job-hub-card b { font-size: 1.25rem; font-family: var(--display, Fredoka, sans-serif); max-width: 62%; } .job-hub-card > small { opacity: .9; max-width: 62%; }

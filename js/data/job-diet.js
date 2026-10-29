@@ -90,7 +90,9 @@
     /* ---------- the interview ---------- */
     interview: {
       intro: 'In a hospital interview you say “Sie” – always. Expect professional questions (diets, HACCP, counselling) and questions about teamwork. Short, clear sentences are better than long memorised texts. If you don’t know a technical word in German, explain it in simple words – that also shows good communication.',
-      call: [
+      who: 'hartmann',
+      sceneText: 'First you call the head of the kitchen, then the interview: they ask the typical questions',
+      extras: [{ icon: '📞', title: 'Calling before you apply', intro: 'The advert names a contact person. A short call with one or two good questions makes you stand out.', rows: [
         ['Guten Tag, mein Name ist … Ich interessiere mich für die Stelle als Diätassistent / Diätassistentin.', 'Hello, my name is … I am interested in the dietitian position.'],
         ['Ich hätte ein paar Fragen zur Stelle. Haben Sie kurz Zeit?', 'I have a few questions about the job. Do you have a moment?'],
         ['Ist die Stelle noch frei?', 'Is the position still open?'],
@@ -98,7 +100,7 @@
         ['Wie viele Wochenstunden sind das in Teilzeit?', 'How many hours a week is part-time?'],
         ['Wie sieht die Arbeit zwischen Küche und Ernährungsberatung aus?', 'How is the work split between kitchen and counselling?'],
         ['Vielen Dank für die Auskunft! Auf Wiederhören.', 'Thank you for the information! Goodbye. (on the phone)'],
-      ],
+      ] }],
       questions: [
         { q: 'Erzählen Sie uns bitte etwas über sich.', en: 'Please tell us something about yourself.',
           a: 'Mein Name ist …, ich komme aus … und lebe seit … in Osnabrück. Ich bin ausgebildete Diätassistentin und habe … Jahre in einem Krankenhaus gearbeitet. Ernährung und Kochen sind meine Leidenschaft.',

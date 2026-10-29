@@ -395,6 +395,31 @@
       ${floor('#dfe6dc', '#c6d1c2')}
       <rect x="250" y="232" width="320" height="16" rx="5" fill="#d7ccc8"/><rect x="270" y="248" width="12" height="56" fill="#8d6e63"/><rect x="540" y="248" width="12" height="56" fill="#8d6e63"/>${screen(450, 184)}
       <g><circle cx="300" cy="222" r="10" fill="#e63946"/><path d="M300 212 q4 -8 10 -6" stroke="#2a9d8f" stroke-width="3" fill="none"/><rect x="320" y="214" width="34" height="18" rx="4" fill="#ffd166"/><rect x="364" y="220" width="40" height="12" rx="3" fill="#fff" stroke="#adb5bd"/></g>`,
+    /* Job German – SQL developer (remote): home office, a video call, a BI dashboard wall and the sprint review */
+    homeoffice: () => `<rect width="800" height="300" fill="#eef0f7"/>
+      <rect x="40" y="36" width="190" height="150" fill="#bde0fe"/><path d="M60 186 V130 h36 v56 M110 186 V106 h44 v80 M170 186 V146 h40 v40" fill="#a9c4dc"/><circle cx="196" cy="70" r="16" fill="#fff3c4"/><rect x="40" y="36" width="190" height="150" fill="none" stroke="#fff" stroke-width="10"/><path d="M135 36 V186" stroke="#fff" stroke-width="6"/>
+      ${shelf(600, 36, 170, 3, ['#3a0ca3', '#4cc9f0', '#f72585', '#ffd166', '#06d6a0'])}
+      ${floor('#d9d2c5', '#c4bba9')}
+      <rect x="250" y="236" width="330" height="14" rx="5" fill="#8d6e63"/><rect x="266" y="250" width="12" height="54" fill="#6d4c41"/><rect x="552" y="250" width="12" height="54" fill="#6d4c41"/>
+      ${[[270, 'SELECT', '#4cc9f0'], [420, 'JOIN', '#06d6a0']].map(([x, kw, c]) => `<g><rect x="${x}" y="120" width="140" height="96" rx="6" fill="#1b1f2e"/><text x="${x + 10}" y="140" font-family="monospace" font-size="11" font-weight="700" fill="${c}">${kw}</text>${[0, 1, 2, 3, 4].map((k) => `<rect x="${x + 10 + (k % 2) * 12}" y="${148 + k * 12}" width="${50 + ((k * 37) % 60)}" height="5" rx="2" fill="${['#f72585', '#ffd166', '#a8dadc', '#4cc9f0', '#06d6a0'][k]}" opacity=".85"/>`).join('')}<rect x="${x + 64}" y="216" width="12" height="20" fill="#495057"/><rect class="blink" x="${x + 112}" y="196" width="7" height="12" fill="#fff"/></g>`).join('')}
+      <rect x="320" y="226" width="110" height="10" rx="3" fill="#ced4da"/><g><rect x="470" y="218" width="18" height="18" rx="3" fill="#fff"/><path d="M488 222 q8 2 0 10" fill="none" stroke="#fff" stroke-width="3"/>${'<path class="steam" d="M476 214 q6 -8 0 -16" stroke="#cfd8dc" stroke-width="2" fill="none"/>'}</g>
+      ${plant(700)}`,
+    videocall: () => `<rect width="800" height="300" fill="#e9ecf5"/>
+      <rect x="30" y="20" width="740" height="260" rx="14" fill="#1b1f2e"/><rect x="30" y="20" width="740" height="34" rx="14" fill="#262b40"/>
+      <circle cx="54" cy="37" r="6" fill="#ef476f"/><circle cx="74" cy="37" r="6" fill="#ffd166"/><circle cx="94" cy="37" r="6" fill="#06d6a0"/>
+      <text x="400" y="42" text-anchor="middle" font-family="Nunito, sans-serif" font-size="13" font-weight="800" fill="#cfd8dc">Videokonferenz · BI-Team</text>
+      <text class="blink" x="742" y="42" text-anchor="end" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#ef476f">● REC</text>
+      ${[[50, 70], [600, 70], [50, 170], [600, 170]].map(([x, y], i) => `<g><rect x="${x}" y="${y}" width="150" height="88" rx="8" fill="#2f3550"/><circle cx="${x + 75}" cy="${y + 36}" r="16" fill="${['#4cc9f0', '#f72585', '#ffd166', '#06d6a0'][i]}" opacity=".7"/><path d="M${x + 49} ${y + 80} q26 -30 52 0" fill="${['#4cc9f0', '#f72585', '#ffd166', '#06d6a0'][i]}" opacity=".5"/><rect x="${x + 6}" y="${y + 70}" width="44" height="12" rx="3" fill="#000" opacity=".4"/></g>`).join('')}
+      <g><rect x="320" y="240" width="160" height="32" rx="16" fill="#262b40"/>${[['🎤', 344], ['📷', 376], ['🖥️', 408]].map(([e, x]) => `<text x="${x}" y="262" text-anchor="middle" font-size="15">${e}</text>`).join('')}<rect x="430" y="246" width="38" height="20" rx="10" fill="#ef476f"/></g>
+      ${floor('#c9cfdc', '#aeb6c6')}`,
+    dashboard: () => `<rect width="800" height="300" fill="#eef1f8"/>
+      ${sign(300, 14, 200, 'BI-DASHBOARD', '#3a0ca3')}
+      <rect x="60" y="56" width="680" height="200" rx="10" fill="#fff" stroke="#c5cae9" stroke-width="4"/>
+      ${[['Umsatz', '4,2 Mio €', '#3a0ca3', '▲ 6 %'], ['Deckungsbeitrag', '1,1 Mio €', '#06d6a0', '▲ 3 %'], ['Aufträge', '1.284', '#f72585', '▼ 2 %']].map(([t, v, c, d], i) => `<g><rect x="${80 + i * 140}" y="72" width="126" height="62" rx="6" fill="${c}" opacity=".1"/><text x="${90 + i * 140}" y="92" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#555">${t}</text><text x="${90 + i * 140}" y="116" font-family="Fredoka, sans-serif" font-size="18" font-weight="600" fill="${c}">${v}</text><text x="${90 + i * 140}" y="129" font-family="Nunito, sans-serif" font-size="9" font-weight="800" fill="${d[0] === '▲' ? '#06a77d' : '#ef476f'}">${d} ggü. Vorjahr</text></g>`).join('')}
+      <g>${[0, 1, 2, 3, 4, 5].map((k) => `<rect class="grow" style="animation-delay:${k * 0.12}s" x="${92 + k * 60}" y="${236 - (30 + ((k * 23) % 60))}" width="34" height="${30 + ((k * 23) % 60)}" rx="3" fill="${k === 3 ? '#f72585' : '#4361ee'}"/>`).join('')}<path d="M80 236 H460" stroke="#adb5bd" stroke-width="2"/></g>
+      <g><text x="500" y="92" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#555">Niederlassungen</text><path class="beep" d="M500 220 L540 190 L580 200 L620 160 L660 170 L700 120" stroke="#3a0ca3" stroke-width="4" fill="none" stroke-linejoin="round"/>${[500, 540, 580, 620, 660, 700].map((x, k) => `<circle cx="${x}" cy="${[220, 190, 200, 160, 170, 120][k]}" r="4" fill="#f72585"/>`).join('')}<path d="M490 236 H720" stroke="#adb5bd" stroke-width="2"/></g>
+      ${floor('#cfd4e3', '#b4bacd')}`,
+    bireview: () => room('Sprint-Review', 'BI-Team · neues Dashboard', '#3a0ca3'),
     teamroom: () => room('Ernährungsteam', 'Fallbesprechung · Station 5', '#1d3557'),
     seminar: () => room('Herzgesund essen', 'Patientenschulung · Raum 2', '#2a9d8f'),
   });
