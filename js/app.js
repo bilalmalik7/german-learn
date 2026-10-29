@@ -68,7 +68,7 @@
     s.textContent = sv;
   };
   /* ---------- mobile: bottom tab bar with a "More" sheet ---------- */
-  const MORE_PAGES = ['scenes', 'talk', 'grammar', 'trainer', 'games', 'read', 'listen', 'life', 'rewards', 'daily', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
+  const MORE_PAGES = ['fast', 'scenes', 'talk', 'grammar', 'trainer', 'games', 'read', 'listen', 'life', 'rewards', 'daily', 'job', 'writing', 'review', 'sounds', 'plans', 'settings', 'profile', 'teacher', 'admin'];
   const TOP_LABELS = { admin: ['📊', 'Teacher portal'], teacher: ['📨', 'My teacher'], profile: ['👤', 'My account'], settings: ['⚙️', 'Settings'] };
   const moreBtn = $('#navMore'), sheet = $('#moreSheet'), backdrop = $('#moreBackdrop');
   function closeMore() {
@@ -159,6 +159,7 @@
         case 'myplan': html = GL.viewMyPlan(a); break;
         case 'rewards': html = GL.Game.viewRewards(); break;
         case 'daily': html = GL.viewDaily(); break;
+        case 'fast': html = GL.viewFast(a); break;
         case 'games': html = GL.viewGames(a); break;
         case 'read': html = GL.viewRead(a, b); break;
         case 'teacher': html = GL.viewTeacher(); break;
@@ -175,7 +176,7 @@
       html = { html: `<div class="card"><h2>Oops</h2><p>Something went wrong: ${esc(e.message)}</p><a class="btn" href="#/">Home</a></div>` };
     }
     app.innerHTML = `<div class="view">${html.html}</div>`;
-    { const T = { plan: '30-Day German Course', grammar: 'German Grammar A–Z', trainer: 'Vocabulary Trainer', review: 'Flashcards', read: 'German Reading Texts A1–B1', listen: 'German Listening Practice', writing: 'German Writing Practice', sounds: 'German Pronunciation', talk: 'German Speaking Practice', scenes: 'Real-life German Scenes', games: 'German Learning Games', daily: 'Daily Mix', exam: 'Goethe & telc Exam Prep A1–B1', myplan: 'My Study Plan', life: 'Living in Germany', job: 'Job German', rewards: 'Rewards', settings: 'Settings' };
+    { const T = { plan: '30-Day German Course', grammar: 'German Grammar A–Z', trainer: 'Vocabulary Trainer', review: 'Flashcards', read: 'German Reading Texts A1–B1', listen: 'German Listening Practice', writing: 'German Writing Practice', sounds: 'German Pronunciation', talk: 'German Speaking Practice', scenes: 'Real-life German Scenes', games: 'German Learning Games', daily: 'Daily Mix', fast: 'Speak German in 2 Minutes', exam: 'Goethe & telc Exam Prep A1–B1', myplan: 'My Study Plan', life: 'Living in Germany', job: 'Job German', rewards: 'Rewards', settings: 'Settings' };
       const h1 = $('h1', app); document.title = page === 'day' && h1 ? `${h1.textContent.trim()} – Day ${a} | Deutsch30` : T[page] ? `${T[page]} | Deutsch30` : 'Learn German Online Free: A1–B1 Course & Exam Prep | Deutsch30'; }
     window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     html.mount && html.mount();
@@ -289,6 +290,7 @@
           <a href="#/review/cards"><span class="t-ico">🃏</span><div><b>${Store.dueCards()} due</b><small>flashcards to review</small></div></a>
           <a href="#/review/mistakes"><span class="t-ico">❗</span><div><b>${Object.keys(st.mistakes || {}).length}</b><small>mistakes to fix</small></div></a>
           <a href="#/trainer"><span class="t-ico">🏋️</span><div><b>Trainer</b><small>verbs · cases · endings</small></div></a>
+          <a href="#/fast"><span class="t-ico">⏱️</span><div><b>2-min sprint · ${GL.Fast.doneCount()}/${GL.fast.length}</b><small>speak everyday German</small></div></a>
           <a href="#/talk"><span class="t-ico">🎤</span><div><b>Speak · ${GL.Speak.today()}/${GL.Speak.GOAL}</b><small>10-minute speaking workout</small></div></a>
           <a href="#/scenes"><span class="t-ico">🎬</span><div><b>Real life</b><small>${GL.scenarios.filter((x) => !x.track).length} scenes: airport, doctor, bank …</small></div></a>
           <a href="#/games"><span class="t-ico">🎮</span><div><b>Games</b><small>Der·Die·Das Dash, Wortle …</small></div></a>
