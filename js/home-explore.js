@@ -8,12 +8,13 @@
   const GOALS = [
     ['🌱', 'Start from zero', 'Your first lesson – 10 min', '#/day/1', 'g1'],
     ['🎓', 'Pass my exam', 'Goethe & telc A1 → B1', '#/exam', 'g2'],
-    ['🗣️', 'Speak German', 'Talk with characters', '#/talk', 'g3'],
+    ['🗣️', 'Speak German fast', '2-minute everyday sprints', '#/fast', 'g3'],
     ['🇩🇪', 'Move to Germany', 'Anmeldung, doctor, flat', '#/life', 'g4'],
     ['💼', 'Work in Germany', 'German for your job', '#/job', 'g5'],
     ['🧭', 'Get my plan', 'Fitted to your exam date', '#/myplan', 'g6'],
   ];
   const RAIL = [
+    ['⏱️', 'Speak in 2 minutes', 'Everyday German sprints', '#/fast', '#7b2d43', 'NEW'],
     ['🟩', 'Wortle', 'Guess today’s German word', '#/games/wortle', '#22b573', 'NEW'],
     ['🎬', 'Real-life scenes', 'Airport, doctor, Bürgeramt', '#/scenes', '#3a86ff', ''],
     ['🎯', 'Der·Die·Das Dash', '60-second article game', '#/games/dash', '#e5386d', 'HOT'],

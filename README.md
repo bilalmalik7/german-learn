@@ -7,6 +7,7 @@ An animated, beginner-friendly website that takes you from your first „Hallo�
 | | |
 |---|---|
 | 🗺️ **30-day plan** | 4 weeks (A1.1 → A1.2 → A2 → B1 structures). Each day unlocks after the previous one, with a timed study plan of about 2 h 45 min. |
+| ⏱️ **Speak in 2 minutes** | A fast track for absolute beginners who want to *speak* everyday German: 12 two-minute sprints in the order you need them in real life (hello, introduce yourself, “I don’t understand”, ordering, shopping, directions, numbers & time, polite requests, doctor & 112, small talk, yesterday, making plans). Every sprint: 👂 hear the 5 key phrases with a “sounds like” guide → 🧩 build sentences from one pattern (*Ich möchte ___*) → 🗣️ say them into the mic with word-by-word scoring → 🎧 understand real answers by ear → 💬 a mini role-play with an animated character. A 2-minute timer, a progress path and a mixed 2-minute review. |
 | 📚 **Vocabulary** | 790 words with article colour code (der / die / das), plurals, irregular verb forms, example sentences and audio. |
 | 📘 **Grammar A–Z** | 62 topics with rules, tables, audio examples, tips and common mistakes – from personal pronouns to Konjunktiv I. Searchable, filterable by level. |
 | 🎬 **Animated dialogues** | Bruno the Berlin bear plus 37 illustrated people who breathe, blink, look at whoever is speaking, change expression (smile, worry, curiosity) and lip-sync with mouth shapes that follow the audio. 33 lesson scenes. Role-play mode: you speak one character’s lines. |
