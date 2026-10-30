@@ -8,8 +8,14 @@
 
   const job = (GL.job = {
     id: 'sales',
+    base: '#/job/sales',
+    icon: '🛍️',
     title: 'Sales Advisor im Modegeschäft',
     en: 'Sales Advisor in a fashion store',
+    short: 'Sales Advisor',
+    place: 'Osnabrück · part-time',
+    heroChars: ['lisa', 'alex'],
+    you: 'You are Alex, the new Sales Advisor. Listen, choose the right sentence – and say it out loud.',
     store: 'Modehaus am Neumarkt, Osnabrück',
     /* facts from the job advert – shown on the overview page */
     advert: {
@@ -114,11 +120,11 @@
   });
 
   /* ---------- the scenes ---------- */
-  const S = (o) => Object.assign({ track: 'job', level: 'A1', minutes: 7 }, o);
+  const S = (o) => Object.assign({ track: 'job', job: 'sales', jobBase: '#/job/sales', jobDays: 15, level: 'A1', minutes: 7 }, o);
   GL.scenarios = GL.scenarios || [];
 
   const interviewScene = S({
-    id: 'job-interview', icon: '🤝', title: 'Das Kennenlerngespräch', en: 'The job interview', level: 'A2', minutes: 8,
+    id: 'job-interview', icon: '🤝', title: 'Das Kennenlerngespräch', en: 'The job interview', level: 'A2', minutes: 8, jobInterview: true,
     intro: ['Du hast dich online beworben und das Online-Assessment gemacht. Heute ist dein Kennenlerngespräch im Store.', 'You applied online and did the online assessment. Today is your interview in the store.'],
     scenes: [{
       title: 'Im Büro der Store Managerin', en: 'In the store manager’s office', bg: 'interview', cast: ['alex', 'meier'],
@@ -507,4 +513,6 @@
   });
   GL.scenarios.push(interviewScene);
   job.interview.scene = interviewScene.id;
+  GL.jobs = GL.jobs || [];
+  GL.jobs.push(job);
 })();
